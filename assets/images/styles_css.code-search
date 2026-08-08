@@ -1,0 +1,23 @@
+# Query: styles.css
+
+4 results - 4 files
+
+index.html:
+  6    <title>AniMaker</title>
+  7:   <link rel="stylesheet" href="css/styles.css">
+  8    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+pages\home.html:
+  6    <title>AniMaker</title>
+  7:   <link rel="stylesheet" href="../css/styles.css">
+  8    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+pages\login.html:
+  6      <title>Login - Animaker</title>
+  7:     <link rel="stylesheet" href="../css/styles.css">
+  8      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+pages\signup.html:
+  6      <title>Sign Up - Animaker</title>
+  7:     <link rel="stylesheet" href="../css/styles.css">
+  8      <link
