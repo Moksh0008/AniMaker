@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maker's Section</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Reset and body */
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #2c003e, #4b0082);
+      color: white;
+      display: flex;
+    }
+
+    /* Main content */
+    .main-content { flex: 1; position: relative; min-height: 100vh; }
+    .page-heading {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
+      font-weight: 600;
+      margin: 0;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    /* Top Right User Section */
+    .top-right {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 18px;
+      font-weight: 500;
+      color: #f1e4ff;
+      background: rgba(255,255,255,0.05);
+      padding: 6px 14px;
+      border-radius: 30px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .profile-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #8a2be2;
+      object-fit: cover;
+      box-shadow: 0 0 8px rgba(138,43,226,0.8);
+    }
+
+    /* Search bar */
+    .search-container {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      max-width: 500px;
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 50px;
+      padding: 8px 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .search-container input.search-box {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      padding: 8px 12px;
+      border-radius: 50px;
+    }
+    .search-container .search-icon { color: #fff; font-size: 18px; margin-left: 8px; }
+
+    .main-content {
+      padding: 120px 20px 90px 20px;
+    }
+
+    .gallery-container {
+      padding: 0;
+      margin: 0 auto;
+    }
+
+    /* Masonry layout - Pinterest style */
+    .masonry {
+      column-count: 4;
+      column-gap: 18px;
+    }
+
+    @media (max-width: 1200px) { .masonry { column-count: 3; } }
+    @media (max-width: 900px) { .masonry { column-count: 2; } }
+    @media (max-width: 540px) { .masonry { column-count: 1; } }
+    @media (max-width: 240px) { .masonry { column-count: 1; } }
+
+    /* Each Pin */
+    .pin {
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 18px;
+      break-inside: avoid;
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pin img {
+      width: 100%;
+      display: block;
+      border-radius: 14px;
+      transition: transform 0.3s ease;
+    }
+
+    .pin:hover img {
+      transform: scale(1.08);
+    }
+
+    .pin:hover {
+      box-shadow: 0 15px 25px rgba(138,43,226,0.5);
+    }
+
+    /* Overlay Text */
+    .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0));
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 10px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .pin:hover .overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Back Button */
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 90px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 6px 6px 12px rgba(0,0,0,0.3), -3px -3px 7px rgba(255,255,255,0.1);
+      transition: transform 0.25s ease, background 0.3s ease, box-shadow 0.3s ease;
+      z-index: 1200;
+    }
+    .back-button:hover {
+      background: linear-gradient(145deg, #ff6ec4, #8a2be2);
+      transform: translateY(-4px) scale(1.15) rotate(-8deg);
+      box-shadow: 0px 12px 25px rgba(0,0,0,0.6), 0px 0px 25px rgba(255,105,180,0.8);
+    }
+
+    /* Floating Chat Button */
+    .chat-button {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
+      color: #fff;
+      border: none;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0px 8px 20px rgba(0,0,0,0.4), 0px 0px 30px rgba(138,43,226,0.9);
+      transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+      z-index: 1100;
+    }
+    .chat-button:hover {
+      background: linear-gradient(145deg, #ff6ec4, #8a2be2);
+      transform: translateY(-6px) scale(1.15);
+      box-shadow: 0px 12px 30px rgba(0,0,0,0.6), 0px 0px 40px rgba(255,105,180,0.9);
+    }
+
+    /* Chat Container */
+    .chat-container {
+      width: 360px;
+      height: 520px;
+      border-radius: 18px;
+      background: rgba(30, 0, 50, 0.95);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(138, 43, 226, 0.6);
+      box-shadow: 0px 0px 25px rgba(138, 43, 226, 0.9);
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      bottom: 100px;
+      right: 25px;
+      overflow: hidden;
+      animation: fadeUp 0.4s ease;
+      z-index: 1200;
+    }
+    @keyframes fadeUp { from { transform: translateY(40px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+    .chat-header { background: linear-gradient(145deg, #8a2be2, #6a1bbd); color: #fff; text-align: center; padding: 12px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+    .close-chat { cursor: pointer; font-size: 20px; transition: transform 0.3s ease; }
+    .close-chat:hover { transform: rotate(90deg) scale(1.2); }
+    .chat-box { flex: 1; overflow-y: auto; padding: 12px; background: rgba(255,255,255,0.05); }
+    .chat-box .message { margin: 8px 0; padding: 10px 14px; border-radius: 12px; background: linear-gradient(145deg, #3d1c57, #5e2a85); color: #fff; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .chat-box .sender { display: block; font-weight: bold; margin-bottom: 4px; color: #ff6ec4; }
+    .chat-input { padding: 12px; background: rgba(255,255,255,0.05); border-top: 2px solid rgba(138,43,226,0.5); display: flex; flex-direction: column; gap: 8px; }
+    .chat-input input[type="text"] { padding: 10px; border: 2px solid #8a2be2; border-radius: 5px; background: #2f2f3f; color: #fff; }
+    .chat-input button { padding: 10px; border: none; border-radius: 5px; background: #8a2be2; color: #000; font-weight: bold; cursor: pointer; }
+    .chat-input button:hover { background: #a0a0a0; }
+
+    /* Video Popup */
+    #video-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 1300;
+    }
+    #video-popup video { max-width: 80%; max-height: 80%; border-radius: 12px; }
+    #video-popup .close-btn {
+      position: absolute; top: 20px; right: 20px;
+      background: #8a2be2; color: #fff; border: none;
+      font-size: 24px; border-radius: 50%; width: 45px; height: 45px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="top-right">
+      <span>User</span>
+      <img src="../assets/images/profile-pic.png" alt="Profile" class="profile-icon">
+    </div>
+
+    <div class="page-heading">Maker's Section</div>
+
+    <!-- Back Button -->
+    <button class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+
+    <!-- Search -->
+    <div class="search-container">
+      <input type="text" class="search-box" placeholder="Search creations...">
+      <i class="fas fa-search search-icon"></i>
+    </div>
+
+   <!-- Gallery -->
+<div class="gallery-container">
+  <div class="masonry">
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-1.mp4')">
+      <img src="../assets/images/maker/maker-pic-1.jpg" alt="Image 1">
+      <div class="overlay">Naruto vs Luffy</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-2.mp4')">
+      <img src="../assets/images/maker/maker-pic-2.jpg" alt="Image 2">
+      <div class="overlay">Toji vs Hatake</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-3.mp4')">
+      <img src="../assets/images/maker/maker-pic-3.jpg" alt="Image 3">
+      <div class="overlay">Sasuke vs Aizen</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-4.mp4')">
+      <img src="../assets/images/maker/maker-pic-4.jpg" alt="Image 4">
+      <div class="overlay">Goku vs Gojo</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-5.mp4')">
+      <img src="../assets/images/maker/maker-pic-5.jpg" alt="Image 5">
+      <div class="overlay">Clash between Naruto and Bleach</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-6.mp4')">
+      <img src="../assets/images/maker/maker-pic-6.jpg" alt="Image 6">
+      <div class="overlay">Goku joins Akatsuki</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-7.mp4')">
+      <img src="../assets/images/maker/maker-pic-7.jpg" alt="Image 7">
+      <div class="overlay">Kamado vs Muzan</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-8.mp4')">
+      <img src="../assets/images/maker/maker-pic-8.jpg" alt="Image 8">
+      <div class="overlay">Gojo vs Kakashi</div>
+    </div>
+
+    <div class="pin" onclick="openVideo('../assets/videos/animation-9.mp4')">
+      <img src="../assets/images/maker/maker-pic-9.jpg" alt="Image 9">
+      <div class="overlay">Goku vs Naruto</div>
+    </div>
+
+    <div class="pin" onclick="triggerUpload()">
+      <img src="../assets/images/upload.jpg" alt="Upload">
+      <div class="overlay">Upload</div>
+    </div>
+
+  </div>
+</div>
+
+      <!-- Video Modal -->
+<div id="videoModal" class="video-modal">
+  <span class="close" onclick="closeVideo()">&times;</span>
+  <video id="videoPlayer" controls>
+    <source id="videoSource" src="" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+</div>
+
+<script>
+function openVideo(videoFile) {
+  const modal = document.getElementById("videoModal");
+  const videoPlayer = document.getElementById("videoPlayer");
+  const videoSource = document.getElementById("videoSource");
+
+  videoSource.src = videoFile;
+  videoPlayer.load();
+  videoPlayer.play();
+  modal.style.display = "flex";
+}
+
+function closeVideo() {
+  const modal = document.getElementById("videoModal");
+  const videoPlayer = document.getElementById("videoPlayer");
+
+  videoPlayer.pause();
+  modal.style.display = "none";
+}
+</script>
+
+<style>
+/* Video Modal */
+.video-modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  justify-content: center;
+  align-items: center;
+}
+
+.video-modal video {
+  max-width: 80%;
+  max-height: 80%;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.8);
+}
+
+.video-modal .close {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  font-size: 40px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+}
+</style>
+
+
+    <!-- Video Popup -->
+    <div id="video-popup">
+      <video id="popup-video" controls></video>
+      <button class="close-btn" onclick="closeVideo()">×</button>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <button class="chat-button" onclick="toggleChat()"><i class="fas fa-comments"></i></button>
+
+    <!-- Sidebar -->
+<div class="sidebar">
+  <!-- Logo Section -->
+  <div class="logo">
+    <a href="../page/home.html">
+      <img src="../assets/images/logo.png" alt="Animaker Logo" class="logo-img">
+    </a>
+  </div>
+
+  <div class="top-icons">
+    <a href="../page/home.html" title="Home"><i class="fas fa-home"></i></a>
+    <a href="#" title="Notifications"><i class="fas fa-bell"></i></a>
+    <a href="#" title="Messages"><i class="fas fa-comment-dots"></i></a>
+  </div>
+  <div class="bottom-icons">
+    <a href="#" title="Settings"><i class="fas fa-cog"></i></a>
+  </div>
+</div>
+
+
+    <!-- Chat Window -->
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-header">
+        <i class="fas fa-robot"></i> Animaker's Chat
+        <span class="close-chat" onclick="toggleChat()">&times;</span>
+      </div>
+      <div class="chat-box" id="chatBox"></div>
+      <div class="chat-input">
+        <input type="text" id="receiver" placeholder="Receiver Username">
+        <div class="message-row">
+          <input type="text" id="message" placeholder="Type your message">
+          <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileUpload" style="display:none" accept="image/*" onchange="previewUpload(event)">
+  </div>
+
+  <script>
+    function toggleChat() {
+      const chatContainer = document.getElementById('chatContainer');
+      chatContainer.style.display =
+        chatContainer.style.display === 'none' || chatContainer.style.display === ''
+          ? 'flex'
+          : 'none';
+    }
+
+    function sendMessage() {
+      const chatBox = document.getElementById('chatBox');
+      const username = document.getElementById('username').value;
+      const receiver = document.getElementById('receiver').value;
+      const message = document.getElementById('message').value;
+
+      if (username && receiver && message) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.innerHTML = `<span class="sender">${username} to ${receiver}:</span> ${message}`;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById('message').value = '';
+      } else {
+        alert('Please enter your username, receiver username, and message.');
+      }
+    }
+
+    function triggerUpload() {
+      document.getElementById("fileUpload").click();
+    }
+
+    function previewUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const gallery = document.querySelector(".gallery");
+          const newItem = document.createElement("div");
+          newItem.classList.add("image-item");
+          newItem.innerHTML = `
+            <a href="${e.target.result}" target="_blank">
+              <img src="${e.target.result}" alt="Uploaded Image">
+            </a>
+            <div class="overlay">${file.name}</div>
+          `;
+          const uploadItem = gallery.lastElementChild;
+          gallery.insertBefore(newItem, uploadItem);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function goBack() {
+    window.location.href = "home.html";
+}
+  </script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pinterest-style Gallery</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    background: #2c003e;
+    color: white;
+  }
+
+  .gallery-container {
+    padding: 80px 20px;
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  .masonry {
+    column-count: 4;
+    column-gap: 18px;
+  }
+
+  @media (max-width: 1200px) { .masonry { column-count: 3; } }
+  @media (max-width: 900px) { .masonry { column-count: 2; } }
+  @media (max-width: 540px) { .masonry { column-count: 1; } }
+
+  .pin {
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 18px;
+    break-inside: avoid;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .pin img {
+    width: 100%;
+    display: block;
+    border-radius: 14px;
+    transition: transform 0.3s ease;
+  }
+
+  .pin:hover img { transform: scale(1.08); }
+  .pin:hover { box-shadow: 0 15px 25px rgba(138,43,226,0.5); }
+
+  .overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0));
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(30%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .pin:hover .overlay { opacity: 1; transform: translateY(0); }
+
+</style>
+</head>
+<body>
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sidebar - AniMaker</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+/* Reset & Body */
+body {
+  margin-left: 80px; /* space for sidebar */
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(180deg, #1a002b, #4b0082);
+  color: #fff;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 80px;
+  background: linear-gradient(180deg, #1a002b, #4b0082);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 6px 0 20px rgba(0,0,0,0.5);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  transition: width 0.3s ease;
+}
+
+.sidebar:hover {
+  width: 100px;
+}
+
+.sidebar .top-icons,
+.sidebar .bottom-icons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Sidebar Logo */
+.sidebar .logo {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar .logo img {
+  width: 50px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease;
+}
+
+.sidebar .logo img:hover {
+  transform: scale(1.15) rotate(5deg);
+}
+
+/* Sidebar Links */
+.sidebar a {
+  color: #fff;
+  font-size: 22px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  margin: 8px 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: all 0.25s ease;
+}
+
+.sidebar a:hover {
+  background: linear-gradient(145deg, #8a2be2, #ff6ec4);
+  transform: scale(1.2) rotate(10deg);
+  box-shadow: 0 8px 20px rgba(138,43,226,0.7);
+  color: #fff;
+}
+
+/* Main Content */
+.content {
+  padding: 30px;
+}
+
+/* Settings Menu */
+.settings-menu {
+  position: fixed;
+  bottom: 90px;
+  left: 10px;
+  width: 280px;
+  max-height: 400px;
+  background: linear-gradient(180deg, #2b003d, #5a00b8);
+  color: #fff;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  overflow-y: auto;
+  display: none;
+  z-index: 2000;
+  backdrop-filter: blur(10px);
+}
+
+.settings-menu .settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.settings-menu .settings-header span {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.settings-menu h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.settings-menu h4 {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 5px;
+}
+
+.settings-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 15px 0;
+}
+
+.settings-menu ul li {
+  padding: 6px 0;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.settings-menu ul li:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Messages Menu */
+.messages-menu {
+  position: fixed;
+  bottom: 150px; /* adjust vertical position */
+  left: 90px; /* beside sidebar */
+  width: 250px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  display: none;
+  z-index: 2000;
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.messages-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.messages-header span {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.messages-menu h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.no-messages {
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">
+    <img src="../assets/images/logo.png" alt="Animaker Logo" class="logo-img">
+  </div>
+
+  <div class="top-icons">
+    <a href="home.html" title="Home"><i class="fas fa-home"></i></a>
+    <a href="#" title="Notifications"><i class="fas fa-bell"></i></a>
+    <a href="#" id="messagesIcon" title="Messages"><i class="fas fa-comment-dots"></i></a>
+  </div>
+
+  <div class="bottom-icons">
+    <a href="#" id="settingsIcon" title="Settings"><i class="fas fa-cog"></i></a>
+  </div>
+</div>
+
+<!-- Settings Menu -->
+<div class="settings-menu" id="settingsMenu">
+  <div class="settings-header">
+    <span id="closeSettings">x</span>
+    <h3>Settings & Support</h3>
+  </div>
+  <div class="settings-section">
+    <h4>Settings</h4>
+    <ul>
+      <li>Home feed tuner</li>
+      <li>Claimed external accounts</li>
+      <li>Reports and violations center</li>
+      <li>Install the Windows app</li>
+      <li>Be a beta tester</li>
+    </ul>
+  </div>
+  <div class="settings-section">
+    <h4>Support</h4>
+    <ul>
+      <li>Help center</li>
+      <li>Create widget</li>
+      <li>Removals</li>
+      <li>Personalized Ads</li>
+      <li>Your privacy rights</li>
+      <li>Privacy policy</li>
+      <li>Terms of service</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Messages Menu -->
+<div class="messages-menu" id="messagesMenu">
+  <div class="messages-header">
+    <span id="closeMessages">x</span>
+    <h3>New Messages</h3>
+  </div>
+  <p class="no-messages">No new messages</p>
+</div>
+
+
+<script>
+  // Settings
+  const settingsIcon = document.getElementById('settingsIcon');
+  const settingsMenu = document.getElementById('settingsMenu');
+  const closeSettingsBtn = document.getElementById('closeSettings');
+
+  settingsIcon.addEventListener('click', (e) => {
+    e.preventDefault();
+    settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+    messagesMenu.style.display = 'none'; // hide messages if open
+  });
+
+  closeSettingsBtn.addEventListener('click', () => {
+    settingsMenu.style.display = 'none';
+  });
+
+  // Messages
+  const messagesIcon = document.getElementById('messagesIcon');
+  const messagesMenu = document.getElementById('messagesMenu');
+  const closeMessagesBtn = document.getElementById('closeMessages');
+
+  messagesIcon.addEventListener('click', (e) => {
+    e.preventDefault();
+    messagesMenu.style.display = messagesMenu.style.display === 'block' ? 'none' : 'block';
+    settingsMenu.style.display = 'none'; // hide settings if open
+  });
+
+  closeMessagesBtn.addEventListener('click', () => {
+    messagesMenu.style.display = 'none';
+  });
+
+  // Close when clicking outside
+  window.addEventListener('click', (e) => {
+    if (!settingsMenu.contains(e.target) && !settingsIcon.contains(e.target)) {
+      settingsMenu.style.display = 'none';
+    }
+    if (!messagesMenu.contains(e.target) && !messagesIcon.contains(e.target)) {
+      messagesMenu.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

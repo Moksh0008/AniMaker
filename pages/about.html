@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AniMaker | About Us</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Reset & Body */
+* {margin:0; padding:0; box-sizing:border-box;}
+body {
+  margin-left: 80px;
+  font-family: 'Montserrat', sans-serif;
+  line-height:1.6;
+  color:#e0d0ff;
+  background: linear-gradient(135deg, #2b003d, #4b0082, #6a00b3);
+  background-attachment: fixed;
+  overflow-x:hidden;
+  position: relative;
+}
+
+/* Floating magical orbs */
+body::before, body::after {
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  filter: blur(180px);
+  animation: floatOrb 15s infinite alternate;
+}
+body::before { width:800px; height:800px; background:rgba(255,255,255,0.06); top:-250px; left:-350px; }
+body::after { width:600px; height:600px; background:rgba(255,255,255,0.08); bottom:-200px; right:-250px; }
+
+@keyframes floatOrb {
+  0% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-50px) translateX(40px); }
+  100% { transform: translateY(0) translateX(0); }
+}
+
+/* Sidebar */
+.sidebar {
+  width:80px;
+  background: linear-gradient(180deg,#1a002b,#4b0082);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  padding:20px 0;
+  height:100vh;
+  position:fixed;
+  left:0;
+  top:0;
+  z-index:1000;
+  box-shadow:6px 0 20px rgba(0,0,0,0.5);
+  border-right:1px solid rgba(255,255,255,0.1);
+  backdrop-filter:blur(10px);
+  transition:width 0.3s ease, background 0.5s ease;
+}
+.sidebar:hover { width:120px; background: linear-gradient(180deg,#2b003d,#6a00b3); }
+.sidebar .logo img { width:50px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.5); transition: all 0.5s ease; }
+.sidebar .logo img:hover { transform: rotate(10deg) scale(1.2); }
+.sidebar a {
+  color:#fff; font-size:22px; text-decoration:none;
+  display:flex; align-items:center; justify-content:center;
+  width:50px; height:50px; margin:12px 0; border-radius:50%;
+  background: rgba(255,255,255,0.05); box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  transition: all 0.4s ease;
+}
+.sidebar a:hover {
+  background: linear-gradient(145deg,#9b59b6,#8a2be2);
+  transform: rotate(15deg) scale(1.25);
+  box-shadow:0 10px 25px rgba(138,43,226,0.7);
+}
+
+/* Top bar */
+.top-bar {
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:15px 5%;
+  background: rgba(75,0,130,0.85);
+  position:sticky;
+  top:0;
+  z-index:900;
+  backdrop-filter: blur(10px);
+}
+.top-bar .username { font-weight:700; font-size:18px; color:#ffffff; }
+
+/* Sections */
+section {
+  padding:80px 5%;
+  opacity:0;
+  transform: translateY(50px);
+  transition: all 0.8s ease-out;
+}
+section.visible { opacity:1; transform: translateY(0); }
+
+h2 {
+    text-align: center;
+    font-size: 2.4rem;
+    margin-bottom: 40px;
+
+    background: linear-gradient(45deg, #ffffff, #cfcfcf, #b399ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    text-shadow: 0 0 10px rgba(179, 153, 255, 0.5);
+}
+
+/* Q&A Cards */
+.qa-box {
+  max-width:900px;
+  margin:25px auto;
+  background: rgba(255,255,255,0.05);
+  padding:25px 30px;
+  border-radius:20px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.2);
+  transition:transform 0.4s ease;
+}
+.qa-box:hover { transform: translateY(-8px) scale(1.02); }
+.qa-question {
+  font-size:1.3rem;
+  font-weight:700;
+  color:#ffffff;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+}
+.qa-question i { margin-right:10px; color:#b399ff; }
+.qa-answer {
+  font-size:1.05rem;
+  color:#e0d0ff;
+  line-height:1.6;
+}
+
+/* Responsive */
+@media(max-width:768px) { section{padding:50px 5%;} h2{font-size:2rem;} }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo"><img src="../assets/images/logo.png" alt="AniMaker Logo"></div>
+  <div class="top-icons">
+    <a href="home.html" title="Home"><i class="fas fa-home"></i></a>
+    <a href="#" title="Notifications"><i class="fas fa-bell"></i></a>
+    <a href="#" id="messagesIcon" title="Messages"><i class="fas fa-comment-dots"></i></a>
+  </div>
+  <div class="bottom-icons">
+    <a href="#" id="settingsIcon" title="Settings"><i class="fas fa-cog"></i></a>
+  </div>
+</div>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div class="username">User</div>
+</div>
+
+<!-- About Section -->
+<section id="about">
+  <h2>About AniMaker</h2>
+
+  <div class="qa-box">
+    <div class="qa-question"><i class="fas fa-question-circle"></i> What is AniMaker?</div>
+    <div class="qa-answer">AniMaker is a collaborative home for writers, artists, and animators — helping them bridge imagination to execution. It’s built for anyone who dreams of turning ideas into animations.</div>
+  </div>
+
+  <div class="qa-box">
+    <div class="qa-question"><i class="fas fa-question-circle"></i> Why does it exist?</div>
+    <div class="qa-answer">Because animation tools are everywhere, but the journey from a spark to a finished project is still tough. Most creators get stuck on character design, storytelling, or animating itself. AniMaker makes the path easier.</div>
+  </div>
+
+  <div class="qa-box">
+    <div class="qa-question"><i class="fas fa-question-circle"></i> What do we offer?</div>
+    <div class="qa-answer">
+      <ul>
+        <li><b>Character Creation:</b> Bring your characters to life without needing elite drawing skills.</li>
+        <li><b>Storytelling Collaboration:</b> Share ideas, get feedback, and refine scripts together.</li>
+        <li><b>Animation Tools & Tutorials:</b> Learn step-by-step, from basics to advanced.</li>
+        <li><b>Showcase & Community:</b> Publish your work, connect with peers, and grow together.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="qa-box">
+    <div class="qa-question"><i class="fas fa-question-circle"></i> Our Vision?</div>
+    <div class="qa-answer">To empower aspiring animators with tools, community, and visibility — so anyone can turn ideas into moving stories. <b>Join AniMaker and animate out of the box!</b></div>
+  </div>
+
+</section>
+
+<script>
+// Fade-in sections
+const sections = document.querySelectorAll('section');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting) entry.target.classList.add('visible');
+  });
+},{threshold:0.2});
+sections.forEach(section => observer.observe(section));
+</script>
+
+</body>
+</html>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Back Button</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 90px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 6px 6px 12px rgba(0,0,0,0.3),
+                  -3px -3px 7px rgba(255,255,255,0.1);
+      transition: transform 0.25s ease, background 0.3s ease, box-shadow 0.3s ease;
+      z-index: 1200;
+    }
+    .back-button:hover { 
+      background: linear-gradient(145deg, #ff6ec4, #8a2be2); 
+      transform: translateY(-4px) scale(1.15) rotate(-8deg); 
+      box-shadow: 0px 12px 25px rgba(0,0,0,0.6),
+                  0px 0px 25px rgba(255,105,180,0.8);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back Button -->
+  <button id="backButton" class="back-button">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('backButton').addEventListener('click', function() {
+        window.location.href = 'home.html'; // 🔹 Change this to your target page
+      });
+    });
+  </script>
+
+</body>
+</html>
