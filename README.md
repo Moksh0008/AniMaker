@@ -56,9 +56,9 @@ AniMaker provides a collaborative platform to overcome these challenges and help
 ```
 AniMaker/
 │── index.html
+│── pages/
 │── css/
 │── js/
-│── images/
 │── assets/
 └── README.md
 ```
