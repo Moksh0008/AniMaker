@@ -642,3 +642,106 @@ body {
 </body>
 </html>
 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  </style>
+</head>
+<body>
+
+ 
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo"><img src="../assets/images/logo.png" alt="AniMaker Logo"> AniMaker</div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a>User</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <h1>Welcome to Animaker</h1>
+      <h4><marquee>Animate out of the box</marquee></h4>
+      <br>
+      <a href="#about"><button class="cta-button">Start Creating</button></a>
+    </div>
+  </section>
+
+  <!-- Inspiration Section -->
+  <section id="inspiration">
+    <h2>Ignite Your Creative Spark</h2>
+    <p>"Artists often hit a creative wall, feeling stuck and uninspired. They crave a fresh spark to ignite their imagination and bring new characters to life."</p>
+  </section>
+
+  <!-- About Section -->
+  <section id="about">
+    <h2>About Us</h2>
+    <h3>We are passionate about making you create stunning animations that tell your story in the most engaging way possible.</h3>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 Animaker. All rights reserved.</p>
+  </footer>
+
+  <!-- Settings Menu -->
+  <div class="settings-menu" id="settingsMenu">
+    <div class="settings-header">
+      <span id="closeSettings">x</span>
+      <h3>Settings & Support</h3>
+    </div>
+    <ul>
+      <li>Help Center</li>
+      <li>Privacy Policy</li>
+      <li>Terms of Service</li>
+    </ul>
+  </div>
+
+  <!-- Messages Menu -->
+  <div class="messages-menu" id="messagesMenu">
+    <div class="messages-header">
+      <span id="closeMessages">x</span>
+      <h3>New Messages</h3>
+    </div>
+    <p>No new messages</p>
+  </div>
+
+  <script>
+    const settingsIcon = document.getElementById('settingsIcon');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const closeSettingsBtn = document.getElementById('closeSettings');
+
+    settingsIcon.addEventListener('click', (e) => {
+      e.preventDefault();
+      settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+      messagesMenu.style.display = 'none';
+    });
+    closeSettingsBtn.addEventListener('click', () => settingsMenu.style.display = 'none');
+
+    const messagesIcon = document.getElementById('messagesIcon');
+    const messagesMenu = document.getElementById('messagesMenu');
+    const closeMessagesBtn = document.getElementById('closeMessages');
+
+    messagesIcon.addEventListener('click', (e) => {
+      e.preventDefault();
+      messagesMenu.style.display = messagesMenu.style.display === 'block' ? 'none' : 'block';
+      settingsMenu.style.display = 'none';
+    });
+    closeMessagesBtn.addEventListener('click', () => messagesMenu.style.display = 'none');
+
+    window.addEventListener('click', (e) => {
+      if (!settingsMenu.contains(e.target) && !settingsIcon.contains(e.target)) settingsMenu.style.display = 'none';
+      if (!messagesMenu.contains(e.target) && !messagesIcon.contains(e.target)) messagesMenu.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
