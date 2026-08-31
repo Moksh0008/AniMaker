@@ -513,7 +513,9 @@ input, textarea, select {
   text-align: center;
   padding: 80px 24px;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: #0a0a0f;
+  background-image: none;
+  z-index: 1;
 }
 
 .hero::before {
@@ -789,7 +791,7 @@ input, textarea, select {
    ============================================ */
 .section {
   padding: 80px 24px;
-  background: rgba(10, 10, 15, 0.85);
+  background: rgba(10, 10, 15, 0.75);
 }
 
 .section-header {
@@ -825,7 +827,7 @@ input, textarea, select {
 
 /* --- Inspiration / Features Section --- */
 .features-section {
-  background: rgba(10, 10, 15, 0.85);
+  background: rgba(10, 10, 15, 0.75);
 }
 
 .feature-card {
