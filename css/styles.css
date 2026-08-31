@@ -76,10 +76,6 @@ body {
   line-height: 1.6;
   color: var(--text-primary);
   background: var(--bg-primary);
-  background-image: url('../assets/images/background.jpg');
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: center;
   overflow-x: hidden;
   min-height: 100vh;
 }
@@ -513,9 +509,8 @@ input, textarea, select {
   text-align: center;
   padding: 80px 24px;
   overflow: hidden;
-  background: #0a0a0f;
-  background-image: none;
-  z-index: 1;
+  background: #0a0a0f url('../assets/images/background.jpg') no-repeat center center;
+  background-size: cover;
 }
 
 .hero::before {
@@ -791,7 +786,7 @@ input, textarea, select {
    ============================================ */
 .section {
   padding: 80px 24px;
-  background: rgba(10, 10, 15, 0.75);
+  background: var(--bg-primary);
 }
 
 .section-header {
@@ -827,7 +822,7 @@ input, textarea, select {
 
 /* --- Inspiration / Features Section --- */
 .features-section {
-  background: rgba(10, 10, 15, 0.75);
+  background: var(--bg-primary);
 }
 
 .feature-card {
@@ -873,10 +868,7 @@ input, textarea, select {
 
 /* --- Divider Section --- */
 .section-divider {
-  max-width: 1200px;
-  margin: 0 auto;
-  border: none;
-  border-top: 1px solid var(--border);
+  display: none;
 }
 
 
@@ -1196,7 +1188,7 @@ textarea.form-input {
   padding: 32px 24px;
   text-align: center;
   border-top: 1px solid var(--border);
-  background: rgba(10, 10, 15, 0.9);
+  background: var(--bg-primary);
 }
 
 .footer p {
