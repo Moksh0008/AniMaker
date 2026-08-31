@@ -3,482 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <div class="page-heading">Writer's Section</div>
-
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <title>Writer — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Montserrat', sans-serif;
-      background: linear-gradient(135deg, #2c003e, #4b0082);
-      color: white;
-      display: flex;
-    }
-
-    /* Main content */
-    .main-content {
-      flex: 1;
-      position: relative;
-      min-height: 100vh;
-      padding-left: 0; /* removed sidebar margin */
-    }
-
-    .page-heading {
-      position: absolute;
-      top: 30px;
-      left: 53%;
-      transform: translateX(-50%);
-      font-size: 30px;
-      font-weight: 600;
-      margin: 0;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-
-    
-
-    /* Top Right User Section */
-    .top-right {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 18px;
-      font-weight: 500;
-      color: #f1e4ff;
-      background: rgba(255,255,255,0.05);
-      padding: 6px 14px;
-      border-radius: 30px;
-      backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-
-    .profile-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid #8a2be2;
-      object-fit: cover;
-      box-shadow: 0 0 8px rgba(138,43,226,0.8);
-    }
-
-    /* Search */
-    .search-container {
-      position: absolute;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60%;
-      max-width: 500px;
-      display: flex;
-      align-items: center;
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 50px;
-      padding: 8px 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      transition: box-shadow 0.3s ease, transform 0.3s ease;
-    }
-
-    .search-box {
-      flex: 1;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: #fff;
-      font-size: 16px;
-      padding: 8px 12px;
-      border-radius: 50px;
-    }
-
-    .search-container .search-icon {
-      color: #fff;
-      font-size: 18px;
-      margin-left: 8px;
-    }
-
-    /* Gallery */
-    .gallery-container { 
-      padding: 200px 20px 40px 80px;
-      max-width: 1000px; 
-      margin: auto; 
-    }
-    .gallery { column-count: 4; column-gap: 20px; }
-    @media (max-width: 1024px) { .gallery { column-count: 3; } }
-    @media (max-width: 768px) { .gallery { column-count: 2; } }
-    @media (max-width: 480px) { .gallery { column-count: 1; } }
-
-    .image-item {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-      margin: 0 0 20px;
-      break-inside: avoid;
-      overflow: hidden;
-      border-radius: 14px;
-      box-shadow: 0 10px 18px rgba(0,0,0,0.35);
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .image-item img {
-      width: 100%;
-      border-radius: 14px;
-      transition: transform 0.3s ease;
-    }
-    .image-item:hover img { transform: scale(1.08); }
-    .image-item:hover { box-shadow: 0 15px 25px rgba(138,43,226,0.5); }
-
-    .overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0));
-      color: #fff;
-      font-size: 14px;
-      font-weight: bold;
-      padding: 12px;
-      text-align: center;
-      opacity: 0;
-      transform: translateY(30%);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .image-item:hover .overlay { opacity: 1; transform: translateY(0); }
-
-    /* Back Button */
-    .back-button {
-      position: fixed;
-      top: 20px;
-      left: 100px; /* adjusted due to sidebar removal */
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 6px 6px 12px rgba(0,0,0,0.3),
-                  -3px -3px 7px rgba(255,255,255,0.1);
-      transition: transform 0.25s ease, background 0.3s ease, box-shadow 0.3s ease;
-      z-index: 1200;
-    }
-    .back-button:hover {
-      background: linear-gradient(145deg, #ff6ec4, #8a2be2);
-      transform: translateY(-4px) scale(1.15) rotate(-8deg);
-      box-shadow: 0px 12px 25px rgba(0,0,0,0.6), 0px 0px 25px rgba(255,105,180,0.8);
-    }
-
-    /* Floating Chat Button */
-    .chat-button {
-      position: fixed;
-      bottom: 25px;
-      right: 25px;
-      width: 65px;
-      height: 65px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0px 8px 20px rgba(0,0,0,0.4), 0px 0px 30px rgba(138,43,226,0.9);
-      transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
-      z-index: 1100;
-    }
-    .chat-button:hover {
-      background: linear-gradient(145deg, #ff6ec4, #8a2be2);
-      transform: translateY(-6px) scale(1.15);
-      box-shadow: 0px 12px 30px rgba(0,0,0,0.6), 0px 0px 40px rgba(255,105,180,0.9);
-    }
-
-    /* Chat container and messages */
-    .chat-container {
-      width: 360px;
-      height: 520px;
-      border-radius: 18px;
-      background: rgba(30, 0, 50, 0.95);
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(138, 43, 226, 0.6);
-      box-shadow: 0px 0px 25px rgba(138, 43, 226, 0.9);
-      display: none;
-      flex-direction: column;
-      position: fixed;
-      bottom: 100px;
-      right: 25px;
-      overflow: hidden;
-      animation: fadeUp 0.4s ease;
-      z-index: 1200;
-    }
-
-    @keyframes fadeUp {
-      from { transform: translateY(40px) scale(0.9); opacity: 0; }
-      to { transform: translateY(0) scale(1); opacity: 1; }
-    }
-
-    .chat-header {
-      background: linear-gradient(145deg, #8a2be2, #6a1bbd);
-      color: #fff;
-      text-align: center;
-      padding: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .close-chat {
-      cursor: pointer;
-      font-size: 20px;
-      transition: transform 0.3s ease;
-    }
-    .close-chat:hover { transform: rotate(90deg) scale(1.2); }
-
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      background: rgba(255,255,255,0.05);
-    }
-    .chat-box .message {
-      margin: 8px 0;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: linear-gradient(145deg, #3d1c57, #5e2a85);
-      color: #fff;
-      font-size: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    .chat-box .sender {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 4px;
-      color: #ff6ec4;
-    }
-
-    .chat-input {
-      padding: 12px;
-      background: rgba(255,255,255,0.05);
-      border-top: 2px solid rgba(138,43,226,0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .chat-input input[type="text"] {
-      padding: 10px;
-      border: 2px solid #8a2be2;
-      border-radius: 5px;
-      background: #2f2f3f;
-      color: #fff;
-    }
-    .chat-input button {
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      background: #8a2be2;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .chat-input button:hover { background: #a0a0a0; }
-
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
-  <div class="main-content">
-    <!-- Top Right User Section -->
-    <div class="top-right">
-      <span>User</span>
-      <img src="../assets/images/profile-pic.png" alt="Profile" class="profile-icon">
+  <nav class="navbar">
+    <a href="../index.html" class="logo"><img src="../assets/images/logo.png" alt="AniMaker"> AniMaker</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="user-badge"><div class="user-badge-avatar"><i class="fas fa-user"></i></div> User</div>
     </div>
-
-    <!-- Back Button -->
-    <button class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
-
-    <!-- Search -->
-    <div class="search-container">
-      <input type="text" class="search-box" placeholder="Search creations...">
-      <i class="fas fa-search search-icon"></i>
-    </div>
-
-   <!-- Gallery -->
-<div class="gallery-container">
-  <div class="gallery">
-    
-    <!-- First image with title -->
-    <figure class="image-item">
-      <a href="writer-pic1.html">
-        <img src="../assets/images/writer/writer-pic-1.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Luffy as lil bro of Goku</figcaption>
-    </figure>
-
-    <!-- Second image with title -->
-    <figure class="image-item">
-      <a href="writer-pic2.html">
-        <img src="../assets/images/writer/writer-pic-2.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Goats as a trio</figcaption>
-    </figure>
-
-    <!-- Third image -->
-    <figure class="image-item">
-      <a href="writer-pic3.html">
-        <img src="../assets/images/writer/writer-pic-3.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Ramen lovers together</figcaption>
-    </figure>
-
-    <!-- Fourth image -->
-    <figure class="image-item">
-      <a href="writer-pic4.html">
-        <img src="../assets/images/writer/writer-pic-4.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Ramen lovers together</figcaption>
-    </figure>
-
-    <!-- Fifth image -->
-    <figure class="image-item">
-      <a href="writer-pic5.html">
-        <img src="../assets/images/writer/writer-pic-5.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Team G.O.A.T's</figcaption>
-    </figure>
-
-    <!-- Sixth -->
-    <figure class="image-item">
-      <a href="writer-pic6.html">
-        <img src="../assets/images/writer/writer-pic-6.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Jack Luffy</figcaption>
-    </figure>
-
-    <!-- Seventh -->
-    <figure class="image-item">
-      <a href="writer-pic7.html">
-        <img src="../assets/images/writer/writer-pic-7.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Pirate Slayer</figcaption>
-    </figure>
-
-    <!-- Eighth -->
-    <figure class="image-item">
-      <a href="writer-pic8.html">
-        <img src="../assets/images/writer/writer-pic-8.jpg" alt="Clickable Image">
-      </a>
-      <figcaption>Unbeatable combo</figcaption>
-    </figure>
-
-    <!-- Upload Button (last) -->
-    <div class="image-item" onclick="triggerUpload()">
-      <img src="../assets/images/upload.jpg" alt="Upload">
-      <div class="overlay">Upload</div>
-    </div>
-
-  </div>
-</div>
-
-    
-
-    <!-- Floating Chat Button -->
-    <button class="chat-button" onclick="toggleChat()"><i class="fas fa-comments"></i></button>
-
-    <!-- Chat Window -->
-    <div class="chat-container" id="chatContainer">
-      <div class="chat-header">
-        <i class="fas fa-robot"></i> Animaker's Chat
-        <span class="close-chat" onclick="toggleChat()">&times;</span>
-      </div>
-      <div class="chat-box" id="chatBox"></div>
-      <div class="chat-input">
-        <input type="text" id="receiver" placeholder="Receiver Username">
-        <div class="message-row">
-          <input type="text" id="message" placeholder="Type your message">
-          <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
+  </nav>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <a href="../index.html" class="sidebar-logo"><img src="../assets/images/logo.png" alt="AniMaker"></a>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="creator.html" class="sidebar-link"><i class="fas fa-film"></i><span>Creator</span></a>
+        <a href="writer.html" class="sidebar-link active"><i class="fas fa-pen-nib"></i><span>Writer</span></a>
+        <a href="maker.html" class="sidebar-link"><i class="fas fa-cube"></i><span>Maker</span></a>
+        <div class="sidebar-divider"></div>
+        <a href="services.html" class="sidebar-link"><i class="fas fa-th-large"></i><span>Services</span></a>
+        <a href="contact.html" class="sidebar-link"><i class="fas fa-envelope"></i><span>Contact</span></a>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <div class="page-container">
+        <div class="gallery-header">
+          <h1>Writer Gallery</h1>
+          <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search stories..."></div>
+        </div>
+        <div class="gallery">
+          <a href="writer-pic1.html" class="gallery-item"><img src="../assets/images/writer/writer-pic-1.jpg" alt="Luffy as Lil Bro of Goku"><div class="gallery-overlay"><span>Luffy as Lil Bro of Goku</span></div></a>
+          <a href="writer-pic2.html" class="gallery-item"><img src="../assets/images/writer/writer-pic-2.jpg" alt="Goats as a Trio"><div class="gallery-overlay"><span>Goats as a Trio</span></div></a>
+          <a href="../assets/images/writer/writer-pic-3.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-3.jpg" alt="Ramen Lovers"><div class="gallery-overlay"><span>Ramen Lovers Together</span></div></a>
+          <a href="../assets/images/writer/writer-pic-4.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-4.jpg" alt="Story 4"><div class="gallery-overlay"><span>Story 4</span></div></a>
+          <a href="../assets/images/writer/writer-pic-5.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-5.jpg" alt="Team Goats"><div class="gallery-overlay"><span>Team Goats</span></div></a>
+          <a href="../assets/images/writer/writer-pic-6.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-6.jpg" alt="Jack Luffy"><div class="gallery-overlay"><span>Jack Luffy</span></div></a>
+          <a href="../assets/images/writer/writer-pic-7.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-7.jpg" alt="Pirate Slayer"><div class="gallery-overlay"><span>Pirate Slayer</span></div></a>
+          <a href="../assets/images/writer/writer-pic-8.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-8.jpg" alt="Unbeatable Combo"><div class="gallery-overlay"><span>Unbeatable Combo</span></div></a>
+          <div class="gallery-upload" onclick="document.getElementById('fileUpload').click()"><i class="fas fa-cloud-arrow-up"></i><span>Upload</span></div>
         </div>
       </div>
-    </div>
-
-    <!-- Hidden File Input -->
-    <input type="file" id="fileUpload" style="display:none" accept="image/*" onchange="previewUpload(event)">
+    </main>
   </div>
-
+  <input type="file" id="fileUpload" style="display:none" accept="image/*" onchange="previewUpload(event)">
+  <button class="chat-fab" onclick="toggleChat()"><i class="fas fa-comments"></i></button>
+  <div class="chat-window" id="chatContainer">
+    <div class="chat-window-header"><span><i class="fas fa-robot" style="margin-right:8px;"></i>AniMaker Chat</span><button onclick="toggleChat()"><i class="fas fa-xmark"></i></button></div>
+    <div class="chat-messages" id="chatBox"><div class="chat-empty">No messages yet</div></div>
+    <div class="chat-input-area"><input type="text" id="receiver" placeholder="Receiver"><input type="text" id="message" placeholder="Type a message" style="flex:1;"><button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button></div>
+  </div>
   <script>
-    function toggleChat() {
-      const chatContainer = document.getElementById('chatContainer');
-      chatContainer.style.display =
-        chatContainer.style.display === 'none' || chatContainer.style.display === ''
-          ? 'flex'
-          : 'none';
-    }
-
-    function sendMessage() {
-      const chatBox = document.getElementById('chatBox');
-      const username = document.getElementById('username').value;
-      const receiver = document.getElementById('receiver').value;
-      const message = document.getElementById('message').value;
-
-      if (username && receiver && message) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message');
-        messageElement.innerHTML = `<span class="sender">${username} to ${receiver}:</span> ${message}`;
-        chatBox.appendChild(messageElement);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        document.getElementById('message').value = '';
-      } else {
-        alert('Please enter your username, receiver username, and message.');
-      }
-    }
-
-    function triggerUpload() {
-      document.getElementById("fileUpload").click();
-    }
-
-    function previewUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const gallery = document.querySelector(".gallery");
-          const newItem = document.createElement("div");
-          newItem.classList.add("image-item");
-          newItem.innerHTML = `
-            <a href="${e.target.result}" target="_blank">
-              <img src="${e.target.result}" alt="Uploaded Image">
-            </a>
-            <div class="overlay">${file.name}</div>
-          `;
-          const uploadItem = gallery.lastElementChild;
-          gallery.insertBefore(newItem, uploadItem);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function goBack() {
-      window.location.href = "../index.html";
-    }
+    function toggleChat(){document.getElementById('chatContainer').classList.toggle('active');}
+    function sendMessage(){var c=document.getElementById('chatBox'),r=document.getElementById('receiver').value,m=document.getElementById('message').value;if(r&&m){var e=c.querySelector('.chat-empty');if(e)e.remove();var el=document.createElement('div');el.classList.add('chat-msg');el.innerHTML='<div class="chat-msg-sender">You → '+r+'</div>'+m;c.appendChild(el);c.scrollTop=c.scrollHeight;document.getElementById('message').value='';}}
+    function previewUpload(ev){var f=ev.target.files[0];if(f){var rd=new FileReader();rd.onload=function(e){var g=document.querySelector('.gallery'),i=document.createElement('a');i.classList.add('gallery-item');i.href=e.target.result;i.target='_blank';i.innerHTML='<img src="'+e.target.result+'" alt="'+f.name+'"><div class="gallery-overlay"><span>'+f.name+'</span></div>';g.insertBefore(i,g.lastElementChild);};rd.readAsDataURL(f);}}
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-

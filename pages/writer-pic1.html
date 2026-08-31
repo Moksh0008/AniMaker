@@ -3,167 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Writer</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <title>Luffy as Lil Bro of Goku — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg-image: url('../assets/images/writer/writer-pic-1.jpg');
-    }
-
     body {
-      margin: 0;
-      font-family: 'Montserrat', sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      overflow: hidden;
-      position: relative;
-      animation: fadeIn 2s ease-in;
-      background: var(--bg-image) no-repeat center center fixed;
+      background: url('../assets/images/writer/writer-pic-1.jpg') no-repeat center center fixed;
       background-size: cover;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .circle-container {
+    body::before {
+      content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
+      inset: 0;
+      background: rgba(10, 10, 15, 0.7);
       z-index: -1;
-    }
-
-    .circle {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      background-color: rgba(255, 53, 255, 0.12);
-      border-radius: 50%;
-      animation: moveCircle 15s infinite linear;
-    }
-
-    @keyframes moveCircle {
-      0% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
-      100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
-    }
-
-    .circle:nth-child(1) { top: 10%; left: 15%; animation-duration: 12s; }
-    .circle:nth-child(2) { top: 30%; left: 70%; animation-duration: 18s; }
-    .circle:nth-child(3) { top: 50%; left: 40%; animation-duration: 20s; }
-    .circle:nth-child(4) { top: 75%; left: 60%; animation-duration: 14s; }
-    .circle:nth-child(5) { top: 90%; left: 25%; animation-duration: 22s; }
-
-    .back-button {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 6px 6px 12px rgba(0,0,0,0.3),
-                  -3px -3px 7px rgba(255,255,255,0.1);
-      transition: transform 0.25s ease, background 0.3s ease, box-shadow 0.3s ease;
-      z-index: 1200;
-    }
-
-    .back-button:hover {
-      background: linear-gradient(145deg, #ff6ec4, #8a2be2);
-      transform: translateY(-4px) scale(1.15) rotate(-8deg);
-      box-shadow: 0px 12px 25px rgba(0,0,0,0.6),
-                  0px 0px 25px rgba(255,105,180,0.8);
-    }
-
-    .top-right {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      z-index: 10;
-    }
-
-    h2 {
-      color: #fff;
-      font-size: 28px;
-      margin-bottom: 20px;
-      text-align: center;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
-    }
-
-    /* ✅ New story box */
-    .story-box {
-      max-width: 800px;
-      text-align: justify;
-      line-height: 1.6;
-      margin: 10px 20px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 18px 22px;
-      border-radius: 12px;
-      backdrop-filter: blur(3px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    }
-
-    .story-box p {
-      margin-bottom: 14px;
     }
   </style>
 </head>
 <body>
-  <div class="circle-container">
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-  </div>
+  <button class="detail-back" onclick="window.location.href='writer.html'"><i class="fas fa-arrow-left"></i></button>
+  <div class="user-badge"><div class="user-badge-avatar"><i class="fas fa-user"></i></div> User</div>
 
-  <button id="backButton" class="back-button">
-    <i class="fas fa-arrow-left"></i>
-  </button>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('backButton').addEventListener('click', function() {
-        window.location.href = 'writer.html';
-      });
-    });
-  </script>
-
-  <div class="top-right">User</div>
-
-  <h2>Luffy as a Lil Bro of Goku</h2>
-
-  <!-- ✅ Single Box for Story -->
-  <div class="story-box">
-    <p>In a small, peaceful village on Earth, Goku's younger brother, Luffy, was born. Unlike Goku, Luffy’s personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.</p>
-
-    <p>Luffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn’t mind; every loss made him stronger, and every challenge gave him more fire. “One day, I’ll be as strong as you!” he’d shout with a grin, despite his bruises.</p>
-
-    <p>As they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world’s greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.</p>
-
-    <p>Goku would often send Luffy letters with encouragement, but Luffy’s only reply would be a laughing message: “I’m already on my way to being the King of the Sea, big bro!”</p>
-
-    <p>Years later, Luffy’s name became known across the seas, just as Goku’s became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected. Luffy may not have had the same calm nature as Goku, but his heart was just as pure, his dreams just as big.</p>
+  <div class="detail-page">
+    <h1 style="font-family:var(--font-display);font-size:1.75rem;font-weight:700;color:#fff;margin-bottom:24px;text-align:center;">Luffy as a Lil Bro of Goku</h1>
+    <div class="story-box">
+      <p>In a small, peaceful village on Earth, Goku's younger brother, Luffy, was born. Unlike Goku, Luffy's personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.</p>
+      <p>Luffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn't mind; every loss made him stronger, and every challenge gave him more fire. "One day, I'll be as strong as you!" he'd shout with a grin, despite his bruises.</p>
+      <p>As they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world's greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.</p>
+      <p>Goku would often send Luffy letters with encouragement, but Luffy's only reply would be a laughing message: "I'm already on my way to being the King of the Sea, big bro!"</p>
+      <p>Years later, Luffy's name became known across the seas, just as Goku's became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected. Luffy may not have had the same calm nature as Goku, but his heart was just as pure, his dreams just as big.</p>
+    </div>
   </div>
 </body>
 </html>

@@ -4,11 +4,9 @@ const loginForm = document.getElementById("login-form");
 if (loginForm) {
     loginForm.addEventListener("submit", function(event) {
         event.preventDefault();
-
         window.location.href = "../index.html";
     });
 }
-
 
 // Sign Up
 const signupForm = document.getElementById("signup-form");
@@ -27,4 +25,4 @@ if (signupForm) {
 
         window.location.href = "../index.html";
     });
-}   
+}

@@ -3,216 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Fusion of Naruto and Goku</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
-
-  <!-- Font Awesome for arrow icon -->
+  <title>A Fusion of Naruto and Goku — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <style>
-    /* Global Styles */
-    body {
-      font-family: 'Montserrat', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #2e003e, #800080);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      overflow: hidden;
-    }
-
-    h1 {
-      margin-top: 80px;
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-align: center;
-      color: #f5e9ff;
-      animation: fadeInDown 1.2s ease-in-out;
-      z-index: 2;
-    }
-
-    /* Glassmorphism Card */
-    .card {
-      margin-top: 30px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      gap: 30px;
-      padding: 30px;
-      max-width: 900px;
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(15px);
-      animation: floatCard 6s ease-in-out infinite;
-      z-index: 2;
-    }
-
-    /* Image */
-    .card img {
-      max-width: 350px;
-      width: 100%;
-      border-radius: 15px;
-      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
-      transition: transform 0.4s ease, box-shadow 0.4s ease;
-    }
-
-    .card img:hover {
-      transform: scale(1.05);
-      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.6);
-    }
-
-    /* Text */
-    .card ul {
-      max-width: 400px;
-      font-size: 1.1rem;
-      line-height: 1.8;
-      color: #e9d9ff;
-      text-align: left;
-      padding-left: 20px;
-    }
-
-    .card ul li {
-      margin-bottom: 12px;
-      list-style-type: "✨ ";
-    }
-
-    /* Floating Back Button */
-    .back-button {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 6px 6px 12px rgba(0,0,0,0.3),
-                  -3px -3px 7px rgba(255,255,255,0.1);
-      transition: transform 0.25s ease, background 0.3s ease, box-shadow 0.3s ease;
-      z-index: 1200;
-    }
-
-    .back-button:hover {
-      background: linear-gradient(145deg, #ff6ec4, #8a2be2);
-      transform: translateY(-4px) scale(1.15) rotate(-8deg);
-      box-shadow: 0px 12px 25px rgba(0,0,0,0.6),
-                  0px 0px 25px rgba(255,105,180,0.8);
-    }
-
-    /* Top-right User */
-    .top-right {
-      position: fixed;
-      top: 20px;
-      right: 30px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #f1e4ff;
-      z-index: 3;
-    }
-
-    /* Premium Background Animation */
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(60px);
-      opacity: 0.7;
-      animation: morph 18s infinite ease-in-out alternate;
-      z-index: 0;
-    }
-
-    .blob:nth-child(1) {
-      width: 400px; height: 400px;
-      background: #ff4de1;
-      top: -100px; left: -120px;
-    }
-    .blob:nth-child(2) {
-      width: 350px; height: 350px;
-      background: #6a00ff;
-      top: 50%; left: 70%;
-      animation-delay: -5s;
-    }
-    .blob:nth-child(3) {
-      width: 300px; height: 300px;
-      background: #ff8dfd;
-      top: 70%; left: -80px;
-      animation-delay: -10s;
-    }
-
-    @keyframes morph {
-      0%   { border-radius: 45% 55% 70% 30% / 55% 45% 30% 70%; transform: translate(0,0) scale(1);}
-      50%  { border-radius: 60% 40% 30% 70% / 40% 60% 70% 30%; transform: translate(50px,-60px) scale(1.1);}
-      100% { border-radius: 45% 55% 70% 30% / 55% 45% 30% 70%; transform: translate(-30px,40px) scale(1);}
-    }
-
-    /* Card Floating Animation */
-    @keyframes floatCard {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-12px); }
-    }
-
-    /* Animations */
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-40px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      h1 { font-size: 2rem; margin-top: 60px; }
-      .card { flex-direction: column; text-align: center; padding: 20px; }
-      .card ul { max-width: 90%; text-align: left; }
-      .card img { max-width: 90%; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="blob-bg"></div>
+  <div class="blob-bg"></div>
+  <div class="blob-bg"></div>
 
-  <!-- Floating Back Button -->
-  <button id="backButton" class="back-button">
-    <i class="fas fa-arrow-left"></i>
-  </button>
+  <button class="detail-back" onclick="window.location.href='creator.html'"><i class="fas fa-arrow-left"></i></button>
+  <div class="user-badge"><div class="user-badge-avatar"><i class="fas fa-user"></i></div> User</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('backButton').addEventListener('click', function() {
-        window.location.href = 'creator.html';
-      });
-    });
-  </script>
-
-  <!-- Top-right "User" -->
-  <div class="top-right">User</div>
-
-  <h1>A Fusion of Naruto and Goku</h1>
-
-  <!-- Card -->
-  <div class="card">
-    <img src="../assets/images/creator/creator-pic-1.jpg" alt="Dynamic Image">
-    <ul>
-      <li>A fusion of <strong>Naruto</strong> and <strong>Goku</strong>.</li>
-      <li>Combines Naruto’s fiery determination.</li>
-      <li>Merges with Goku’s raw Saiyan power.</li>
-      <li>Represents a tribute to two anime legends.</li>
-    </ul>
+  <div class="detail-page">
+    <div class="detail-card">
+      <img src="../assets/images/creator/creator-pic-1.jpg" alt="A Fusion of Naruto and Goku">
+      <div class="detail-body">
+        <h1>A Fusion of Naruto and Goku</h1>
+        <ul class="detail-list">
+          <li>A fusion of <strong>Naruto</strong> and <strong>Goku</strong>.</li>
+          <li>Combines Naruto's fiery determination.</li>
+          <li>Merges with Goku's raw Saiyan power.</li>
+          <li>Represents a tribute to two anime legends.</li>
+        </ul>
+      </div>
+    </div>
   </div>
-
-  <!-- Premium Background Blobs -->
-  <div class="blob"></div>
-  <div class="blob"></div>
-  <div class="blob"></div>
-
 </body>
 </html>

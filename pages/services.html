@@ -1,272 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AniMaker | Magical Services & Tools</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-<style>
-/* Reset & Body */
-* {margin:0; padding:0; box-sizing:border-box;}
-body {
-  margin-left: 80px;
-  font-family: 'Montserrat', sans-serif;
-  line-height:1.6;
-  color:#e0d0ff;
-  background: linear-gradient(135deg, #2b003d, #4b0082, #6a00b3);
-  background-attachment: fixed;
-  overflow-x:hidden;
-  position: relative;
-}
-
-/* Floating magical orbs */
-body::before, body::after {
-  content:"";
-  position:absolute;
-  border-radius:50%;
-  filter: blur(180px);
-  animation: floatOrb 15s infinite alternate;
-}
-body::before { width:800px; height:800px; background:rgba(255,255,255,0.06); top:-250px; left:-350px; }
-body::after { width:600px; height:600px; background:rgba(255,255,255,0.08); bottom:-200px; right:-250px; }
-
-@keyframes floatOrb {
-  0% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-50px) translateX(40px); }
-  100% { transform: translateY(0) translateX(0); }
-}
-
-/* Sidebar */
-.sidebar {
-  width:80px;
-  background: linear-gradient(180deg,#1a002b,#4b0082);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:space-between;
-  padding:20px 0;
-  height:100vh;
-  position:fixed;
-  left:0;
-  top:0;
-  z-index:1000;
-  box-shadow:6px 0 20px rgba(0,0,0,0.5);
-  border-right:1px solid rgba(255,255,255,0.1);
-  backdrop-filter:blur(10px);
-  transition:width 0.3s ease, background 0.5s ease;
-}
-.sidebar:hover { width:120px; background: linear-gradient(180deg,#2b003d,#6a00b3); }
-.sidebar .logo img { width:50px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.5); transition: all 0.5s ease; }
-.sidebar .logo img:hover { transform: rotate(10deg) scale(1.2); }
-.sidebar a {
-  color:#fff; font-size:22px; text-decoration:none;
-  display:flex; align-items:center; justify-content:center;
-  width:50px; height:50px; margin:12px 0; border-radius:50%;
-  background: rgba(255,255,255,0.05); box-shadow:0 4px 10px rgba(0,0,0,0.3);
-  transition: all 0.4s ease;
-}
-.sidebar a:hover {
-  background: linear-gradient(145deg,#9b59b6,#8a2be2);
-  transform: rotate(15deg) scale(1.25);
-  box-shadow:0 10px 25px rgba(138,43,226,0.7);
-}
-
-/* Top bar */
-.top-bar {
-  display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  padding:15px 5%;
-  background: rgba(75,0,130,0.85);
-  position:sticky;
-  top:0;
-  z-index:900;
-  backdrop-filter: blur(10px);
-}
-.top-bar .username { font-weight:700; font-size:18px; color:#ffffff; }
-
-/* Section Headers */
-section {
-  padding:80px 5%;
-  opacity:0;
-  transform: translateY(50px);
-  transition: all 0.8s ease-out;
-}
-section.visible { opacity:1; transform: translateY(0); }
-
-h2 {
-  text-align: center;
-  font-size: 2.4rem;
-  margin-bottom: 20px;
-  background: linear-gradient(45deg, #ffffff, #cfcfcf, #b399ff);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 10px #b399ff;
-}
-section p {text-align:center; color:#e0d0ff; font-size:1.1rem; margin-bottom:40px;}
-
-/* Cards Grid */
-.services-grid, .tools-grid {
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
-  gap:40px;
-  max-width:1200px;
-  margin:auto;
-}
-
-/* Cards */
-.service-card, .tool-card {
-  background: rgba(255,255,255,0.05);
-  border-radius:25px;
-  padding:30px 20px;
-  text-align:center;
-  box-shadow:0 15px 35px rgba(0,0,0,0.1);
-  transition: all 0.5s ease;
-  color:#e0d0ff;
-}
-.service-card:hover, .tool-card:hover {
-  transform: translateY(-15px) rotate(-1deg) scale(1.05);
-  box-shadow:0 20px 40px rgba(138,43,226,0.5);
-}
-
-/* Icons */
-.service-card .service-icon, .tool-card .tool-icon {
-  font-size:3rem; color:#b399ff; margin-bottom:20px;
-  transition: all 0.5s ease;
-}
-.service-card:hover .service-icon, .tool-card:hover .tool-icon {
-  color:#ffffff;
-  transform: rotate(15deg) scale(1.2);
-}
-
-/* Buttons */
-.tool-button {
-  background: linear-gradient(145deg,#8a2be2,#b399ff);
-  color:white; padding:12px 25px; border:none; border-radius:30px;
-  cursor:pointer; font-weight:bold; margin-top:10px;
-  box-shadow:0 6px 15px rgba(138,43,226,0.5);
-  transition: all 0.3s ease;
-}
-.tool-button:hover { transform: translateY(-3px) scale(1.05); box-shadow:0 10px 25px rgba(138,43,226,0.7); }
-
-/* Feature list */
-.feature-list { list-style:none; padding:0; margin-top:15px;}
-.feature-list li { margin:10px 0; position: relative; padding-left:30px; font-weight:500;}
-.feature-list li::before { content:"\f00c"; font-family:"Font Awesome 6 Free"; font-weight:900; position:absolute; left:0; color:#b399ff; }
-
-/* Responsive */
-@media(max-width:768px) { section{padding:50px 5%;} h2{font-size:2rem;} }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo"><img src="../assets/images/logo.png" alt="AniMaker Logo"></div>
-  <div class="top-icons">
-    <a href="../index.html" title="Home"><i class="fas fa-home"></i></a>
-    <a href="#" title="Notifications"><i class="fas fa-bell"></i></a>
-    <a href="#" id="messagesIcon" title="Messages"><i class="fas fa-comment-dots"></i></a>
+  <nav class="navbar">
+    <a href="../index.html" class="logo"><img src="../assets/images/logo.png" alt="AniMaker"> AniMaker</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html" class="active">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="btn btn-ghost">Log in</a>
+      <a href="signup.html" class="btn btn-primary">Get Started</a>
+    </div>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <a href="../index.html" class="sidebar-logo"><img src="../assets/images/logo.png" alt="AniMaker"></a>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="about.html" class="sidebar-link"><i class="fas fa-info-circle"></i><span>About</span></a>
+        <a href="services.html" class="sidebar-link active"><i class="fas fa-th-large"></i><span>Services</span></a>
+        <a href="contact.html" class="sidebar-link"><i class="fas fa-envelope"></i><span>Contact</span></a>
+        <div class="sidebar-divider"></div>
+        <a href="login.html" class="sidebar-link"><i class="fas fa-right-to-bracket"></i><span>Login</span></a>
+        <a href="signup.html" class="sidebar-link"><i class="fas fa-user-plus"></i><span>Sign Up</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-container">
+        <div class="page-header">
+          <h1>Services & Tools</h1>
+          <p>Professional creative tools designed for anime and animation workflows</p>
+        </div>
+
+        <h2 style="font-family:var(--font-display);font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:20px;">Our Services</h2>
+        <div class="card-grid card-grid-3 mb-3">
+          <div class="card">
+            <div class="card-icon purple"><i class="fas fa-video"></i></div>
+            <h3>Creator Studio</h3>
+            <p>Turn ideas into cinematic masterpieces with frame-by-frame control, visual effects, and color grading.</p>
+            <div class="card-footer">
+              <ul style="display:flex;flex-direction:column;gap:6px;">
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Video Editing</li>
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Visual Effects</li>
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Color Grading</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon pink"><i class="fas fa-pen-nib"></i></div>
+            <h3>Writer's Corner</h3>
+            <p>Weave enchanting tales and unforgettable scripts with collaborative story development tools.</p>
+            <div class="card-footer">
+              <ul style="display:flex;flex-direction:column;gap:6px;">
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Scriptwriting</li>
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Storyboarding</li>
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Character Development</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon green"><i class="fas fa-cube"></i></div>
+            <h3>Maker Lab</h3>
+            <p>From sketches to reality — craft 3D prints, prototypes, and physical models of your characters.</p>
+            <div class="card-footer">
+              <ul style="display:flex;flex-direction:column;gap:6px;">
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>3D Printing</li>
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Prototyping</li>
+                <li style="font-size:13px;color:var(--text-secondary);padding-left:16px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span>Model Making</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <h2 style="font-family:var(--font-display);font-size:1.25rem;font-weight:700;color:#fff;margin:32px 0 20px;">Creator Tools</h2>
+        <div class="card-grid card-grid-3">
+          <div class="card text-center">
+            <div class="card-icon purple" style="margin:0 auto 16px;"><i class="fas fa-camera"></i></div>
+            <h3>Animation Studio</h3>
+            <p>Breathe life into animations with intuitive, professional-grade software.</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;">Try Now</button>
+          </div>
+          <div class="card text-center">
+            <div class="card-icon pink" style="margin:0 auto 16px;"><i class="fas fa-paint-brush"></i></div>
+            <h3>Character Designer</h3>
+            <p>Design characters with charm. Every stroke is magical.</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;">Try Now</button>
+          </div>
+          <div class="card text-center">
+            <div class="card-icon green" style="margin:0 auto 16px;"><i class="fas fa-music"></i></div>
+            <h3>Sound Editor</h3>
+            <p>Add music and soundscapes for immersive experiences.</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;">Try Now</button>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
-  <div class="bottom-icons">
-    <a href="#" id="settingsIcon" title="Settings"><i class="fas fa-cog"></i></a>
-  </div>
-</div>
-
-<!-- Top bar -->
-<div class="top-bar">
-  <div class="username">User</div>
-</div>
-
-<!-- Services Section -->
-<section id="services">
-  <h2>Our Magical Services</h2>
-  <p>Explore a world where imagination becomes reality. Services that empower creators to dream, design, and dazzle.</p>
-  <div class="services-grid">
-    <div class="service-card">
-      <div class="service-icon"><i class="fas fa-video"></i></div>
-      <h3>Creator Studio</h3>
-      <p>Turn ideas into cinematic masterpieces. Every frame sparkles with magic.</p>
-      <ul class="feature-list">
-        <li>Video Editing – Frame by frame control</li>
-        <li>Visual Effects – Add magical sparkles</li>
-        <li>Color Grading – Vibrant moods & hues</li>
-      </ul>
-    </div>
-    <div class="service-card">
-      <div class="service-icon"><i class="fas fa-pen-fancy"></i></div>
-      <h3>Writer's Corner</h3>
-      <p>Weave enchanting tales and unforgettable scripts.</p>
-      <ul class="feature-list">
-        <li>Scriptwriting – Mesmerizing stories</li>
-        <li>Storyboarding – Plan magical journeys</li>
-        <li>Character Development – Heroes & villains come alive</li>
-      </ul>
-    </div>
-    <div class="service-card">
-      <div class="service-icon"><i class="fas fa-tools"></i></div>
-      <h3>Maker Lab</h3>
-      <p>From sketches to reality—craft 3D prints and prototypes.</p>
-      <ul class="feature-list">
-        <li>3D Printing – Real world creations</li>
-        <li>Prototyping – Test ideas accurately</li>
-        <li>Model Making – Spellbinding designs</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- Tools Section -->
-<section id="creator-tools">
-  <h2>Creator Tools</h2>
-  <p>Our suite of tools brings wizardry to your fingertips.</p>
-  <div class="tools-grid">
-    <div class="tool-card">
-      <div class="tool-icon"><i class="fas fa-camera"></i></div>
-      <h3>Animation Studio</h3>
-      <p>Breathe life into animations with intuitive, professional-grade software.</p>
-      <button class="tool-button">Try Now</button>
-    </div>
-    <div class="tool-card">
-      <div class="tool-icon"><i class="fas fa-paint-brush"></i></div>
-      <h3>Character Designer</h3>
-      <p>Design characters with charm. Every stroke is magical.</p>
-      <button class="tool-button">Try Now</button>
-    </div>
-    <div class="tool-card">
-      <div class="tool-icon"><i class="fas fa-music"></i></div>
-      <h3>Sound Editor</h3>
-      <p>Add music and magical soundscapes for immersive experiences.</p>
-      <button class="tool-button">Try Now</button>
-    </div>
-  </div>
-</section>
-
-<script>
-// Fade-in sections
-const sections = document.querySelectorAll('section');
-const observer = new IntersectionObserver(entries=>{
-  entries.forEach(entry=>{
-    if(entry.isIntersecting) entry.target.classList.add('visible');
-  });
-},{threshold:0.2});
-sections.forEach(section => observer.observe(section));
-</script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
