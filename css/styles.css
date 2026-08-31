@@ -75,7 +75,11 @@ body {
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-primary);
-  background-color: var(--bg-primary);
+  background: var(--bg-primary);
+  background-image: url('../assets/images/background.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
   overflow-x: hidden;
   min-height: 100vh;
 }
@@ -785,6 +789,7 @@ input, textarea, select {
    ============================================ */
 .section {
   padding: 80px 24px;
+  background: rgba(10, 10, 15, 0.85);
 }
 
 .section-header {
@@ -820,7 +825,7 @@ input, textarea, select {
 
 /* --- Inspiration / Features Section --- */
 .features-section {
-  background: var(--bg-secondary);
+  background: rgba(10, 10, 15, 0.85);
 }
 
 .feature-card {
@@ -1189,7 +1194,7 @@ textarea.form-input {
   padding: 32px 24px;
   text-align: center;
   border-top: 1px solid var(--border);
-  background: var(--bg-secondary);
+  background: rgba(10, 10, 15, 0.9);
 }
 
 .footer p {
