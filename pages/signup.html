@@ -55,7 +55,7 @@
                     <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
                 </div>
                 <button type="submit" class="auth-button">Sign Up</button>
-                <p class="auth-link">Already have an account? <a href="../pages/login.html">Login</a></p>
+                <p class="auth-link">Already have an account? <a href="login.html">Login</a></p>
             </form>
         </div>
     </div>
@@ -71,52 +71,3 @@
 
 
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page with Back Button</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <style>
-    /* Back Button */
-    .back-button {
-      position: fixed;
-      top: 80px;   /* 👈 moved down from 20px to 80px */
-      left: 20px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 6px 6px 12px rgba(0,0,0,0.2);
-      transition: all 0.3s ease;
-    }
-
-    .back-button:hover {
-      background: linear-gradient(145deg, #8a2be2, #6a1bbd);
-      transform: scale(1.1);
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Back Button -->
-  <button class="back-button" onclick="goBack()">
-    <i class="fas fa-arrow-left"></i>
-  </button>
-
-  <script>
-    function goBack() {
-      window.location.href = "../index.html";
-    }
-  </script>
-</body>
-</html>

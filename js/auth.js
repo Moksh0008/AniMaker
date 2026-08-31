@@ -5,7 +5,7 @@ if (loginForm) {
     loginForm.addEventListener("submit", function(event) {
         event.preventDefault();
 
-        window.location.href = "home.html";
+        window.location.href = "../index.html";
     });
 }
 
@@ -25,6 +25,6 @@ if (signupForm) {
             return;
         }
 
-        window.location.href = "home.html";
+        window.location.href = "../index.html";
     });
 }   

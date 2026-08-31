@@ -144,7 +144,7 @@ h2 {
 <div class="sidebar">
   <div class="logo"><img src="../assets/images/logo.png" alt="AniMaker Logo"></div>
   <div class="top-icons">
-    <a href="home.html" title="Home"><i class="fas fa-home"></i></a>
+    <a href="../index.html" title="Home"><i class="fas fa-home"></i></a>
     <a href="#" title="Notifications"><i class="fas fa-bell"></i></a>
     <a href="#" id="messagesIcon" title="Messages"><i class="fas fa-comment-dots"></i></a>
   </div>
@@ -208,56 +208,3 @@ sections.forEach(section => observer.observe(section));
 
 
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Back Button</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    .back-button {
-      position: fixed;
-      top: 20px;
-      left: 90px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 6px 6px 12px rgba(0,0,0,0.3),
-                  -3px -3px 7px rgba(255,255,255,0.1);
-      transition: transform 0.25s ease, background 0.3s ease, box-shadow 0.3s ease;
-      z-index: 1200;
-    }
-    .back-button:hover { 
-      background: linear-gradient(145deg, #ff6ec4, #8a2be2); 
-      transform: translateY(-4px) scale(1.15) rotate(-8deg); 
-      box-shadow: 0px 12px 25px rgba(0,0,0,0.6),
-                  0px 0px 25px rgba(255,105,180,0.8);
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Back Button -->
-  <button id="backButton" class="back-button">
-    <i class="fas fa-arrow-left"></i>
-  </button>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('backButton').addEventListener('click', function() {
-        window.location.href = 'home.html'; // 🔹 Change this to your target page
-      });
-    });
-  </script>
-
-</body>
-</html>

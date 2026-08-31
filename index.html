@@ -8,15 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
-    /* Adjust body since sidebar is removed */
-    body {
-      margin-left: 0; /* removed sidebar offset */
-      font-family: 'Montserrat', sans-serif;
-      position: relative;
-      color: #fff;
-      overflow-x: hidden;
-    }
-
+    /* Background watermark */
     body::before {
       content: '';
       position: fixed;
@@ -24,86 +16,12 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: 
+      background:
         linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
-        url('../assets/images/background.jpg') no-repeat center center fixed;
+        url('assets/images/background.jpg') no-repeat center center fixed;
       background-size: cover;
       z-index: -1;
     }
-
-    /* Navbar styling */
-    .navbar {
-      padding: 15px 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.85);
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      backdrop-filter: blur(10px);
-    }
-
-    .navbar .logo {
-      display: flex;
-      align-items: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: white;
-    }
-
-    .navbar .logo img {
-      height: 40px;
-      margin-right: 10px;
-    }
-
-    .navbar .nav-links {
-      display: flex;
-      list-style: none;
-      gap: 20px;
-    }
-
-    .navbar .nav-links li a {
-      color: white;
-      font-weight: 600;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    .navbar .nav-links li a:hover {
-      color: #ffccff;
-    }
-
-    /* Hero Section */
-    .hero {
-      text-align: center;
-      padding: 150px 20px 100px 20px;
-      background: linear-gradient(135deg, rgba(75,0,130,0.6) 0%, rgba(106,0,179,0.6) 50%, rgba(154,79,255,0.6) 100%);
-      color: #fff;
-    }
-
-    .hero .cta-button {
-    padding: 12px 25px;
-    font-size: 1.2rem;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: bold;
-    background: #6a00b3;
-    color: #fff;
-    transition: all 0.3s ease;
-}
-
-    .hero .cta-button:hover {
-      background: #8a2be2;
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    }
-
-    /* General sections styling */
-    section {padding: 0.1px 30%;}
-    h2, h3, h4 {color: #fff;}
   </style>
 </head>
 <body>
@@ -121,7 +39,6 @@
       <li><a href="pages/contact.html">Contact</a></li>
       <li><a href="pages/login.html" class="auth-link">Login</a></li>
       <li><a href="pages/signup.html" class="auth-link">Sign Up</a></li>
-      <li><a>Name</a></li>
     </ul>
   </nav>
 
@@ -129,8 +46,9 @@
   <section id="home" class="hero">
     <div class="hero-content">
       <h1>Welcome to Animaker</h1>
-      <p><h4><marquee>Animate out of the box</marquee></h4></p><br>
-      <a href="pages/login.html" class="auth-link"><button class="cta-button">Start Creating</button></a>
+      <h4>Animate out of the box</h4>
+      <br>
+      <a href="pages/login.html"><button class="cta-button">Start Creating</button></a>
     </div>
   </section>
 
@@ -152,9 +70,8 @@
           <div class="role-icon">
             <i class="fas fa-film"></i>
           </div>
-          <h3>Creator</h3><br><br>
+          <h3>Creator</h3>
           <p class="role-description">Transform your imagination into stunning visual content</p>
-          <br><br>
           <div class="role-cta">
             <a href="pages/login.html"><button class="role-button">Start Creating</button></a>
           </div>
@@ -164,9 +81,8 @@
           <div class="role-icon">
             <i class="fas fa-pen-nib"></i>
           </div>
-          <h3>Writer</h3><br><br>
+          <h3>Writer</h3>
           <p class="role-description">Craft compelling stories that captivate audiences</p>
-          <br><br>
           <div class="role-cta">
             <a href="pages/login.html"><button class="role-button">Start Writing</button></a>
           </div>
@@ -176,9 +92,8 @@
           <div class="role-icon">
             <i class="fas fa-cube"></i>
           </div>
-          <h3>Maker</h3><br><br>
+          <h3>Maker</h3>
           <p class="role-description">Build and prototype your creative concepts</p>
-          <br><br>
           <div class="role-cta">
             <a href="pages/login.html"><button class="role-button">Start Making</button></a>
           </div>
@@ -214,7 +129,9 @@
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2026 Animaker. All rights reserved.</p>
-  </footer>  <script src="js/auth.js"></script>
+    <p>&copy; 2026 AniMaker. All rights reserved.</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
 </body>
 </html>
