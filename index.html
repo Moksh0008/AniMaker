@@ -11,10 +11,8 @@
     body::before {
       content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background:
         linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
         url('assets/images/background.jpg') no-repeat center center fixed;
@@ -24,13 +22,8 @@
   </style>
 </head>
 <body>
-
-  <!-- Navbar -->
   <nav class="navbar">
-    <a href="index.html" class="logo">
-      <img src="assets/images/logo.png" alt="AniMaker">
-      AniMaker
-    </a>
+    <a href="index.html" class="logo"><img src="assets/images/logo.png" alt="AniMaker"> AniMaker</a>
     <ul class="nav-links" id="navLinks">
       <li><a href="#home" class="active">Home</a></li>
       <li><a href="#features">Features</a></li>
@@ -39,149 +32,89 @@
       <li><a href="pages/services.html">Services</a></li>
       <li><a href="pages/contact.html">Contact</a></li>
     </ul>
-    <div class="nav-actions">
-      <a href="pages/login.html" class="btn btn-ghost">Log in</a>
-      <a href="pages/signup.html" class="btn btn-primary">Get Started</a>
-    </div>
-    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')">
-      <span></span><span></span><span></span>
-    </div>
+    <div class="nav-actions" style="position:relative;"></div>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
   </nav>
 
-  <!-- Hero -->
   <section id="home" class="hero">
     <div class="hero-content">
-      <div class="hero-badge">
-        <i class="fas fa-sparkles"></i>
-        Built for Creators
-      </div>
+      <div class="hero-badge"><i class="fas fa-sparkles"></i> Built for Creators</div>
       <h1>Where Anime Meets <span class="gradient-text">Imagination</span></h1>
-      <p>A collaborative platform for animators, writers, and creators to bring characters and stories to life. Showcase your work, connect with artists, and build something extraordinary.</p>
-      <div class="hero-actions">
-        <a href="pages/signup.html" class="btn btn-primary btn-lg">
-          <i class="fas fa-rocket"></i>
-          Start Creating
-        </a>
-        <a href="pages/about.html" class="btn btn-secondary btn-lg">Learn More</a>
-      </div>
+      <p>A collaborative platform for animators, writers, and creators to bring characters and stories to life.</p>
+      <div class="hero-actions" id="heroActions"></div>
       <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="stat-value">10K+</div>
-          <div class="stat-label">Creators</div>
-        </div>
-        <div class="hero-stat">
-          <div class="stat-value">50K+</div>
-          <div class="stat-label">Projects</div>
-        </div>
-        <div class="hero-stat">
-          <div class="stat-value">100K+</div>
-          <div class="stat-label">Characters</div>
-        </div>
+        <div class="hero-stat"><div class="stat-value">10K+</div><div class="stat-label">Creators</div></div>
+        <div class="hero-stat"><div class="stat-value">50K+</div><div class="stat-label">Projects</div></div>
+        <div class="hero-stat"><div class="stat-value">100K+</div><div class="stat-label">Characters</div></div>
       </div>
     </div>
   </section>
 
-  <!-- Roles Section -->
   <section id="roles" class="section">
     <div class="page-container">
       <div class="section-header">
         <span class="section-label">Choose Your Path</span>
         <h2>What Will You Create?</h2>
-        <p>Pick a role that matches your creative vision. Each path gives you specialized tools and a community of like-minded creators.</p>
+        <p>Pick a role that matches your creative vision.</p>
       </div>
       <div class="card-grid card-grid-3">
-        <div class="role-card creator">
-          <div class="role-icon"><i class="fas fa-film"></i></div>
-          <h3>Creator</h3>
-          <p class="role-description">Transform your imagination into stunning visual content. Animate characters, design scenes, and produce cinematic masterpieces.</p>
-          <a href="pages/login.html" class="btn btn-primary">Start Creating</a>
-        </div>
-        <div class="role-card writer">
-          <div class="role-icon"><i class="fas fa-pen-nib"></i></div>
-          <h3>Writer</h3>
-          <p class="role-description">Craft compelling stories that captivate audiences. Write scripts, develop lore, and collaborate on narratives with other writers.</p>
-          <a href="pages/login.html" class="btn btn-primary">Start Writing</a>
-        </div>
-        <div class="role-card maker">
-          <div class="role-icon"><i class="fas fa-cube"></i></div>
-          <h3>Maker</h3>
-          <p class="role-description">Build and prototype your creative concepts. Design 3D models, create assets, and bring characters into the real world.</p>
-          <a href="pages/login.html" class="btn btn-primary">Start Making</a>
-        </div>
+        <div class="role-card creator"><div class="role-icon"><i class="fas fa-film"></i></div><h3>Creator</h3><p class="role-description">Transform your imagination into stunning visual content.</p><a href="pages/login.html" class="btn btn-primary">Start Creating</a></div>
+        <div class="role-card writer"><div class="role-icon"><i class="fas fa-pen-nib"></i></div><h3>Writer</h3><p class="role-description">Craft compelling stories that captivate audiences.</p><a href="pages/login.html" class="btn btn-primary">Start Writing</a></div>
+        <div class="role-card maker"><div class="role-icon"><i class="fas fa-cube"></i></div><h3>Maker</h3><p class="role-description">Build and prototype your creative concepts.</p><a href="pages/login.html" class="btn btn-primary">Start Making</a></div>
       </div>
     </div>
   </section>
 
   <hr class="section-divider">
 
-  <!-- Features Section -->
   <section id="features" class="section features-section">
     <div class="page-container">
       <div class="section-header">
         <span class="section-label">Why AniMaker</span>
         <h2>Built for the Creative Workflow</h2>
-        <p>Everything you need to go from spark of inspiration to finished project, all in one place.</p>
+        <p>Everything you need from spark to finished project.</p>
       </div>
       <div class="card-grid card-grid-3">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-lightbulb"></i></div>
-          <h3>Creative Inspiration</h3>
-          <p>Access a vast library of character designs, story elements, and references to fuel your next project.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-palette"></i></div>
-          <h3>Artistic Fusion</h3>
-          <p>Blend different styles and concepts to create something truly unique. Cross-pollinate ideas across genres.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-users"></i></div>
-          <h3>Community</h3>
-          <p>Connect with thousands of creators. Share feedback, collaborate on projects, and grow together.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
-          <h3>Creator Tools</h3>
-          <p>Professional-grade animation, writing, and design tools built specifically for anime and manga creators.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-folder-open"></i></div>
-          <h3>Portfolio</h3>
-          <p>Build a stunning showcase of your work. Let your art speak for itself with beautiful presentation.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-comments"></i></div>
-          <h3>Collaboration</h3>
-          <p>Real-time messaging and project tools make it easy to work with other creators across the globe.</p>
-        </div>
+        <div class="feature-card"><div class="feature-icon"><i class="fas fa-lightbulb"></i></div><h3>Creative Inspiration</h3><p>Access a vast library of character designs and story elements.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i class="fas fa-palette"></i></div><h3>Artistic Fusion</h3><p>Blend styles and concepts to create something unique.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i class="fas fa-users"></i></div><h3>Community</h3><p>Connect with thousands of creators and grow together.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i class="fas fa-wand-magic-sparkles"></i></div><h3>Creator Tools</h3><p>Professional-grade tools for anime and manga creators.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i class="fas fa-folder-open"></i></div><h3>Portfolio</h3><p>Build a stunning showcase of your work.</p></div>
+        <div class="feature-card"><div class="feature-icon"><i class="fas fa-comments"></i></div><h3>Collaboration</h3><p>Work with creators across the globe in real-time.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- CTA Section -->
   <section class="section text-center">
     <div class="page-container">
       <div class="section-header">
         <span class="section-label">Ready?</span>
         <h2>Start Your Creative Journey</h2>
-        <p>Join thousands of creators who are already building the next generation of anime and animation.</p>
+        <p>Join thousands of creators building the future of anime.</p>
       </div>
-      <div class="hero-actions">
-        <a href="pages/signup.html" class="btn btn-primary btn-lg">
-          <i class="fas fa-arrow-right"></i> Create Free Account
-        </a>
-      </div>
+      <div class="hero-actions" id="ctaActions"></div>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="footer">
     <p>&copy; 2026 AniMaker. All rights reserved. Built with <i class="fas fa-heart" style="color: var(--pink);"></i> for creators.</p>
   </footer>
 
+  <script src="js/api.js"></script>
   <script>
     document.querySelector('.nav-toggle')?.addEventListener('click', () => {
       document.getElementById('navLinks').classList.toggle('active');
     });
+    updateNavbarAuth();
+    var heroActions = document.getElementById('heroActions');
+    var ctaActions = document.getElementById('ctaActions');
+    if (isLoggedIn()) {
+      heroActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Go to Dashboard</a>';
+      ctaActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Open Dashboard</a>';
+    } else {
+      heroActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Start Creating</a><a href="pages/about.html" class="btn btn-secondary btn-lg">Learn More</a>';
+      ctaActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Create Free Account</a>';
+    }
   </script>
 </body>
 </html>
