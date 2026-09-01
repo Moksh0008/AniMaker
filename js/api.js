@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = 'http://localhost:5000/api';
 
 // Get stored token
 function getToken() {
@@ -49,7 +49,22 @@ async function apiRequest(url, options = {}) {
   }
 
   const response = await fetch(`${API_BASE}${url}`, config);
-  const data = await response.json();
+
+  // Handle empty/non-JSON responses (e.g. server down, 204, proxy errors)
+  let data;
+  const text = await response.text();
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      throw new Error(`Unexpected server response (${response.status})`);
+    }
+  } else {
+    if (!response.ok) {
+      throw new Error(`Server error (${response.status})`);
+    }
+    data = {};
+  }
 
   if (!response.ok) {
     throw new Error(data.message || 'Something went wrong');
