@@ -3,17 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Writer</title>
-
-  <!-- Google Fonts -->
+  <title>Goats as a Trio — AniMaker</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <style>
-    :root {
-      --bg-image: url('../assets/images/writer/writer-pic-2.jpg');
-    }
-
     body {
       margin: 0;
       font-family: 'Montserrat', sans-serif;
@@ -24,144 +17,86 @@
       align-items: center;
       color: white;
       overflow: hidden;
-      position: relative;
-      animation: fadeIn 2s ease-in;
-      background: var(--bg-image) no-repeat center center fixed;
+      background: url('../assets/images/writer/writer-pic-2.jpg') no-repeat center center fixed;
       background-size: cover;
+      background-color: #0a0a0f;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .circle-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    .circle {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      background-color: rgba(255, 53, 255, 0.12);
-      border-radius: 50%;
-      animation: moveCircle 15s infinite linear;
-    }
-
-    @keyframes moveCircle {
-      0% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
-      100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
-    }
-
-    .circle:nth-child(1) { top: 10%; left: 15%; animation-duration: 12s; }
-    .circle:nth-child(2) { top: 30%; left: 70%; animation-duration: 18s; }
-    .circle:nth-child(3) { top: 50%; left: 40%; animation-duration: 20s; }
-    .circle:nth-child(4) { top: 75%; left: 60%; animation-duration: 14s; }
-    .circle:nth-child(5) { top: 90%; left: 25%; animation-duration: 22s; }
 
     .back-button {
       position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 55px;
-      height: 55px;
+      top: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       background: linear-gradient(145deg, #6a1bbd, #8a2be2);
       color: #fff;
       border: none;
-      font-size: 22px;
+      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 6px 6px 12px rgba(0,0,0,0.3),
-                  -3px -3px 7px rgba(255,255,255,0.1);
-      transition: transform 0.25s ease, background 0.3s ease, box-shadow 0.3s ease;
-      z-index: 1200;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.25s ease, box-shadow 0.3s ease;
+      z-index: 100;
     }
 
     .back-button:hover {
-      background: linear-gradient(145deg, #ff6ec4, #8a2be2);
-      transform: translateY(-4px) scale(1.15) rotate(-8deg);
-      box-shadow: 0px 12px 25px rgba(0,0,0,0.6),
-                  0px 0px 25px rgba(255,105,180,0.8);
-    }
-
-    .top-right {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      z-index: 10;
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
     }
 
     h2 {
       color: #fff;
-      font-size: 28px;
-      margin-bottom: 20px;
+      font-size: 1.6rem;
+      margin-bottom: 16px;
       text-align: center;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+      text-shadow: 0 2px 16px rgba(0,0,0,0.9);
+      position: relative;
+      z-index: 1;
     }
 
-    /* ✅ New story box */
     .story-box {
-      max-width: 800px;
+      max-width: 750px;
+      width: 90%;
       text-align: justify;
-      line-height: 1.6;
-      margin: 10px 20px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 18px 22px;
+      line-height: 1.7;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 24px;
       border-radius: 12px;
-      backdrop-filter: blur(3px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
     }
 
     .story-box p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
       margin-bottom: 14px;
+    }
+
+    .story-box p:last-child {
+      margin-bottom: 0;
     }
   </style>
 </head>
 <body>
-  <div class="circle-container">
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-  </div>
-
-  <button id="backButton" class="back-button">
+  <button class="back-button" onclick="window.location.href='writer.html'">
     <i class="fas fa-arrow-left"></i>
   </button>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('backButton').addEventListener('click', function() {
-        window.location.href = 'writer.html';
-      });
-    });
-  </script>
-
-  <div class="top-right">User</div>
-
   <h2>Three Friends, One Journey</h2>
 
-  <!-- ✅ Single Box for Story -->
   <div class="story-box">
     <p>Naruto, Luffy, and Goku were three young adventurers brought together by fate in a world where ninjas, pirates, and martial artists lived side by side. Though their personalities were completely different, they quickly became inseparable. Goku was calm and fearless, Luffy was wild and cheerful, while Naruto was determined and never willing to give up.</p>
-
-<p>They would often train together, turning every practice session into a friendly competition. Goku challenged them to test their strength, Luffy rushed into every fight with a huge grin, and Naruto refused to let either of them get ahead. Even when they lost, they would laugh, learn, and promise to become stronger together.</p>
-
-<p>As they grew older, each of them began chasing their own dream. Goku wanted to become the greatest martial artist, Luffy dreamed of becoming the Pirate King, and Naruto wanted to become Hokage and earn the respect of everyone around him. Their paths were different, but their determination was the same.</p>
-
-<p>Years later, their names became legends across the world. Goku was known throughout the universe, Luffy became a feared and respected pirate, and Naruto became one of the greatest shinobi. No matter how far their journeys took them, the three friends always found their way back to each other. They knew that together, they could face any enemy, overcome any challenge, and turn even the greatest adventure into an unforgettable story.</p>
-</div>
+    <p>They would often train together, turning every practice session into a friendly competition. Goku challenged them to test their strength, Luffy rushed into every fight with a huge grin, and Naruto refused to let either of them get ahead. Even when they lost, they would laugh, learn, and promise to become stronger together.</p>
+    <p>As they grew older, each of them began chasing their own dream. Goku wanted to become the greatest martial artist, Luffy dreamed of becoming the Pirate King, and Naruto wanted to become Hokage and earn the respect of everyone around him. Their paths were different, but their determination was the same.</p>
+    <p>Years later, their names became legends across the world. Goku was known throughout the universe, Luffy became a feared and respected pirate, and Naruto became one of the greatest shinobi. No matter how far their journeys took them, the three friends always found their way back to each other. They knew that together, they could face any enemy, overcome any challenge, and turn even the greatest adventure into an unforgettable story.</p>
+  </div>
 </body>
 </html>

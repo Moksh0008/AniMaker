@@ -4,36 +4,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Luffy as Lil Bro of Goku — AniMaker</title>
-  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      overflow: hidden;
       background: url('../assets/images/writer/writer-pic-1.jpg') no-repeat center center fixed;
       background-size: cover;
+      background-color: #0a0a0f;
     }
-    body::before {
-      content: '';
+
+    .back-button {
       position: fixed;
-      inset: 0;
-      background: rgba(10, 10, 15, 0.7);
-      z-index: -1;
+      top: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
+      color: #fff;
+      border: none;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.25s ease, box-shadow 0.3s ease;
+      z-index: 100;
+    }
+
+    .back-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    }
+
+    h2 {
+      color: #fff;
+      font-size: 1.6rem;
+      margin-bottom: 16px;
+      text-align: center;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.9);
+      position: relative;
+      z-index: 1;
+    }
+
+    .story-box {
+      max-width: 750px;
+      width: 90%;
+      text-align: justify;
+      line-height: 1.7;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 24px;
+      border-radius: 12px;
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .story-box p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 14px;
+    }
+
+    .story-box p:last-child {
+      margin-bottom: 0;
     }
   </style>
 </head>
 <body>
-  <button class="detail-back" onclick="window.location.href='writer.html'"><i class="fas fa-arrow-left"></i></button>
-  <div class="user-badge"><div class="user-badge-avatar"><i class="fas fa-user"></i></div> User</div>
+  <button class="back-button" onclick="window.location.href='writer.html'">
+    <i class="fas fa-arrow-left"></i>
+  </button>
 
-  <div class="detail-page">
-    <h1 style="font-family:var(--font-display);font-size:1.75rem;font-weight:700;color:#fff;margin-bottom:24px;text-align:center;">Luffy as a Lil Bro of Goku</h1>
-    <div class="story-box">
-      <p>In a small, peaceful village on Earth, Goku's younger brother, Luffy, was born. Unlike Goku, Luffy's personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.</p>
-      <p>Luffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn't mind; every loss made him stronger, and every challenge gave him more fire. "One day, I'll be as strong as you!" he'd shout with a grin, despite his bruises.</p>
-      <p>As they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world's greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.</p>
-      <p>Goku would often send Luffy letters with encouragement, but Luffy's only reply would be a laughing message: "I'm already on my way to being the King of the Sea, big bro!"</p>
-      <p>Years later, Luffy's name became known across the seas, just as Goku's became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected. Luffy may not have had the same calm nature as Goku, but his heart was just as pure, his dreams just as big.</p>
-    </div>
+  <h2>Luffy as a Lil Bro of Goku</h2>
+
+  <div class="story-box">
+    <p>In a small, peaceful village on Earth, Goku's younger brother, Luffy, was born. Unlike Goku, Luffy's personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.</p>
+    <p>Luffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn't mind; every loss made him stronger, and every challenge gave him more fire. "One day, I'll be as strong as you!" he'd shout with a grin, despite his bruises.</p>
+    <p>As they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world's greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.</p>
+    <p>Goku would often send Luffy letters with encouragement, but Luffy's only reply would be a laughing message: "I'm already on my way to being the King of the Sea, big bro!"</p>
+    <p>Years later, Luffy's name became known across the seas, just as Goku's became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected. Luffy may not have had the same calm nature as Goku, but his heart was just as pure, his dreams just as big.</p>
   </div>
 </body>
 </html>
