@@ -1,30 +1,27 @@
 /* =========================================================
-   AniMaker — Posts System (Supabase)
+   AniMaker — Creations System (Supabase)
    
-   Reusable functions for creating, reading, updating,
-   deleting posts and uploading media to Supabase Storage.
+   Supports three creation types:
+   - Creator: images + descriptions
+   - Writer: stories + cover images
+   - Maker: videos + thumbnails
    ========================================================= */
 
 /* ---- Constants ---- */
-var POST_CATEGORIES = [
-  'Creator',
-  'Writer',
-  'Maker'
-];
+var CREATION_TYPES = ['creator', 'writer', 'maker'];
 
 var VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 var VALID_VIDEO_TYPES = ['video/mp4', 'video/webm'];
 var MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 var MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 
-/* ---- Upload media to Supabase Storage ---- */
-async function uploadPostMedia(file, onProgress) {
+/* ---- Upload file to Supabase Storage ---- */
+async function uploadCreationFile(file, bucket, onProgress) {
   if (!supabaseClient) throw new Error('Supabase not available');
 
   var session = await getSession();
   if (!session || !session.user) throw new Error('Not authenticated');
 
-  // Validate file type
   var isImage = VALID_IMAGE_TYPES.includes(file.type);
   var isVideo = VALID_VIDEO_TYPES.includes(file.type);
 
@@ -32,7 +29,6 @@ async function uploadPostMedia(file, onProgress) {
     throw new Error('Unsupported file type. Please upload JPG, PNG, WEBP, GIF, MP4, or WEBM.');
   }
 
-  // Validate file size
   if (isImage && file.size > MAX_IMAGE_SIZE) {
     throw new Error('Image must be less than 10MB.');
   }
@@ -45,22 +41,20 @@ async function uploadPostMedia(file, onProgress) {
   var random = Math.random().toString(36).substring(2, 8);
   var filePath = session.user.id + '/' + timestamp + '-' + random + '.' + ext;
 
-  // Upload with progress tracking via XMLHttpRequest
   var storageUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object';
   var apiKey = '';
-  try { apiKey = supabaseClient._headers?.apikey || ''; } catch {}
+  try { apiKey = supabaseClient._headers?.apikey || ''; } catch(e) {}
+
   if (!apiKey) {
-    // Fallback: use Supabase SDK upload without progress
-    var { data, error } = await supabaseClient.storage.from('post-media').upload(filePath, file, { cacheControl: '3600', upsert: false });
+    var { data, error } = await supabaseClient.storage.from(bucket).upload(filePath, file, { cacheControl: '3600', upsert: false });
     if (error) throw new Error(error.message || 'Upload failed');
-    var publicUrl = supabaseClient.supabaseUrl + '/storage/v1/object/public/post-media/' + filePath;
-    return { url: publicUrl, type: isImage ? 'image' : 'video', path: filePath };
+    var publicUrl = supabaseClient.supabaseUrl + '/storage/v1/object/public/' + bucket + '/' + filePath;
+    return { url: publicUrl, path: filePath };
   }
 
   return new Promise(function(resolve, reject) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', storageUrl + '/post-media/' + filePath);
-
+    xhr.open('POST', storageUrl + '/' + bucket + '/' + filePath);
     xhr.setRequestHeader('apikey', apiKey);
     xhr.setRequestHeader('Authorization', 'Bearer ' + session.access_token);
 
@@ -74,8 +68,8 @@ async function uploadPostMedia(file, onProgress) {
 
     xhr.onload = function() {
       if (xhr.status >= 200 && xhr.status < 300) {
-        var publicUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object/public/post-media/' + filePath;
-        resolve({ url: publicUrl, type: isImage ? 'image' : 'video', path: filePath });
+        var publicUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object/public/' + bucket + '/' + filePath;
+        resolve({ url: publicUrl, path: filePath });
       } else {
         reject(new Error('Upload failed: ' + (xhr.statusText || 'Server error')));
       }
@@ -89,50 +83,62 @@ async function uploadPostMedia(file, onProgress) {
   });
 }
 
-/* ---- Delete media from Supabase Storage ---- */
-async function deletePostMedia(filePath) {
+/* ---- Delete file from Supabase Storage ---- */
+async function deleteCreationFile(bucket, filePath) {
   if (!supabaseClient || !filePath) return;
   try {
-    await supabaseClient.storage.from('post-media').remove([filePath]);
-  } catch {}
+    await supabaseClient.storage.from(bucket).remove([filePath]);
+  } catch(e) {}
 }
 
-/* ---- Create a post ---- */
-async function createPost(postData) {
+/* ---- Extract storage path from URL ---- */
+function extractStoragePath(url, bucket) {
+  if (!url) return null;
+  var marker = '/object/public/' + bucket + '/';
+  var idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.substring(idx + marker.length);
+}
+
+/* ---- Create a creation ---- */
+async function createCreation(data) {
   if (!supabaseClient) throw new Error('Supabase not available');
 
   var session = await getSession();
   if (!session || !session.user) throw new Error('Not authenticated');
 
-  var { data, error } = await supabaseClient
-    .from('posts')
-    .insert({
-      user_id: session.user.id,
-      title: postData.title || '',
-      caption: postData.caption || '',
-      media_url: postData.media_url,
-      media_type: postData.media_type,
-      category: postData.category || 'Other'
-    })
+  var record = {
+    user_id: session.user.id,
+    type: data.type,
+    title: data.title || '',
+    description: data.description || '',
+    cover_image_url: data.cover_image_url || '',
+    media_url: data.media_url || '',
+    story_content: data.story_content || ''
+  };
+
+  var { data: result, error } = await supabaseClient
+    .from('creations')
+    .insert(record)
     .select()
     .single();
 
-  if (error) throw new Error(error.message || 'Failed to create post');
-  return data;
+  if (error) throw new Error(error.message || 'Failed to create');
+  return result;
 }
 
-/* ---- Fetch posts (feed) ---- */
-async function fetchPosts(options) {
+/* ---- Fetch creations ---- */
+async function fetchCreations(options) {
   if (!supabaseClient) return [];
 
   options = options || {};
   var limit = options.limit || 20;
   var offset = options.offset || 0;
   var userId = options.userId || null;
-  var category = options.category || null;
+  var type = options.type || null;
 
   var query = supabaseClient
-    .from('posts')
+    .from('creations')
     .select('*, profiles:user_id(username, full_name, avatar_url, role)')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
@@ -140,95 +146,115 @@ async function fetchPosts(options) {
   if (userId) {
     query = query.eq('user_id', userId);
   }
-  if (category) {
-    query = query.eq('category', category);
+  if (type) {
+    query = query.eq('type', type);
   }
 
   var { data, error } = await query;
   if (error) {
-    console.error('[AniMaker] fetchPosts error:', error.message);
+    console.error('[AniMaker] fetchCreations error:', error.message);
     return [];
   }
   return data || [];
 }
 
-/* ---- Fetch single post ---- */
-async function fetchPost(postId) {
+/* ---- Fetch single creation ---- */
+async function fetchCreation(id) {
   if (!supabaseClient) return null;
 
   var { data, error } = await supabaseClient
-    .from('posts')
+    .from('creations')
     .select('*, profiles:user_id(username, full_name, avatar_url, role)')
-    .eq('id', postId)
+    .eq('id', id)
     .single();
 
   if (error) return null;
   return data;
 }
 
-/* ---- Update a post ---- */
-async function updatePost(postId, updates) {
+/* ---- Update a creation ---- */
+async function updateCreation(id, updates) {
   if (!supabaseClient) throw new Error('Supabase not available');
 
   var session = await getSession();
   if (!session || !session.user) throw new Error('Not authenticated');
 
   var { data, error } = await supabaseClient
-    .from('posts')
+    .from('creations')
     .update({
       title: updates.title,
-      caption: updates.caption,
-      category: updates.category
+      description: updates.description,
+      cover_image_url: updates.cover_image_url,
+      story_content: updates.story_content
     })
-    .eq('id', postId)
+    .eq('id', id)
     .eq('user_id', session.user.id)
     .select()
     .single();
 
-  if (error) throw new Error(error.message || 'Failed to update post');
+  if (error) throw new Error(error.message || 'Failed to update');
   return data;
 }
 
-/* ---- Delete a post ---- */
-async function deletePost(postId) {
+/* ---- Delete a creation ---- */
+async function deleteCreation(id) {
   if (!supabaseClient) throw new Error('Supabase not available');
 
   var session = await getSession();
   if (!session || !session.user) throw new Error('Not authenticated');
 
-  // Get post to find media path
-  var post = await fetchPost(postId);
-  if (!post) throw new Error('Post not found');
-  if (post.user_id !== session.user.id) throw new Error('You can only delete your own posts');
+  var creation = await fetchCreation(id);
+  if (!creation) throw new Error('Creation not found');
+  if (creation.user_id !== session.user.id) throw new Error('You can only delete your own creations');
 
-  // Delete media from storage
-  if (post.media_url) {
-    var path = post.media_url.split('/object/public/post-media/')[1];
-    if (path) await deletePostMedia(path);
+  // Delete media files from storage
+  if (creation.type === 'creator' && creation.cover_image_url) {
+    var imgPath = extractStoragePath(creation.cover_image_url, 'creations');
+    if (imgPath) await deleteCreationFile('creations', imgPath);
+  }
+  if (creation.type === 'maker') {
+    if (creation.media_url) {
+      var vidPath = extractStoragePath(creation.media_url, 'maker-videos');
+      if (vidPath) await deleteCreationFile('maker-videos', vidPath);
+    }
+    if (creation.cover_image_url) {
+      var thumbPath = extractStoragePath(creation.cover_image_url, 'maker-thumbnails');
+      if (thumbPath) await deleteCreationFile('maker-thumbnails', thumbPath);
+    }
+  }
+  if (creation.type === 'writer' && creation.cover_image_url) {
+    var coverPath = extractStoragePath(creation.cover_image_url, 'creations');
+    if (coverPath) await deleteCreationFile('creations', coverPath);
   }
 
-  // Delete post record
   var { error } = await supabaseClient
-    .from('posts')
+    .from('creations')
     .delete()
-    .eq('id', postId)
+    .eq('id', id)
     .eq('user_id', session.user.id);
 
-  if (error) throw new Error(error.message || 'Failed to delete post');
+  if (error) throw new Error(error.message || 'Failed to delete');
   return true;
 }
 
-/* ---- Count posts for a user ---- */
-async function countUserPosts(userId) {
-  if (!supabaseClient) return 0;
+/* ---- Count creations by type for a user ---- */
+async function countCreationsByType(userId) {
+  if (!supabaseClient) return { creator: 0, writer: 0, maker: 0, total: 0 };
 
-  var { count, error } = await supabaseClient
-    .from('posts')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId);
+  var counts = { creator: 0, writer: 0, maker: 0, total: 0 };
 
-  if (error) return 0;
-  return count || 0;
+  for (var i = 0; i < CREATION_TYPES.length; i++) {
+    var t = CREATION_TYPES[i];
+    var { count, error } = await supabaseClient
+      .from('creations')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('type', t);
+    counts[t] = count || 0;
+    counts.total += counts[t];
+  }
+
+  return counts;
 }
 
 /* ---- Utility: time ago ---- */
@@ -265,4 +291,29 @@ function postEscapeHtml(str) {
   var div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+/* ---- Utility: reading time estimate ---- */
+function estimateReadingTime(text) {
+  if (!text) return '1 min read';
+  var words = text.split(/\s+/).length;
+  var minutes = Math.max(1, Math.round(words / 200));
+  return minutes + ' min read';
+}
+
+/* ---- Utility: get user avatar HTML ---- */
+function getCreationUserAvatar(profile, size) {
+  size = size || 36;
+  if (!profile) return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:' + (size * 0.4) + 'px;">?</div>';
+  if (profile.avatar_url) {
+    return '<img src="' + profile.avatar_url + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;">';
+  }
+  var initial = (profile.full_name || profile.username || 'U').charAt(0).toUpperCase();
+  return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:' + (size * 0.4) + 'px;">' + initial + '</div>';
+}
+
+/* ---- Utility: get user display name ---- */
+function getCreationUserName(profile) {
+  if (!profile) return 'Unknown';
+  return profile.full_name || profile.username || 'Unknown';
 }

@@ -555,28 +555,18 @@
             </div>
           </div>
 
-          <div class="profile-tabs">
-            <div class="profile-tab active" data-tab="posts" onclick="switchTab('posts')"><i class="fas fa-th"></i> Posts</div>
-            <div class="profile-tab" data-tab="saved" onclick="switchTab('saved')"><i class="fas fa-bookmark"></i> Saved</div>
-            <div class="profile-tab" data-tab="tagged" onclick="switchTab('tagged')"><i class="fas fa-tag"></i> Tagged</div>
+          <div class="profile-creation-tabs">
+            <div class="profile-creation-tab active" data-tab="creator" onclick="switchCreationTab('creator')"><i class="fas fa-image"></i> Creator <span class="tab-count" id="tabCreatorCount">0</span></div>
+            <div class="profile-creation-tab" data-tab="writer" onclick="switchCreationTab('writer')"><i class="fas fa-pen-nib"></i> Writer <span class="tab-count" id="tabWriterCount">0</span></div>
+            <div class="profile-creation-tab" data-tab="maker" onclick="switchCreationTab('maker')"><i class="fas fa-video"></i> Maker <span class="tab-count" id="tabMakerCount">0</span></div>
           </div>
 
           <div class="profile-content">
             <div class="profile-grid" id="profileGrid" style="display:none;"></div>
             <div class="profile-empty" id="postsEmpty" style="display:none;">
-              <i class="fas fa-film"></i>
-              <p>No posts yet</p>
+              <i class="fas fa-image"></i>
+              <p>No creations yet</p>
               <span>Share your first creation with the community.</span>
-            </div>
-            <div class="profile-empty" id="savedEmpty" style="display:none;">
-              <i class="fas fa-bookmark"></i>
-              <p>No saved posts</p>
-              <span>Posts you save will appear here.</span>
-            </div>
-            <div class="profile-empty" id="taggedEmpty" style="display:none;">
-              <i class="fas fa-tag"></i>
-              <p>No tagged posts</p>
-              <span>Posts you're tagged in will appear here.</span>
             </div>
           </div>
         </div>
@@ -733,65 +723,90 @@
       }
     });
 
-    // Tab switching
-    var currentTab = 'posts';
-    window.switchTab = function(tab) {
-      currentTab = tab;
-      document.querySelectorAll('.profile-tab').forEach(function(t) {
-        t.classList.toggle('active', t.getAttribute('data-tab') === tab);
-      });
-      document.getElementById('profileGrid').style.display = 'none';
-      document.getElementById('postsEmpty').style.display = 'none';
-      document.getElementById('savedEmpty').style.display = 'none';
-      document.getElementById('taggedEmpty').style.display = 'none';
+    /* ---- Load profile creations ---- */
+    var _profileCreationCounts = { creator: 0, writer: 0, maker: 0 };
+    var _profileCreations = { creator: [], writer: [], maker: [] };
+    var _currentProfileTab = 'creator';
+    var _profileUserId = null;
 
-      if (tab === 'posts') {
-        var grid = document.getElementById('profileGrid');
-        if (grid.children.length > 0) {
-          grid.style.display = 'grid';
-        } else {
-          document.getElementById('postsEmpty').style.display = 'block';
-        }
-      } else if (tab === 'saved') {
-        document.getElementById('savedEmpty').style.display = 'block';
-      } else if (tab === 'tagged') {
-        document.getElementById('taggedEmpty').style.display = 'block';
-      }
-    };
-
-    /* ---- Load profile posts ---- */
     async function loadProfilePosts(userId) {
+      _profileUserId = userId;
+      var grid = document.getElementById('profileGrid');
+      var emptyEl = document.getElementById('postsEmpty');
+      grid.innerHTML = '';
+      emptyEl.style.display = 'none';
+
+      // Load counts
+      var counts = await countCreationsByType(userId);
+      _profileCreationCounts = counts;
+      document.getElementById('postsCount').textContent = counts.total;
+
+      // Update tab counts
+      document.getElementById('tabCreatorCount').textContent = counts.creator;
+      document.getElementById('tabWriterCount').textContent = counts.writer;
+      document.getElementById('tabMakerCount').textContent = counts.maker;
+
+      // Load all creations by type
+      for (var i = 0; i < CREATION_TYPES.length; i++) {
+        var t = CREATION_TYPES[i];
+        _profileCreations[t] = await fetchCreations({ userId: userId, type: t, limit: 50 });
+      }
+
+      // Show current tab
+      showProfileTab(_currentProfileTab);
+    }
+
+    function showProfileTab(tab) {
+      _currentProfileTab = tab;
       var grid = document.getElementById('profileGrid');
       var emptyEl = document.getElementById('postsEmpty');
       grid.innerHTML = '';
 
-      var posts = await fetchPosts({ userId: userId, limit: 30 });
+      // Update active tab
+      document.querySelectorAll('.profile-creation-tab').forEach(function(el) {
+        el.classList.toggle('active', el.getAttribute('data-tab') === tab);
+      });
 
-      // Update post count
-      document.getElementById('postsCount').textContent = posts ? posts.length : 0;
-
-      if (!posts || posts.length === 0) {
+      var items = _profileCreations[tab] || [];
+      if (items.length === 0) {
         grid.style.display = 'none';
         emptyEl.style.display = 'block';
+        var emptyIcon = tab === 'creator' ? 'fa-image' : tab === 'writer' ? 'fa-pen-nib' : 'fa-video';
+        var emptyText = tab === 'creator' ? 'No creations yet' : tab === 'writer' ? 'No stories yet' : 'No animations yet';
+        emptyEl.innerHTML = '<i class="fas ' + emptyIcon + '" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+          '<p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">' + emptyText + '</p>' +
+          '<span style="font-size:14px;color:var(--text-muted);">Share your first ' + tab + ' creation.</span>';
         return;
       }
 
       emptyEl.style.display = 'none';
       grid.style.display = 'grid';
 
-      posts.forEach(function(post) {
+      items.forEach(function(c) {
         var item = document.createElement('div');
         item.className = 'post-grid-item';
-        if (post.media_type === 'video') {
-          item.innerHTML = '<video src="' + post.media_url + '" preload="metadata" muted style="width:100%;height:100%;object-fit:cover;"></video>' +
+        item.style.cursor = 'pointer';
+        var clickFn = c.type === 'creator' ? 'openCreatorDetail' : c.type === 'writer' ? 'openStoryDetail' : 'openMakerDetail';
+        item.onclick = function() { window[clickFn](c.id); };
+
+        if (c.type === 'writer') {
+          if (c.cover_image_url) {
+            item.innerHTML = '<img src="' + c.cover_image_url + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
+          } else {
+            item.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);"><i class="fas fa-pen-nib" style="font-size:24px;color:var(--text-muted);"></i></div>';
+          }
+        } else if (c.type === 'maker') {
+          var thumb = c.cover_image_url || c.media_url;
+          item.innerHTML = '<img src="' + thumb + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' +
             '<div class="post-grid-overlay"><span class="post-grid-stat"><i class="fas fa-play"></i></span></div>';
         } else {
-          item.innerHTML = '<img src="' + post.media_url + '" alt="' + escapeHtml(post.title || '') + '" loading="lazy">' +
-            '<div class="post-grid-overlay"><span class="post-grid-stat"><i class="far fa-heart"></i> 0</span></div>';
+          item.innerHTML = '<img src="' + (c.cover_image_url || '') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
         }
         grid.appendChild(item);
       });
     }
+
+    window.switchCreationTab = function(tab) { showProfileTab(tab); };
 
     function escapeHtml(str) {
       var div = document.createElement('div');
@@ -898,121 +913,171 @@
       document.getElementById('editProfileModal').style.display = 'none';
     };
 
-    /* ---- Create Post from Profile ---- */
-    var createSelectedFile = null;
+    /* ---- Create from Profile ---- */
+    var _pCreateType = null, _pCreateFile = null, _pCreateCover = null;
 
     window.openCreatePostFromProfile = async function() {
       var session = await getSession();
       if (!session) { window.location.href = 'login.html'; return; }
-
-      var profile = await getCurrentProfile();
-      var username = (profile && profile.username) || 'User';
-
-      var categoryOptions = '';
-      POST_CATEGORIES.forEach(function(c) {
-        categoryOptions += '<option value="' + c + '">' + c + '</option>';
-      });
-
+      _pCreateType = null; _pCreateFile = null; _pCreateCover = null;
       var modal = document.getElementById('createPostModal');
       modal.style.display = 'block';
+      renderPTypeSelector(modal);
+    };
+
+    function renderPTypeSelector(modal) {
+      _pCreateType = null; _pCreateFile = null; _pCreateCover = null;
       modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeCreatePostProfile()">' +
         '<div class="create-modal" onclick="event.stopPropagation()">' +
-          '<div class="create-modal-header"><h3>Create Post</h3><button class="upload-modal-close" onclick="closeCreatePostProfile()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="create-modal-header"><h3>What would you like to publish?</h3><button class="upload-modal-close" onclick="closeCreatePostProfile()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="type-selector">' +
+            '<div class="type-card" data-type="creator" onclick="selectPCreationType(\'creator\')"><div class="type-card-icon"><i class="fas fa-image"></i></div><h4>Creator</h4><p>Share an image with a description</p></div>' +
+            '<div class="type-card" data-type="writer" onclick="selectPCreationType(\'writer\')"><div class="type-card-icon"><i class="fas fa-pen-nib"></i></div><h4>Writer</h4><p>Publish a story or written work</p></div>' +
+            '<div class="type-card" data-type="maker" onclick="selectPCreationType(\'maker\')"><div class="type-card-icon"><i class="fas fa-video"></i></div><h4>Maker</h4><p>Upload an animation or video</p></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    window.selectPCreationType = function(type) {
+      _pCreateType = type; _pCreateFile = null; _pCreateCover = null;
+      var modal = document.getElementById('createPostModal');
+      var header = type.charAt(0).toUpperCase() + type.slice(1);
+      var accept = type === 'maker' ? 'video/mp4,video/webm' : 'image/jpeg,image/png,image/webp,image/gif';
+      var types = type === 'maker' ? 'MP4, WEBM — Max 100MB' : 'JPG, PNG, GIF, WEBP — Max 10MB';
+      var formHtml = '';
+
+      if (type === 'creator') {
+        formHtml =
+          '<div class="create-upload-zone" id="pDropzone"><div class="create-upload-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div><h4>Upload your image</h4><p class="file-types">' + types + '</p></div>' +
+          '<div class="create-upload-preview" id="pPreview"></div>' +
+          '<input type="file" id="pFileInput" style="display:none" accept="' + accept + '">' +
+          '<div class="form-group"><label>Title *</label><input type="text" id="pTitle" placeholder="Give your creation a name" maxlength="100"></div>' +
+          '<div class="form-group"><label>Short description</label><input type="text" id="pShortDesc" placeholder="One line about this creation" maxlength="200"></div>' +
+          '<div class="form-group"><label>Full description *</label><textarea id="pDesc" placeholder="Describe your creation in detail..." maxlength="2000" rows="5"></textarea></div>';
+      } else if (type === 'writer') {
+        formHtml =
+          '<div class="create-upload-zone" id="pDropzone"><div class="create-upload-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div><h4>Upload cover image</h4><p class="file-types">JPG, PNG, GIF, WEBP — Optional</p></div>' +
+          '<div class="create-upload-preview" id="pPreview"></div>' +
+          '<input type="file" id="pFileInput" style="display:none" accept="' + accept + '">' +
+          '<div class="form-group"><label>Story title *</label><input type="text" id="pTitle" placeholder="Give your story a title" maxlength="150"></div>' +
+          '<div class="form-group"><label>Short summary</label><input type="text" id="pShortDesc" placeholder="A brief summary" maxlength="300"></div>' +
+          '<div class="form-group"><label>Story content *</label><textarea id="pStoryContent" class="story-editor" placeholder="Write your story here..." maxlength="50000"></textarea></div>';
+      } else {
+        formHtml =
+          '<div class="create-upload-zone" id="pDropzone"><div class="create-upload-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div><h4>Upload your video</h4><p class="file-types">' + types + '</p></div>' +
+          '<div class="create-upload-preview" id="pPreview"></div>' +
+          '<input type="file" id="pFileInput" style="display:none" accept="' + accept + '">' +
+          '<div class="form-group"><label>Video title *</label><input type="text" id="pTitle" placeholder="Name your video" maxlength="150"></div>' +
+          '<div class="form-group"><label>Description</label><textarea id="pDesc" placeholder="Describe your video..." maxlength="2000" rows="3"></textarea></div>' +
+          '<div class="create-upload-zone" id="pThumbDropzone" style="padding:16px;"><p style="margin:0;font-size:13px;color:var(--text-muted);"><i class="fas fa-image" style="margin-right:6px;"></i> Upload thumbnail (optional)</p></div>' +
+          '<div class="create-upload-preview" id="pThumbPreview"></div>' +
+          '<input type="file" id="pThumbInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">';
+      }
+
+      modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeCreatePostProfile()">' +
+        '<div class="create-modal" onclick="event.stopPropagation()">' +
+          '<div class="create-modal-header"><button class="upload-modal-close" onclick="renderPTypeSelector(document.getElementById(\'createPostModal\'))" style="margin-right:8px;"><i class="fas fa-arrow-left"></i></button><h3>Create ' + header + '</h3><button class="upload-modal-close" onclick="closeCreatePostProfile()"><i class="fas fa-xmark"></i></button></div>' +
           '<div class="create-modal-body">' +
-            '<div class="create-dropzone" id="createDropzoneP">' +
-              '<div class="create-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
-              '<h4>Drag & drop your file here</h4>' +
-              '<p>Images (JPG, PNG, GIF, WEBP) or Videos (MP4, WEBM)</p>' +
-            '</div>' +
-            '<div id="createMediaPreviewP" style="display:none;"></div>' +
-            '<div id="createUploadProgressP" class="create-upload-progress" style="display:none;"><div class="progress-bar-bg"><div class="progress-bar" id="createProgressBarP"></div></div><div class="progress-text" id="createProgressTextP">Uploading...</div></div>' +
-            '<input type="file" id="createFileInputP" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">' +
-            '<div class="form-group"><label for="createTitleP">Title</label><input type="text" id="createTitleP" class="form-input" placeholder="Give your creation a name" maxlength="100"></div>' +
-            '<div class="form-group"><label for="createCaptionP">Caption</label><textarea id="createCaptionP" class="form-input" placeholder="Tell the story behind this creation..." maxlength="1000" rows="3"></textarea></div>' +
-            '<div class="form-group"><label for="createCategoryP">Category</label><select id="createCategoryP" class="category-select">' + categoryOptions + '</select></div>' +
+            '<div id="pUploadProgress" class="create-upload-progress"><div class="create-progress-bar-bg"><div class="create-progress-bar" id="pProgressBar"></div></div><div class="create-progress-text" id="pProgressText">Uploading...</div></div>' +
+            formHtml +
           '</div>' +
           '<div class="create-modal-footer">' +
             '<button class="btn btn-secondary" onclick="closeCreatePostProfile()">Cancel</button>' +
-            '<button class="btn btn-primary" id="publishBtnP" disabled onclick="handlePublishProfile()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
+            '<button class="btn btn-primary" id="pPublishBtn" onclick="handlePPublish()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
           '</div>' +
         '</div>' +
       '</div>';
 
-      var dz = document.getElementById('createDropzoneP');
-      var fi = document.getElementById('createFileInputP');
-      dz.addEventListener('click', function(e) { if (e.target.tagName !== 'BUTTON') fi.click(); });
-      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
-      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
-      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleCreateFileP(e.dataTransfer.files[0]); });
-      fi.addEventListener('change', function(e) { if (e.target.files[0]) handleCreateFileP(e.target.files[0]); });
+      setupPCDropzone('pDropzone', 'pFileInput', 'pPreview', function(f) { _pCreateFile = f; });
+      if (type === 'maker') {
+        setupPCDropzone('pThumbDropzone', 'pThumbInput', 'pThumbPreview', function(f) { _pCreateCover = f; });
+      }
     };
 
-    function handleCreateFileP(file) {
+    function setupPCDropzone(dzId, fiId, previewId, onFile) {
+      var dz = document.getElementById(dzId);
+      var fi = document.getElementById(fiId);
+      if (!dz || !fi) return;
+      dz.addEventListener('click', function() { fi.click(); });
+      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) showPFilePreview(e.dataTransfer.files[0], previewId, dzId, onFile); });
+      fi.addEventListener('change', function(e) { if (e.target.files[0]) showPFilePreview(e.target.files[0], previewId, dzId, onFile); });
+    }
+
+    function showPFilePreview(file, previewId, dzId, onFile) {
       var isImage = VALID_IMAGE_TYPES.includes(file.type);
       var isVideo = VALID_VIDEO_TYPES.includes(file.type);
       if (!isImage && !isVideo) { showToast('Unsupported file type.', 'error'); return; }
       if (isImage && file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
       if (isVideo && file.size > MAX_VIDEO_SIZE) { showToast('Video must be less than 100MB.', 'error'); return; }
-      createSelectedFile = file;
-      var preview = document.getElementById('createMediaPreviewP');
-      var icon = isImage ? 'fa-image' : 'fa-video';
-      preview.innerHTML = '<div class="create-media-preview">' +
-        (isVideo ? '<video controls preload="metadata" style="width:100%;max-height:300px;"></video>' : '<img src="" alt="Preview" style="width:100%;max-height:300px;object-fit:contain;">') +
-        '<button class="create-media-remove" onclick="removeCreateMediaP()"><i class="fas fa-xmark"></i></button>' +
-        '</div>' +
-        '<div class="create-media-info"><span class="file-icon"><i class="fas ' + icon + '"></i></span> ' + file.name + ' (' + formatFileSize(file.size) + ')</div>';
-      preview.style.display = 'block';
-      document.getElementById('createDropzoneP').style.display = 'none';
-      document.getElementById('publishBtnP').disabled = false;
+      onFile(file);
+      var preview = document.getElementById(previewId);
+      var dz = document.getElementById(dzId);
       var reader = new FileReader();
       reader.onload = function(e) {
-        if (isVideo) preview.querySelector('video').src = e.target.result;
-        else preview.querySelector('img').src = e.target.result;
+        var mediaHtml = isVideo
+          ? '<video src="' + e.target.result + '" controls preload="metadata" style="width:100%;max-height:250px;border-radius:8px;"></video>'
+          : '<img src="' + e.target.result + '" style="width:100%;max-height:250px;object-fit:cover;border-radius:8px;">';
+        preview.innerHTML = mediaHtml + '<button class="preview-remove" onclick="event.stopPropagation();this.parentElement.classList.remove(\'active\');this.parentElement.innerHTML=\'\';document.getElementById(\'' + dzId + '\').style.display=\'\';"><i class="fas fa-xmark"></i></button>';
+        preview.classList.add('active');
+        if (dz) dz.style.display = 'none';
       };
       reader.readAsDataURL(file);
     }
 
-    window.removeCreateMediaP = function() {
-      createSelectedFile = null;
-      document.getElementById('createMediaPreviewP').style.display = 'none';
-      document.getElementById('createDropzoneP').style.display = '';
-      document.getElementById('publishBtnP').disabled = true;
-      document.getElementById('createFileInputP').value = '';
-    };
+    window.handlePPublish = async function() {
+      var btn = document.getElementById('pPublishBtn');
+      if (!btn) return;
+      var title = ((document.getElementById('pTitle') || {}).value || '').trim();
+      if (!title) { showToast('Please enter a title.', 'error'); return; }
 
-    window.closeCreatePostProfile = function() {
-      document.getElementById('createPostModal').style.display = 'none';
-      createSelectedFile = null;
-    };
+      var progressEl = document.getElementById('pUploadProgress');
+      var barEl = document.getElementById('pProgressBar');
+      var textEl = document.getElementById('pProgressText');
 
-    window.handlePublishProfile = async function() {
-      if (!createSelectedFile) return;
-      var btn = document.getElementById('publishBtnP');
       btn.disabled = true;
       btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
-      document.getElementById('createUploadProgressP').style.display = 'block';
+      if (progressEl) progressEl.classList.add('active');
+
       try {
-        var result = await uploadPostMedia(createSelectedFile, function(pct) {
-          document.getElementById('createProgressBarP').style.width = pct + '%';
-          document.getElementById('createProgressTextP').textContent = pct < 100 ? 'Uploading... ' + pct + '%' : 'Processing...';
-        });
-        await createPost({
-          title: document.getElementById('createTitleP').value.trim(),
-          caption: document.getElementById('createCaptionP').value.trim(),
-          media_url: result.url,
-          media_type: result.type,
-          category: document.getElementById('createCategoryP').value
-        });
+        var data = { type: _pCreateType, title: title };
+        if (_pCreateType === 'creator') {
+          var shortD = ((document.getElementById('pShortDesc') || {}).value || '').trim();
+          var desc = ((document.getElementById('pDesc') || {}).value || '').trim();
+          if (!desc) { showToast('Please add a description.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
+          data.description = shortD + '\n\n' + desc;
+          var r = await uploadCreationFile(_pCreateFile, 'creations', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading... ' + p + '%' : 'Processing...'; });
+          data.cover_image_url = r.url;
+        } else if (_pCreateType === 'writer') {
+          var shortD = ((document.getElementById('pShortDesc') || {}).value || '').trim();
+          var story = ((document.getElementById('pStoryContent') || {}).value || '').trim();
+          if (!story) { showToast('Please write your story.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
+          data.description = shortD; data.story_content = story;
+          if (_pCreateFile) { var r = await uploadCreationFile(_pCreateFile, 'creations', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading cover... ' + p + '%' : 'Processing...'; }); data.cover_image_url = r.url; }
+        } else {
+          var desc = ((document.getElementById('pDesc') || {}).value || '').trim();
+          data.description = desc;
+          var r = await uploadCreationFile(_pCreateFile, 'maker-videos', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading video... ' + p + '%' : 'Processing...'; });
+          data.media_url = r.url;
+          if (_pCreateCover) { var tr = await uploadCreationFile(_pCreateCover, 'maker-thumbnails', function() {}); data.cover_image_url = tr.url; }
+        }
+        await createCreation(data);
         closeCreatePostProfile();
-        showToast('Post published!', 'success');
+        showToast('Creation published!', 'success');
         var profile = await getCurrentProfile();
         if (profile) { renderProfile(profile, true); loadProfilePosts(profile.id); }
       } catch (err) {
         showToast(err.message || 'Failed to publish.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
-        document.getElementById('createUploadProgressP').style.display = 'none';
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
+        if (progressEl) progressEl.classList.remove('active');
       }
+    };
+
+    window.closeCreatePostProfile = function() {
+      document.getElementById('createPostModal').style.display = 'none';
+      _pCreateType = null; _pCreateFile = null; _pCreateCover = null;
     };
 
     window.removeAvatar = async function() {

@@ -356,201 +356,344 @@
       }
     });
 
-    /* ---- Create Post Modal ---- */
-    var createSelectedFile = null;
+    /* ---- Create Creation Modal (Type Selector + Dynamic Form) ---- */
+    var _createType = null;
+    var _createFile = null;
+    var _createCoverFile = null;
 
     window.openCreatePost = async function() {
       var session = await getSession();
       if (!session) { window.location.href = 'pages/login.html'; return; }
-
-      var profile = await getCurrentProfile();
-      var username = (profile && profile.username) || 'User';
-      var avatarUrl = (profile && profile.avatar_url) || '';
-      var initial = username.charAt(0).toUpperCase();
-      var avatarHtml = avatarUrl ? '<img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : initial;
-
-      var categoryOptions = '';
-      POST_CATEGORIES.forEach(function(c) {
-        categoryOptions += '<option value="' + c + '">' + c + '</option>';
-      });
-
+      _createType = null; _createFile = null; _createCoverFile = null;
       var modal = document.getElementById('createPostModal');
       modal.style.display = 'block';
+      renderTypeSelector(modal);
+    };
+
+    function renderTypeSelector(modal) {
+      _createType = null; _createFile = null; _createCoverFile = null;
       modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeCreatePost()">' +
         '<div class="create-modal" onclick="event.stopPropagation()">' +
-          '<div class="create-modal-header"><h3>Create Post</h3><button class="upload-modal-close" onclick="closeCreatePost()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="create-modal-header"><h3>What would you like to publish?</h3><button class="upload-modal-close" onclick="closeCreatePost()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="type-selector">' +
+            '<div class="type-card" data-type="creator" onclick="selectCreationType(\'creator\')"><div class="type-card-icon"><i class="fas fa-image"></i></div><h4>Creator</h4><p>Share an image with a description</p></div>' +
+            '<div class="type-card" data-type="writer" onclick="selectCreationType(\'writer\')"><div class="type-card-icon"><i class="fas fa-pen-nib"></i></div><h4>Writer</h4><p>Publish a story or written work</p></div>' +
+            '<div class="type-card" data-type="maker" onclick="selectCreationType(\'maker\')"><div class="type-card-icon"><i class="fas fa-video"></i></div><h4>Maker</h4><p>Upload an animation or video</p></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    window.selectCreationType = function(type) {
+      _createType = type;
+      _createFile = null; _createCoverFile = null;
+      var modal = document.getElementById('createPostModal');
+      var header = type.charAt(0).toUpperCase() + type.slice(1);
+      var formHtml = '';
+
+      if (type === 'creator') {
+        formHtml =
+          '<div class="create-upload-zone" id="createDropzone" style="margin-bottom:16px;">' +
+            '<div class="create-upload-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
+            '<h4>Upload your image</h4>' +
+            '<p class="file-types">JPG, PNG, GIF, WEBP — Max 10MB</p>' +
+          '</div>' +
+          '<div class="create-upload-preview" id="createMediaPreview"></div>' +
+          '<input type="file" id="createFileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">' +
+          '<div class="form-group"><label>Title *</label><input type="text" id="createTitle" placeholder="Give your creation a name" maxlength="100"></div>' +
+          '<div class="form-group"><label>Short description</label><input type="text" id="createShortDesc" placeholder="One line about this creation" maxlength="200"></div>' +
+          '<div class="form-group"><label>Full description *</label><textarea id="createDesc" placeholder="Describe your creation in detail..." maxlength="2000" rows="5"></textarea></div>';
+      } else if (type === 'writer') {
+        formHtml =
+          '<div class="create-upload-zone" id="createDropzone" style="margin-bottom:16px;">' +
+            '<div class="create-upload-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
+            '<h4>Upload cover image</h4>' +
+            '<p class="file-types">JPG, PNG, GIF, WEBP — Optional but recommended</p>' +
+          '</div>' +
+          '<div class="create-upload-preview" id="createMediaPreview"></div>' +
+          '<input type="file" id="createFileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">' +
+          '<div class="form-group"><label>Story title *</label><input type="text" id="createTitle" placeholder="Give your story a title" maxlength="150"></div>' +
+          '<div class="form-group"><label>Short summary</label><input type="text" id="createShortDesc" placeholder="A brief summary of your story" maxlength="300"></div>' +
+          '<div class="form-group"><label>Story content *</label><textarea id="createStoryContent" class="story-editor" placeholder="Write your story here..." maxlength="50000"></textarea></div>';
+      } else if (type === 'maker') {
+        formHtml =
+          '<div class="create-upload-zone" id="createDropzone" style="margin-bottom:16px;">' +
+            '<div class="create-upload-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
+            '<h4>Upload your video</h4>' +
+            '<p class="file-types">MP4, WEBM — Max 100MB</p>' +
+          '</div>' +
+          '<div class="create-upload-preview" id="createMediaPreview"></div>' +
+          '<input type="file" id="createFileInput" style="display:none" accept="video/mp4,video/webm">' +
+          '<div class="form-group"><label>Video title *</label><input type="text" id="createTitle" placeholder="Name your video" maxlength="150"></div>' +
+          '<div class="form-group"><label>Description</label><textarea id="createDesc" placeholder="Describe your video..." maxlength="2000" rows="3"></textarea></div>' +
+          '<div class="create-upload-zone" id="createThumbDropzone" style="margin-bottom:16px;padding:16px;">' +
+            '<p style="margin:0;font-size:13px;color:var(--text-muted);"><i class="fas fa-image" style="margin-right:6px;"></i> Upload thumbnail (optional)</p>' +
+          '</div>' +
+          '<div class="create-upload-preview" id="createThumbPreview"></div>' +
+          '<input type="file" id="createThumbInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">';
+      }
+
+      modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeCreatePost()">' +
+        '<div class="create-modal" onclick="event.stopPropagation()">' +
+          '<div class="create-modal-header"><button class="upload-modal-close" onclick="renderTypeSelector(document.getElementById(\'createPostModal\'))" style="margin-right:8px;"><i class="fas fa-arrow-left"></i></button><h3>Create ' + header + '</h3><button class="upload-modal-close" onclick="closeCreatePost()"><i class="fas fa-xmark"></i></button></div>' +
           '<div class="create-modal-body">' +
-            '<div class="create-dropzone" id="createDropzone">' +
-              '<div class="create-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
-              '<h4>Drag & drop your file here</h4>' +
-              '<p>or click to browse — Images (JPG, PNG, GIF, WEBP) or Videos (MP4, WEBM)</p>' +
-            '</div>' +
-            '<div id="createMediaPreview" style="display:none;"></div>' +
-            '<div id="createUploadProgress" class="create-upload-progress" style="display:none;"><div class="progress-bar-bg"><div class="progress-bar" id="createProgressBar"></div></div><div class="progress-text" id="createProgressText">Uploading...</div></div>' +
-            '<input type="file" id="createFileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">' +
-            '<div class="form-group"><label for="createTitle">Title</label><input type="text" id="createTitle" class="form-input" placeholder="Give your creation a name" maxlength="100"></div>' +
-            '<div class="form-group"><label for="createCaption">Caption</label><textarea id="createCaption" class="form-input" placeholder="Tell the story behind this creation..." maxlength="1000" rows="3"></textarea></div>' +
-            '<div class="form-group"><label for="createCategory">Category</label><select id="createCategory" class="category-select">' + categoryOptions + '</select></div>' +
+            '<div id="createUploadProgress" class="create-upload-progress"><div class="create-progress-bar-bg"><div class="create-progress-bar" id="createProgressBar"></div></div><div class="create-progress-text" id="createProgressText">Uploading...</div></div>' +
+            formHtml +
           '</div>' +
           '<div class="create-modal-footer">' +
             '<button class="btn btn-secondary" onclick="closeCreatePost()">Cancel</button>' +
-            '<button class="btn btn-primary" id="publishBtn" disabled onclick="handlePublish()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
+            '<button class="btn btn-primary" id="publishBtn" onclick="handlePublishCreation()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
           '</div>' +
         '</div>' +
       '</div>';
 
-      // Setup drag & drop
-      var dz = document.getElementById('createDropzone');
-      var fi = document.getElementById('createFileInput');
-      dz.addEventListener('click', function(e) { if (e.target.tagName !== 'BUTTON') fi.click(); });
-      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
-      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
-      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleCreateFile(e.dataTransfer.files[0]); });
-      fi.addEventListener('change', function(e) { if (e.target.files[0]) handleCreateFile(e.target.files[0]); });
+      // Setup dropzone
+      setupCreateDropzone('createDropzone', 'createFileInput', 'createMediaPreview', function(file) { _createFile = file; checkPublishReady(); });
+      // Setup thumbnail dropzone for maker
+      if (type === 'maker') {
+        setupCreateDropzone('createThumbDropzone', 'createThumbInput', 'createThumbPreview', function(file) { _createCoverFile = file; });
+      }
+      checkPublishReady();
     };
 
-    function handleCreateFile(file) {
-      var isImage = VALID_IMAGE_TYPES.includes(file.type);
-      var isVideo = VALID_VIDEO_TYPES.includes(file.type);
-      if (!isImage && !isVideo) { showToast('Unsupported file type. Please upload JPG, PNG, WEBP, GIF, MP4, or WEBM.', 'error'); return; }
-      if (isImage && file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
-      if (isVideo && file.size > MAX_VIDEO_SIZE) { showToast('Video must be less than 100MB.', 'error'); return; }
-
-      createSelectedFile = file;
-      var preview = document.getElementById('createMediaPreview');
-      var icon = isImage ? 'fa-image' : 'fa-video';
-      preview.innerHTML = '<div class="create-media-preview">' +
-        (isVideo ? '<video controls preload="metadata" style="width:100%;max-height:300px;"></video>' : '<img src="" alt="Preview" style="width:100%;max-height:300px;object-fit:contain;">') +
-        '<button class="create-media-remove" onclick="removeCreateMedia()"><i class="fas fa-xmark"></i></button>' +
-        '</div>' +
-        '<div class="create-media-info"><span class="file-icon"><i class="fas ' + icon + '"></i></span> ' + file.name + ' (' + formatFileSize(file.size) + ')</div>';
-      preview.style.display = 'block';
-      document.getElementById('createDropzone').style.display = 'none';
-      document.getElementById('publishBtn').disabled = false;
-
-      if (isVideo) {
-        var reader = new FileReader();
-        reader.onload = function(e) { preview.querySelector('video').src = e.target.result; };
-        reader.readAsDataURL(file);
-      } else {
-        var reader = new FileReader();
-        reader.onload = function(e) { preview.querySelector('img').src = e.target.result; };
-        reader.readAsDataURL(file);
-      }
+    function setupCreateDropzone(dzId, fiId, previewId, onFile) {
+      var dz = document.getElementById(dzId);
+      var fi = document.getElementById(fiId);
+      if (!dz || !fi) return;
+      dz.addEventListener('click', function() { fi.click(); });
+      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) showFilePreview(e.dataTransfer.files[0], previewId, dzId, onFile); });
+      fi.addEventListener('change', function(e) { if (e.target.files[0]) showFilePreview(e.target.files[0], previewId, dzId, onFile); });
     }
 
-    window.removeCreateMedia = function() {
-      createSelectedFile = null;
-      document.getElementById('createMediaPreview').style.display = 'none';
-      document.getElementById('createDropzone').style.display = '';
-      document.getElementById('publishBtn').disabled = true;
-      document.getElementById('createFileInput').value = '';
+    function showFilePreview(file, previewId, dzId, onFile) {
+      var isImage = VALID_IMAGE_TYPES.includes(file.type);
+      var isVideo = VALID_VIDEO_TYPES.includes(file.type);
+      if (!isImage && !isVideo) { showToast('Unsupported file type.', 'error'); return; }
+      if (isImage && file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
+      if (isVideo && file.size > MAX_VIDEO_SIZE) { showToast('Video must be less than 100MB.', 'error'); return; }
+      onFile(file);
+      var preview = document.getElementById(previewId);
+      var dz = document.getElementById(dzId);
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var mediaHtml = isVideo
+          ? '<video src="' + e.target.result + '" controls preload="metadata" style="width:100%;max-height:250px;border-radius:8px;"></video>'
+          : '<img src="' + e.target.result + '" style="width:100%;max-height:250px;object-fit:cover;border-radius:8px;">';
+        preview.innerHTML = mediaHtml + '<button class="preview-remove" onclick="event.stopPropagation();this.parentElement.classList.remove(\'active\');this.parentElement.innerHTML=\'\';document.getElementById(\'' + dzId + '\').style.display=\'\';' + (previewId === 'createMediaPreview' ? '_createFile=null;checkPublishReady();' : '_createCoverFile=null;') + '"><i class="fas fa-xmark"></i></button>';
+        preview.classList.add('active');
+        if (dz) dz.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function checkPublishReady() {
+      var btn = document.getElementById('publishBtn');
+      if (!btn) return;
+      btn.disabled = !_createFile;
+    }
+
+    window.handlePublishCreation = async function() {
+      var btn = document.getElementById('publishBtn');
+      if (!btn || btn.disabled) return;
+      var title = (document.getElementById('createTitle') || {}).value || '';
+      title = title.trim();
+      if (!title) { showToast('Please enter a title.', 'error'); return; }
+
+      var progressEl = document.getElementById('createUploadProgress');
+      var barEl = document.getElementById('createProgressBar');
+      var textEl = document.getElementById('createProgressText');
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
+      if (progressEl) progressEl.classList.add('active');
+
+      try {
+        var data = { type: _createType, title: title };
+
+        if (_createType === 'creator') {
+          var shortDesc = (document.getElementById('createShortDesc') || {}).value || '';
+          var desc = (document.getElementById('createDesc') || {}).value || '';
+          if (!desc.trim()) { showToast('Please add a description.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
+          data.description = shortDesc.trim() + '\n\n' + desc.trim();
+          var imgResult = await uploadCreationFile(_createFile, 'creations', function(pct) {
+            if (barEl) barEl.style.width = pct + '%';
+            if (textEl) textEl.textContent = pct < 100 ? 'Uploading image... ' + pct + '%' : 'Processing...';
+          });
+          data.cover_image_url = imgResult.url;
+        } else if (_createType === 'writer') {
+          var shortDesc = (document.getElementById('createShortDesc') || {}).value || '';
+          var storyContent = (document.getElementById('createStoryContent') || {}).value || '';
+          if (!storyContent.trim()) { showToast('Please write your story.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
+          data.description = shortDesc.trim();
+          data.story_content = storyContent;
+          if (_createFile) {
+            var coverResult = await uploadCreationFile(_createFile, 'creations', function(pct) {
+              if (barEl) barEl.style.width = pct + '%';
+              if (textEl) textEl.textContent = pct < 100 ? 'Uploading cover... ' + pct + '%' : 'Processing...';
+            });
+            data.cover_image_url = coverResult.url;
+          }
+        } else if (_createType === 'maker') {
+          var desc = (document.getElementById('createDesc') || {}).value || '';
+          data.description = desc.trim();
+          var vidResult = await uploadCreationFile(_createFile, 'maker-videos', function(pct) {
+            if (barEl) barEl.style.width = pct + '%';
+            if (textEl) textEl.textContent = pct < 100 ? 'Uploading video... ' + pct + '%' : 'Processing...';
+          });
+          data.media_url = vidResult.url;
+          if (_createCoverFile) {
+            var thumbResult = await uploadCreationFile(_createCoverFile, 'maker-thumbnails', function() {});
+            data.cover_image_url = thumbResult.url;
+          }
+        }
+
+        await createCreation(data);
+        closeCreatePost();
+        showToast('Creation published!', 'success');
+        loadFeed();
+      } catch (err) {
+        showToast(err.message || 'Failed to publish.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
+        if (progressEl) progressEl.classList.remove('active');
+      }
     };
 
     window.closeCreatePost = function() {
       document.getElementById('createPostModal').style.display = 'none';
-      createSelectedFile = null;
+      _createType = null; _createFile = null; _createCoverFile = null;
     };
 
-    window.handlePublish = async function() {
-      if (!createSelectedFile) return;
-      var title = document.getElementById('createTitle').value.trim();
-      var caption = document.getElementById('createCaption').value.trim();
-      var category = document.getElementById('createCategory').value;
-
-      var btn = document.getElementById('publishBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
-      document.getElementById('createUploadProgress').style.display = 'block';
-
-      try {
-        var result = await uploadPostMedia(createSelectedFile, function(pct) {
-          document.getElementById('createProgressBar').style.width = pct + '%';
-          document.getElementById('createProgressText').textContent = pct < 100 ? 'Uploading... ' + pct + '%' : 'Processing...';
-        });
-
-        await createPost({
-          title: title,
-          caption: caption,
-          media_url: result.url,
-          media_type: result.type,
-          category: category
-        });
-
-        closeCreatePost();
-        showToast('Post published!', 'success');
-        loadFeed();
-      } catch (err) {
-        showToast(err.message || 'Failed to publish. Please try again.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
-        document.getElementById('createUploadProgress').style.display = 'none';
-      }
-    };
-
-    /* ---- Edit Post ---- */
-    window.openEditPost = async function(postId) {
-      document.querySelectorAll('.post-dropdown.show').forEach(function(d) { d.classList.remove('show'); });
-      var post = await fetchPost(postId);
-      if (!post) { showToast('Post not found', 'error'); return; }
-
-      var categoryOptions = '';
-      POST_CATEGORIES.forEach(function(c) {
-        categoryOptions += '<option value="' + c + '"' + (c === post.category ? ' selected' : '') + '>' + c + '</option>';
-      });
-
-      var modal = document.getElementById('editPostModal');
-      modal.style.display = 'block';
-      modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeEditPostModal()">' +
-        '<div class="create-modal" onclick="event.stopPropagation()">' +
-          '<div class="create-modal-header"><h3>Edit Post</h3><button class="upload-modal-close" onclick="closeEditPostModal()"><i class="fas fa-xmark"></i></button></div>' +
-          '<div class="create-modal-body">' +
-            '<div class="form-group"><label for="editPostTitle">Title</label><input type="text" id="editPostTitle" class="form-input" value="' + postEscapeHtml(post.title || '') + '" maxlength="100"></div>' +
-            '<div class="form-group"><label for="editPostCaption">Caption</label><textarea id="editPostCaption" class="form-input" maxlength="1000" rows="3">' + postEscapeHtml(post.caption || '') + '</textarea></div>' +
-            '<div class="form-group"><label for="editPostCategory">Category</label><select id="editPostCategory" class="category-select">' + categoryOptions + '</select></div>' +
+    /* ---- Detail Views ---- */
+    window.openCreatorDetail = async function(id) {
+      var c = await fetchCreation(id);
+      if (!c) return;
+      var profile = c.profiles || {};
+      var overlay = document.createElement('div');
+      overlay.className = 'detail-overlay';
+      overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+      overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+        '<div class="creator-detail">' +
+          '<div class="creator-detail-image"><img src="' + (c.cover_image_url || '') + '"></div>' +
+          '<div class="creator-detail-info">' +
+            '<div class="creator-detail-header">' + getCreationUserAvatar(profile, 40) + '<div class="user-info"><div class="name">' + getCreationUserName(profile) + '</div><div class="type">Creator</div></div></div>' +
+            '<div class="creator-detail-body">' +
+              '<div class="creator-detail-title">' + postEscapeHtml(c.title) + '</div>' +
+              '<div class="creator-detail-desc">' + postEscapeHtml(c.description || '').replace(/\n/g, '<br>') + '</div>' +
+              '<div class="creator-detail-time">' + timeAgo(c.created_at) + '</div>' +
+            '</div>' +
           '</div>' +
-          '<div class="create-modal-footer">' +
-            '<button class="btn btn-secondary" onclick="closeEditPostModal()">Cancel</button>' +
-            '<button class="btn btn-primary" onclick="handleSaveEdit(\'' + postId + '\')"><i class="fas fa-check" style="margin-right:6px;"></i>Save</button>' +
+        '</div>';
+      document.body.appendChild(overlay);
+    };
+
+    window.openStoryDetail = async function(id) {
+      var c = await fetchCreation(id);
+      if (!c) return;
+      var profile = c.profiles || {};
+      var overlay = document.createElement('div');
+      overlay.className = 'detail-overlay';
+      overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+      overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+        '<div class="story-detail">' +
+          (c.cover_image_url ? '<img class="story-detail-cover" src="' + c.cover_image_url + '">' : '') +
+          '<div class="story-detail-body">' +
+            '<div class="story-detail-title">' + postEscapeHtml(c.title) + '</div>' +
+            '<div class="story-detail-author">' + getCreationUserAvatar(profile, 40) + '<div><div class="author-name">' + getCreationUserName(profile) + '</div><div class="author-meta">' + estimateReadingTime(c.story_content) + '</div></div></div>' +
+            '<div class="story-detail-content">' + postEscapeHtml(c.story_content || '').replace(/\n/g, '<br>') + '</div>' +
+            '<div class="story-detail-footer"><span>' + timeAgo(c.created_at) + '</span></div>' +
           '</div>' +
-        '</div>' +
-      '</div>';
+        '</div>';
+      document.body.appendChild(overlay);
     };
 
-    window.closeEditPostModal = function() { document.getElementById('editPostModal').style.display = 'none'; };
-
-    window.handleSaveEdit = async function(postId) {
-      try {
-        await updatePost(postId, {
-          title: document.getElementById('editPostTitle').value.trim(),
-          caption: document.getElementById('editPostCaption').value.trim(),
-          category: document.getElementById('editPostCategory').value
-        });
-        closeEditPostModal();
-        showToast('Post updated!', 'success');
-        loadFeed();
-      } catch (err) {
-        showToast(err.message || 'Failed to update.', 'error');
-      }
+    window.openMakerDetail = async function(id) {
+      var c = await fetchCreation(id);
+      if (!c) return;
+      var profile = c.profiles || {};
+      var overlay = document.createElement('div');
+      overlay.className = 'detail-overlay';
+      overlay.onclick = function(e) { if (e.target === overlay) { var v = overlay.querySelector('video'); if (v) v.pause(); overlay.remove(); } };
+      overlay.innerHTML = '<button class="detail-close" onclick="var v=this.parentElement.querySelector(\'video\');if(v)v.pause();this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+        '<div class="maker-detail">' +
+          '<video src="' + (c.media_url || '') + '" controls playsinline></video>' +
+          '<div class="maker-detail-info">' +
+            '<div class="maker-detail-title">' + postEscapeHtml(c.title) + '</div>' +
+            (c.description ? '<div class="maker-detail-desc">' + postEscapeHtml(c.description).replace(/\n/g, '<br>') + '</div>' : '') +
+            '<div class="maker-detail-author">' + getCreationUserAvatar(profile, 40) + '<div><div class="author-name">' + getCreationUserName(profile) + '</div><div class="author-meta">' + timeAgo(c.created_at) + '</div></div></div>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(overlay);
     };
 
-    /* ---- Delete Post ---- */
-    window.handleDeletePost = async function(postId) {
-      document.querySelectorAll('.post-dropdown.show').forEach(function(d) { d.classList.remove('show'); });
-      var confirmed = await showConfirm('Delete Post', 'Are you sure you want to delete this post? This action cannot be undone.');
+    /* ---- Delete Creation ---- */
+    window.handleDeleteCreation = async function(id) {
+      var confirmed = await showConfirm('Delete Creation', 'Are you sure you want to delete this? This cannot be undone.');
       if (!confirmed) return;
       try {
-        await deletePost(postId);
-        showToast('Post deleted.', 'success');
-        var card = document.querySelector('[data-post-id="' + postId + '"]');
+        await deleteCreation(id);
+        showToast('Deleted.', 'success');
+        var card = document.querySelector('[data-creation-id="' + id + '"]');
         if (card) card.remove();
-        if (document.getElementById('feedPosts').children.length === 0) {
-          document.getElementById('feedEmpty').style.display = 'block';
-        }
       } catch (err) {
         showToast(err.message || 'Failed to delete.', 'error');
       }
     };
+
+    /* ---- Render creation card ---- */
+    function renderCreationCard(c) {
+      var profile = c.profiles || {};
+      var isOwner = false;
+      getSession().then(function(s) { if (s && s.user && c.user_id === s.user.id) isOwner = true; });
+      var clickFn = c.type === 'creator' ? 'openCreatorDetail' : c.type === 'writer' ? 'openStoryDetail' : 'openMakerDetail';
+
+      if (c.type === 'writer') {
+        return '<div class="story-card" data-creation-id="' + c.id + '" onclick="' + clickFn + '(\'' + c.id + '\')">' +
+          (c.cover_image_url ? '<img class="story-card-cover" src="' + c.cover_image_url + '" loading="lazy">' : '<div class="story-card-cover" style="display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--text-muted);"></i></div>') +
+          '<div class="story-card-body">' +
+            '<div class="story-card-title">' + postEscapeHtml(c.title) + '</div>' +
+            (c.description ? '<div class="story-card-summary">' + postEscapeHtml(c.description) + '</div>' : '') +
+            '<div class="story-card-footer">' +
+              '<span>' + getCreationUserName(profile) + '</span>' +
+              '<span>' + timeAgo(c.created_at) + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+
+      var mediaHtml = '';
+      if (c.type === 'maker') {
+        var thumb = c.cover_image_url || c.media_url;
+        mediaHtml = '<div class="creation-card-image"><img src="' + thumb + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div></div>';
+      } else {
+        mediaHtml = '<div class="creation-card-image"><img src="' + (c.cover_image_url || '') + '" loading="lazy"></div>';
+      }
+
+      return '<div class="creation-card" data-creation-id="' + c.id + '" onclick="' + clickFn + '(\'' + c.id + '\')">' +
+        mediaHtml +
+        '<div class="creation-card-body">' +
+          '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
+          '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span></div>' +
+          '<div class="creation-card-meta"><span>' + timeAgo(c.created_at) + '</span><span>' + (c.type.charAt(0).toUpperCase() + c.type.slice(1)) + '</span></div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    /* ---- Load Feed ---- */
+    async function loadFeed() {
+      var container = document.getElementById('feedPosts');
+      var emptyEl = document.getElementById('feedEmpty');
+      var loadingEl = document.getElementById('feedLoading');
+      if (loadingEl) loadingEl.style.display = 'block';
+      var creations = await fetchCreations({ limit: 30 });
+      if (loadingEl) loadingEl.style.display = 'none';
+      container.innerHTML = '';
+      if (creations.length === 0) { emptyEl.style.display = 'block'; return; }
+      emptyEl.style.display = 'none';
+      creations.forEach(function(c) { container.innerHTML += renderCreationCard(c); });
+    }
 
     /* ---- Initialize ---- */
     (async function() {

@@ -40,49 +40,63 @@
       <div class="page-container">
         <div class="gallery-header">
           <h1>Maker Gallery</h1>
-          <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search models..." id="searchInput"></div>
+          <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search animations..." id="searchInput"></div>
         </div>
-        <div class="gallery gallery-masonry" id="videoGallery">
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-1.mp4')"><img src="../assets/images/maker/maker-pic-1.jpg" alt="Animation 1"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 1</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-2.mp4')"><img src="../assets/images/maker/maker-pic-2.jpg" alt="Animation 2"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 2</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-3.mp4')"><img src="../assets/images/maker/maker-pic-3.jpg" alt="Animation 3"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 3</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-4.mp4')"><img src="../assets/images/maker/maker-pic-4.jpg" alt="Animation 4"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 4</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-5.mp4')"><img src="../assets/images/maker/maker-pic-5.jpg" alt="Animation 5"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 5</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-6.mp4')"><img src="../assets/images/maker/maker-pic-6.jpg" alt="Animation 6"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 6</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-7.mp4')"><img src="../assets/images/maker/maker-pic-7.jpg" alt="Animation 7"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 7</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-8.mp4')"><img src="../assets/images/maker/maker-pic-8.jpg" alt="Animation 8"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 8</span></div></div>
-          <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-9.mp4')"><img src="../assets/images/maker/maker-pic-9.jpg" alt="Animation 9"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 9</span></div></div>
+        <div class="gallery gallery-masonry" id="makerGallery"></div>
+        <div id="galleryLoading" style="text-align:center;padding:60px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
+        <div id="galleryEmpty" style="display:none;text-align:center;padding:80px 24px;">
+          <i class="fas fa-video" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;opacity:0.4;"></i>
+          <p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">No animations yet</p>
+          <span style="font-size:14px;color:var(--text-muted);">Be the first maker to share an animation.</span>
         </div>
-
       </div>
     </main>
   </div>
-  <div class="video-modal-overlay" id="videoModal" style="display:none;" onclick="closeVideoModal(event)">
-    <button class="video-modal-close" onclick="closeVideoModal(event)"><i class="fas fa-xmark"></i></button>
-    <video id="modalVideo" controls></video>
-  </div>
   <div id="confirmDialog" style="display:none;"></div>
   <div class="toast-container" id="toastContainer"></div>
-  <button class="chat-fab" onclick="toggleChat()"><i class="fas fa-comments"></i></button>
-  <div class="chat-window" id="chatContainer">
-    <div class="chat-window-header"><span><i class="fas fa-robot" style="margin-right:8px;"></i>AniMaker Chat</span><button onclick="toggleChat()"><i class="fas fa-xmark"></i></button></div>
-    <div class="chat-messages" id="chatBox"><div class="chat-empty">No messages yet</div></div>
-    <div class="chat-input-area"><input type="text" id="receiver" placeholder="Receiver"><input type="text" id="message" placeholder="Type a message" style="flex:1;"><button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button></div>
-  </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/profile.js"></script>
-
+  <script src="../js/posts.js"></script>
   <script>
-    requireAuth().then(async function() { await updateNavbarAuth(); });
-    function toggleChat(){document.getElementById('chatContainer').classList.toggle('active');}
-    function sendMessage(){var c=document.getElementById('chatBox'),r=document.getElementById('receiver').value,m=document.getElementById('message').value;if(r&&m){var e=c.querySelector('.chat-empty');if(e)e.remove();var el=document.createElement('div');el.classList.add('chat-msg');el.innerHTML='<div class="chat-msg-sender">You \u2192 '+r+'</div>'+m;c.appendChild(el);c.scrollTop=c.scrollHeight;document.getElementById('message').value='';}}
-    document.getElementById('searchInput').addEventListener('input',function(){var q=this.value.toLowerCase();document.querySelectorAll('#videoGallery .gallery-item').forEach(function(item){item.style.display=item.textContent.toLowerCase().indexOf(q)!==-1?'':'none';});});
-    function openVideoModal(src){var m=document.getElementById('videoModal'),v=document.getElementById('modalVideo');v.src=src;m.style.display='flex';v.play();}
-    function closeVideoModal(e){if(e.target===document.getElementById('videoModal')||e.currentTarget.classList.contains('video-modal-close')){var m=document.getElementById('videoModal'),v=document.getElementById('modalVideo');v.pause();v.src='';m.style.display='none';}}
-    document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('videoModal');if(m.style.display==='flex'){var v=document.getElementById('modalVideo');v.pause();v.src='';m.style.display='none';}}});
+    requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
 
+    document.getElementById('searchInput').addEventListener('input', function() {
+      var q = this.value.toLowerCase();
+      document.querySelectorAll('#makerGallery .creation-card').forEach(function(card) {
+        card.style.display = card.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+      });
+    });
+
+    async function loadGallery() {
+      var container = document.getElementById('makerGallery');
+      var loading = document.getElementById('galleryLoading');
+      var empty = document.getElementById('galleryEmpty');
+      loading.style.display = 'block';
+
+      var creations = await fetchCreations({ limit: 50, type: 'maker' });
+      loading.style.display = 'none';
+
+      if (creations.length === 0) { empty.style.display = 'block'; return; }
+
+      creations.forEach(function(c) {
+        var profile = c.profiles || {};
+        var card = document.createElement('div');
+        card.className = 'creation-card';
+        card.setAttribute('data-creation-id', c.id);
+        card.onclick = function() { openMakerDetail(c.id); };
+
+        var thumb = c.cover_image_url || c.media_url;
+        card.innerHTML = '<div class="creation-card-image"><img src="' + thumb + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div></div>' +
+          '<div class="creation-card-body">' +
+            '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
+            '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span></div>' +
+            '<div class="creation-card-meta"><span>' + timeAgo(c.created_at) + '</span></div>' +
+          '</div>';
+        container.appendChild(card);
+      });
+    }
   </script>
 </body>
 </html>
