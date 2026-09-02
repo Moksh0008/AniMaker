@@ -2285,6 +2285,49 @@ input, textarea, select {
 
 .create-modal-body { padding: 24px; }
 
+.create-modal-body .form-group {
+  margin-bottom: 16px;
+}
+
+.create-modal-body label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.create-modal-body input[type="text"],
+.create-modal-body textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.create-modal-body input[type="text"]:focus,
+.create-modal-body textarea:focus {
+  border-color: var(--accent);
+}
+
+.create-modal-body textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.create-modal-body textarea.story-editor {
+  min-height: 250px;
+  font-size: 16px;
+  line-height: 1.8;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
 .create-modal-footer {
   display: flex;
   justify-content: flex-end;
