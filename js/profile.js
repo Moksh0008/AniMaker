@@ -25,7 +25,14 @@ async function getCurrentProfile() {
       .eq('id', session.user.id)
       .single();
 
-    if (error || !data) return null;
+    if (error) {
+      console.error('[AniMaker] Profile query error:', error.message);
+      if (error.message && error.message.includes('relation') && error.message.includes('does not exist')) {
+        console.error('[AniMaker] ⚠️ The profiles table does not exist. Run supabase-profiles-setup.sql in your Supabase SQL Editor.');
+      }
+      return null;
+    }
+    if (!data) return null;
 
     _currentProfile = data;
     return data;
