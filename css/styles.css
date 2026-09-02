@@ -874,6 +874,7 @@ input, textarea, select {
 
 .page-header {
   margin-bottom: 32px;
+  text-align: center;
 }
 
 .page-header h1 {
