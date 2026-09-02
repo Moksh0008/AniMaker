@@ -7,14 +7,9 @@
 
 /* ---- Constants ---- */
 var POST_CATEGORIES = [
-  'Character Design',
-  'Animation',
-  'Storytelling',
-  'Concept Art',
-  'Writing',
-  'World Building',
-  'Short Film',
-  'Other'
+  'Creator',
+  'Writer',
+  'Maker'
 ];
 
 var VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
