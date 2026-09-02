@@ -97,6 +97,41 @@
         </div>
       </section>
 
+      <!-- Creative Feed (shown when logged in) -->
+      <section id="feedSection" class="section" style="display:none;padding:0;">
+        <div class="feed-container">
+          <div class="feed-header">
+            <h1>Creative Feed</h1>
+          </div>
+
+          <!-- Create post trigger -->
+          <div class="create-post-trigger" id="createPostTrigger" onclick="openCreatePost()">
+            <div class="trigger-avatar" id="triggerAvatar"></div>
+            <span class="trigger-text">Share your latest creation...</span>
+            <span class="trigger-btn"><i class="fas fa-plus" style="margin-right:4px;"></i> Create</span>
+          </div>
+
+          <!-- Posts feed -->
+          <div id="feedPosts"></div>
+
+          <!-- Loading skeleton -->
+          <div id="feedLoading">
+            <div class="skeleton-post"><div class="skeleton-post-header"><div class="skeleton" style="width:40px;height:40px;border-radius:50%;"></div><div style="flex:1;"><div class="skeleton skeleton-text-sm" style="width:120px;margin-bottom:4px;"></div><div class="skeleton skeleton-text-sm" style="width:80px;"></div></div></div><div class="skeleton-post-media"></div></div>
+            <div class="skeleton-post"><div class="skeleton-post-header"><div class="skeleton" style="width:40px;height:40px;border-radius:50%;"></div><div style="flex:1;"><div class="skeleton skeleton-text-sm" style="width:120px;margin-bottom:4px;"></div><div class="skeleton skeleton-text-sm" style="width:80px;"></div></div></div><div class="skeleton-post-media"></div></div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="feedEmpty" style="display:none;text-align:center;padding:60px 20px;">
+            <i class="fas fa-sparkles" style="font-size:48px;color:var(--text-muted);opacity:0.4;margin-bottom:16px;display:block;"></i>
+            <p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">No creations yet</p>
+            <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;">Be the first animator to share something amazing.</p>
+            <button class="btn btn-primary" onclick="openCreatePost()"><i class="fas fa-plus" style="margin-right:6px;"></i>Create Post</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Landing sections (shown when logged out) -->
+      <div id="landingSections">
       <section id="roles" class="section">
         <div class="page-container">
           <div class="section-header">
@@ -199,25 +234,392 @@
           </div>
         </div>
       </footer>
+      </div><!-- end landingSections -->
     </main>
   </div>
+
+  <!-- Create Post Modal -->
+  <div id="createPostModal" style="display:none;"></div>
+  <!-- Edit Post Modal -->
+  <div id="editPostModal" style="display:none;"></div>
+  <!-- Confirm Dialog -->
+  <div id="confirmDialog" style="display:none;"></div>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/api.js"></script>
   <script src="js/profile.js"></script>
+  <script src="js/posts.js"></script>
   <script>
     document.querySelector('.nav-toggle')?.addEventListener('click', () => {
       document.getElementById('navLinks').classList.toggle('active');
     });
+
+    /* ---- Toast notifications ---- */
+    function showToast(msg, type) {
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'toast ' + (type || 'info');
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(function() { toast.remove(); }, 3000);
+    }
+
+    /* ---- Confirm dialog ---- */
+    function showConfirm(title, message) {
+      return new Promise(function(resolve) {
+        var dialog = document.getElementById('confirmDialog');
+        dialog.style.display = 'block';
+        dialog.innerHTML = '<div class="confirm-overlay" onclick="event.target===this && document.getElementById(\'confirmDialog\').style.display=\'none\'">' +
+          '<div class="confirm-box">' +
+            '<h4>' + title + '</h4>' +
+            '<p>' + message + '</p>' +
+            '<div class="confirm-actions">' +
+              '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'confirmDialog\').style.display=\'none\'">Cancel</button>' +
+              '<button class="btn btn-primary btn-sm" id="confirmYesBtn">Delete</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+        document.getElementById('confirmYesBtn').onclick = function() {
+          dialog.style.display = 'none';
+          resolve(true);
+        };
+      });
+    }
+
+    /* ---- Render a post card ---- */
+    function renderPostCard(post) {
+      var profile = post.profiles || {};
+      var username = profile.username || 'User';
+      var fullName = profile.full_name || '';
+      var avatarUrl = profile.avatar_url || '';
+      var initial = username.charAt(0).toUpperCase();
+      var sessionUser = null;
+
+      var avatarHtml = avatarUrl
+        ? '<img src="' + avatarUrl + '" alt="' + username + '">'
+        : initial;
+
+      var mediaHtml = '';
+      if (post.media_type === 'video') {
+        mediaHtml = '<div class="post-card-media"><video controls preload="metadata" playsinline poster="' + (post.thumbnail_url || '') + '"><source src="' + post.media_url + '"></video></div>';
+      } else {
+        mediaHtml = '<div class="post-card-media"><img src="' + post.media_url + '" alt="' + postEscapeHtml(post.title || post.caption || 'Post') + '" loading="lazy"></div>';
+      }
+
+      var categoryHtml = post.category ? '<span class="post-card-category">' + postEscapeHtml(post.category) + '</span>' : '';
+      var titleHtml = post.title ? '<div class="post-card-title">' + postEscapeHtml(post.title) + '</div>' : '';
+      var captionHtml = post.caption ? '<div class="post-card-caption">' + postEscapeHtml(post.caption) + '</div>' : '';
+
+      var menuHtml = '';
+      getSession().then(function(s) {
+        if (s && s.user && s.user.id === post.user_id) {
+          var menuEl = document.querySelector('[data-post-menu="' + post.id + '"]');
+          if (menuEl) menuEl.style.display = 'block';
+        }
+      });
+
+      return '<div class="post-card" data-post-id="' + post.id + '">' +
+        '<div class="post-card-header">' +
+          '<div class="post-card-avatar"><a href="pages/profile.html?user=' + username + '">' + avatarHtml + '</a></div>' +
+          '<div class="post-card-user-info"><a href="pages/profile.html?user=' + username + '" class="post-card-username">' + postEscapeHtml(username) + '</a>' + (fullName ? '<div class="post-card-role">' + postEscapeHtml(fullName) + '</div>' : '') + '</div>' +
+          '<div class="post-card-time">' + timeAgo(post.created_at) + '</div>' +
+          '<div class="post-card-menu" data-post-menu="' + post.id + '" style="display:none;">' +
+            '<button class="post-card-menu-btn" onclick="togglePostMenu(\'' + post.id + '\')"><i class="fas fa-ellipsis"></i></button>' +
+            '<div class="post-dropdown" id="postMenu-' + post.id + '">' +
+              '<button class="post-dropdown-item" onclick="openEditPost(\'' + post.id + '\')"><i class="fas fa-pen"></i> Edit</button>' +
+              '<button class="post-dropdown-item danger" onclick="handleDeletePost(\'' + post.id + '\')"><i class="fas fa-trash"></i> Delete</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        mediaHtml +
+        '<div class="post-card-details">' + categoryHtml + titleHtml + captionHtml + '</div>' +
+        '<div class="post-card-footer">' +
+          '<button class="post-action-btn"><i class="far fa-heart"></i> <span>Like</span></button>' +
+          '<button class="post-action-btn"><i class="far fa-comment"></i> <span>Comment</span></button>' +
+          '<button class="post-action-btn"><i class="far fa-bookmark"></i> <span>Save</span></button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    /* ---- Feed state ---- */
+    var feedLoaded = false;
+
+    async function loadFeed() {
+      document.getElementById('feedLoading').style.display = 'block';
+      document.getElementById('feedEmpty').style.display = 'none';
+      document.getElementById('feedPosts').innerHTML = '';
+
+      var posts = await fetchPosts({ limit: 20 });
+
+      document.getElementById('feedLoading').style.display = 'none';
+
+      if (!posts || posts.length === 0) {
+        document.getElementById('feedEmpty').style.display = 'block';
+        return;
+      }
+
+      var html = '';
+      posts.forEach(function(post) {
+        html += renderPostCard(post);
+      });
+      document.getElementById('feedPosts').innerHTML = html;
+      feedLoaded = true;
+
+      // Check which posts belong to current user and show menu
+      var session = await getSession();
+      if (session && session.user) {
+        posts.forEach(function(post) {
+          if (post.user_id === session.user.id) {
+            var menuEl = document.querySelector('[data-post-menu="' + post.id + '"]');
+            if (menuEl) menuEl.style.display = 'block';
+          }
+        });
+      }
+    }
+
+    function togglePostMenu(postId) {
+      document.querySelectorAll('.post-dropdown.show').forEach(function(d) { d.classList.remove('show'); });
+      var menu = document.getElementById('postMenu-' + postId);
+      if (menu) menu.classList.toggle('show');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.post-card-menu')) {
+        document.querySelectorAll('.post-dropdown.show').forEach(function(d) { d.classList.remove('show'); });
+      }
+    });
+
+    /* ---- Create Post Modal ---- */
+    var createSelectedFile = null;
+
+    window.openCreatePost = async function() {
+      var session = await getSession();
+      if (!session) { window.location.href = 'pages/login.html'; return; }
+
+      var profile = await getCurrentProfile();
+      var username = (profile && profile.username) || 'User';
+      var avatarUrl = (profile && profile.avatar_url) || '';
+      var initial = username.charAt(0).toUpperCase();
+      var avatarHtml = avatarUrl ? '<img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : initial;
+
+      var categoryOptions = '';
+      POST_CATEGORIES.forEach(function(c) {
+        categoryOptions += '<option value="' + c + '">' + c + '</option>';
+      });
+
+      var modal = document.getElementById('createPostModal');
+      modal.style.display = 'block';
+      modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeCreatePost()">' +
+        '<div class="create-modal" onclick="event.stopPropagation()">' +
+          '<div class="create-modal-header"><h3>Create Post</h3><button class="upload-modal-close" onclick="closeCreatePost()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="create-modal-body">' +
+            '<div class="create-dropzone" id="createDropzone">' +
+              '<div class="create-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
+              '<h4>Drag & drop your file here</h4>' +
+              '<p>or click to browse — Images (JPG, PNG, GIF, WEBP) or Videos (MP4, WEBM)</p>' +
+            '</div>' +
+            '<div id="createMediaPreview" style="display:none;"></div>' +
+            '<div id="createUploadProgress" class="create-upload-progress" style="display:none;"><div class="progress-bar-bg"><div class="progress-bar" id="createProgressBar"></div></div><div class="progress-text" id="createProgressText">Uploading...</div></div>' +
+            '<input type="file" id="createFileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">' +
+            '<div class="form-group"><label for="createTitle">Title</label><input type="text" id="createTitle" class="form-input" placeholder="Give your creation a name" maxlength="100"></div>' +
+            '<div class="form-group"><label for="createCaption">Caption</label><textarea id="createCaption" class="form-input" placeholder="Tell the story behind this creation..." maxlength="1000" rows="3"></textarea></div>' +
+            '<div class="form-group"><label for="createCategory">Category</label><select id="createCategory" class="category-select">' + categoryOptions + '</select></div>' +
+          '</div>' +
+          '<div class="create-modal-footer">' +
+            '<button class="btn btn-secondary" onclick="closeCreatePost()">Cancel</button>' +
+            '<button class="btn btn-primary" id="publishBtn" disabled onclick="handlePublish()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+      // Setup drag & drop
+      var dz = document.getElementById('createDropzone');
+      var fi = document.getElementById('createFileInput');
+      dz.addEventListener('click', function(e) { if (e.target.tagName !== 'BUTTON') fi.click(); });
+      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleCreateFile(e.dataTransfer.files[0]); });
+      fi.addEventListener('change', function(e) { if (e.target.files[0]) handleCreateFile(e.target.files[0]); });
+    };
+
+    function handleCreateFile(file) {
+      var isImage = VALID_IMAGE_TYPES.includes(file.type);
+      var isVideo = VALID_VIDEO_TYPES.includes(file.type);
+      if (!isImage && !isVideo) { showToast('Unsupported file type. Please upload JPG, PNG, WEBP, GIF, MP4, or WEBM.', 'error'); return; }
+      if (isImage && file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
+      if (isVideo && file.size > MAX_VIDEO_SIZE) { showToast('Video must be less than 100MB.', 'error'); return; }
+
+      createSelectedFile = file;
+      var preview = document.getElementById('createMediaPreview');
+      var icon = isImage ? 'fa-image' : 'fa-video';
+      preview.innerHTML = '<div class="create-media-preview">' +
+        (isVideo ? '<video controls preload="metadata" style="width:100%;max-height:300px;"></video>' : '<img src="" alt="Preview" style="width:100%;max-height:300px;object-fit:contain;">') +
+        '<button class="create-media-remove" onclick="removeCreateMedia()"><i class="fas fa-xmark"></i></button>' +
+        '</div>' +
+        '<div class="create-media-info"><span class="file-icon"><i class="fas ' + icon + '"></i></span> ' + file.name + ' (' + formatFileSize(file.size) + ')</div>';
+      preview.style.display = 'block';
+      document.getElementById('createDropzone').style.display = 'none';
+      document.getElementById('publishBtn').disabled = false;
+
+      if (isVideo) {
+        var reader = new FileReader();
+        reader.onload = function(e) { preview.querySelector('video').src = e.target.result; };
+        reader.readAsDataURL(file);
+      } else {
+        var reader = new FileReader();
+        reader.onload = function(e) { preview.querySelector('img').src = e.target.result; };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    window.removeCreateMedia = function() {
+      createSelectedFile = null;
+      document.getElementById('createMediaPreview').style.display = 'none';
+      document.getElementById('createDropzone').style.display = '';
+      document.getElementById('publishBtn').disabled = true;
+      document.getElementById('createFileInput').value = '';
+    };
+
+    window.closeCreatePost = function() {
+      document.getElementById('createPostModal').style.display = 'none';
+      createSelectedFile = null;
+    };
+
+    window.handlePublish = async function() {
+      if (!createSelectedFile) return;
+      var title = document.getElementById('createTitle').value.trim();
+      var caption = document.getElementById('createCaption').value.trim();
+      var category = document.getElementById('createCategory').value;
+
+      var btn = document.getElementById('publishBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
+      document.getElementById('createUploadProgress').style.display = 'block';
+
+      try {
+        var result = await uploadPostMedia(createSelectedFile, function(pct) {
+          document.getElementById('createProgressBar').style.width = pct + '%';
+          document.getElementById('createProgressText').textContent = pct < 100 ? 'Uploading... ' + pct + '%' : 'Processing...';
+        });
+
+        await createPost({
+          title: title,
+          caption: caption,
+          media_url: result.url,
+          media_type: result.type,
+          category: category
+        });
+
+        closeCreatePost();
+        showToast('Post published!', 'success');
+        loadFeed();
+      } catch (err) {
+        showToast(err.message || 'Failed to publish. Please try again.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
+        document.getElementById('createUploadProgress').style.display = 'none';
+      }
+    };
+
+    /* ---- Edit Post ---- */
+    window.openEditPost = async function(postId) {
+      document.querySelectorAll('.post-dropdown.show').forEach(function(d) { d.classList.remove('show'); });
+      var post = await fetchPost(postId);
+      if (!post) { showToast('Post not found', 'error'); return; }
+
+      var categoryOptions = '';
+      POST_CATEGORIES.forEach(function(c) {
+        categoryOptions += '<option value="' + c + '"' + (c === post.category ? ' selected' : '') + '>' + c + '</option>';
+      });
+
+      var modal = document.getElementById('editPostModal');
+      modal.style.display = 'block';
+      modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeEditPostModal()">' +
+        '<div class="create-modal" onclick="event.stopPropagation()">' +
+          '<div class="create-modal-header"><h3>Edit Post</h3><button class="upload-modal-close" onclick="closeEditPostModal()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="create-modal-body">' +
+            '<div class="form-group"><label for="editPostTitle">Title</label><input type="text" id="editPostTitle" class="form-input" value="' + postEscapeHtml(post.title || '') + '" maxlength="100"></div>' +
+            '<div class="form-group"><label for="editPostCaption">Caption</label><textarea id="editPostCaption" class="form-input" maxlength="1000" rows="3">' + postEscapeHtml(post.caption || '') + '</textarea></div>' +
+            '<div class="form-group"><label for="editPostCategory">Category</label><select id="editPostCategory" class="category-select">' + categoryOptions + '</select></div>' +
+          '</div>' +
+          '<div class="create-modal-footer">' +
+            '<button class="btn btn-secondary" onclick="closeEditPostModal()">Cancel</button>' +
+            '<button class="btn btn-primary" onclick="handleSaveEdit(\'' + postId + '\')"><i class="fas fa-check" style="margin-right:6px;"></i>Save</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    };
+
+    window.closeEditPostModal = function() { document.getElementById('editPostModal').style.display = 'none'; };
+
+    window.handleSaveEdit = async function(postId) {
+      try {
+        await updatePost(postId, {
+          title: document.getElementById('editPostTitle').value.trim(),
+          caption: document.getElementById('editPostCaption').value.trim(),
+          category: document.getElementById('editPostCategory').value
+        });
+        closeEditPostModal();
+        showToast('Post updated!', 'success');
+        loadFeed();
+      } catch (err) {
+        showToast(err.message || 'Failed to update.', 'error');
+      }
+    };
+
+    /* ---- Delete Post ---- */
+    window.handleDeletePost = async function(postId) {
+      document.querySelectorAll('.post-dropdown.show').forEach(function(d) { d.classList.remove('show'); });
+      var confirmed = await showConfirm('Delete Post', 'Are you sure you want to delete this post? This action cannot be undone.');
+      if (!confirmed) return;
+      try {
+        await deletePost(postId);
+        showToast('Post deleted.', 'success');
+        var card = document.querySelector('[data-post-id="' + postId + '"]');
+        if (card) card.remove();
+        if (document.getElementById('feedPosts').children.length === 0) {
+          document.getElementById('feedEmpty').style.display = 'block';
+        }
+      } catch (err) {
+        showToast(err.message || 'Failed to delete.', 'error');
+      }
+    };
+
+    /* ---- Initialize ---- */
     (async function() {
       await updateNavbarAuth();
       var heroActions = document.getElementById('heroActions');
       var ctaActions = document.getElementById('ctaActions');
+      var feedSection = document.getElementById('feedSection');
+      var landingSections = document.getElementById('landingSections');
+
       if (await isLoggedIn()) {
+        // Show feed, hide landing
+        feedSection.style.display = 'block';
+        landingSections.style.display = 'none';
+
+        // Set trigger avatar
+        var profile = await getCurrentProfile();
+        var avatarEl = document.getElementById('triggerAvatar');
+        if (profile && profile.avatar_url) {
+          avatarEl.innerHTML = '<img src="' + profile.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        } else {
+          var name = (profile && (profile.full_name || profile.username)) || 'U';
+          avatarEl.textContent = name.charAt(0).toUpperCase();
+        }
+
         heroActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Creator Studio</a> <a href="pages/writer.html" class="btn btn-secondary btn-lg"><i class="fas fa-pen-nib"></i> Writer Studio</a> <a href="pages/maker.html" class="btn btn-secondary btn-lg"><i class="fas fa-cube"></i> Maker Studio</a>';
         ctaActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Open Dashboard</a>';
+
+        loadFeed();
       } else {
+        // Show landing, hide feed
+        feedSection.style.display = 'none';
+        landingSections.style.display = '';
+
         heroActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Start Creating</a><a href="pages/about.html" class="btn btn-secondary btn-lg">Learn More</a>';
         ctaActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Create Free Account</a>';
       }

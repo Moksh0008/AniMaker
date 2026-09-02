@@ -545,11 +545,20 @@
 
   <!-- Edit Profile Modal (hidden) -->
   <div id="editProfileModal" style="display:none;"></div>
+  <!-- Create Post Modal -->
+  <div id="createPostModal" style="display:none;"></div>
+  <!-- Edit Post Modal -->
+  <div id="editPostModal" style="display:none;"></div>
+  <!-- Confirm Dialog -->
+  <div id="confirmDialog" style="display:none;"></div>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/profile.js"></script>
+  <script src="../js/posts.js"></script>
   <script>
     (async function() {
       await updateNavbarAuth();
@@ -596,6 +605,9 @@
 
       document.getElementById('profileSkeleton').style.display = 'none';
       document.getElementById('profileContent').style.display = 'block';
+
+      // Load user's posts
+      loadProfilePosts(profile.id);
     })();
 
     function renderProfile(profile, isOwn) {
@@ -698,6 +710,40 @@
         document.getElementById('taggedEmpty').style.display = 'block';
       }
     };
+
+    /* ---- Load profile posts ---- */
+    async function loadProfilePosts(userId) {
+      var grid = document.getElementById('profileGrid');
+      var emptyEl = document.getElementById('postsEmpty');
+      grid.innerHTML = '';
+
+      var posts = await fetchPosts({ userId: userId, limit: 30 });
+
+      // Update post count
+      document.getElementById('postsCount').textContent = posts ? posts.length : 0;
+
+      if (!posts || posts.length === 0) {
+        grid.style.display = 'none';
+        emptyEl.style.display = 'block';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      grid.style.display = 'grid';
+
+      posts.forEach(function(post) {
+        var item = document.createElement('div');
+        item.className = 'post-grid-item';
+        if (post.media_type === 'video') {
+          item.innerHTML = '<video src="' + post.media_url + '" preload="metadata" muted style="width:100%;height:100%;object-fit:cover;"></video>' +
+            '<div class="post-grid-overlay"><span class="post-grid-stat"><i class="fas fa-play"></i></span></div>';
+        } else {
+          item.innerHTML = '<img src="' + post.media_url + '" alt="' + escapeHtml(post.title || '') + '" loading="lazy">' +
+            '<div class="post-grid-overlay"><span class="post-grid-stat"><i class="far fa-heart"></i> 0</span></div>';
+        }
+        grid.appendChild(item);
+      });
+    }
 
     function escapeHtml(str) {
       var div = document.createElement('div');
