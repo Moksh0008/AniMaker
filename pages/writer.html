@@ -9,12 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Auth loading overlay -->
-  <div class="auth-loading-overlay" id="authLoading">
-    <div class="auth-spinner"></div>
-    <p>Verifying your session...</p>
-  </div>
-
+  <div class="auth-loading-overlay" id="authLoading"><div class="auth-spinner"></div><p>Verifying your session...</p></div>
   <nav class="navbar">
     <a href="../index.html" class="logo"><img src="../assets/images/logo.png" alt="AniMaker"> AniMaker</a>
     <ul class="nav-links">
@@ -23,9 +18,7 @@
       <li><a href="services.html">Services</a></li>
       <li><a href="contact.html">Contact</a></li>
     </ul>
-    <div class="nav-actions">
-      <div class="user-badge"><div class="user-badge-avatar"><i class="fas fa-user"></i></div> User</div>
-    </div>
+    <div class="nav-actions" style="position:relative;"></div>
     <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
   </nav>
   <div class="app-layout">
@@ -58,137 +51,49 @@
           <a href="../assets/images/writer/writer-pic-6.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-6.jpg" alt="Jack Luffy"><div class="gallery-overlay"><span>Jack Luffy</span></div></a>
           <a href="../assets/images/writer/writer-pic-7.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-7.jpg" alt="Pirate Slayer"><div class="gallery-overlay"><span>Pirate Slayer</span></div></a>
           <a href="../assets/images/writer/writer-pic-8.jpg" class="gallery-item" target="_blank"><img src="../assets/images/writer/writer-pic-8.jpg" alt="Unbeatable Combo"><div class="gallery-overlay"><span>Unbeatable Combo</span></div></a>
-          <div class="gallery-upload" onclick="openUploadModal()"><div class="gallery-upload-icon"><i class="fas fa-cloud-arrow-up"></i></div><span>Upload</span></div>
+        </div>
+        <div style="margin-top:32px;">
+          <h2 style="font-family:var(--font-display);font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:16px;text-align:center;">Community Stories</h2>
+          <div id="writerFeedPosts" class="gallery gallery-masonry"></div>
+          <div id="writerFeedLoading" style="text-align:center;padding:40px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
+          <div id="writerFeedEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);"><p>No community stories yet.</p></div>
         </div>
       </div>
     </main>
   </div>
-
-  <!-- Upload Modal -->
-  <div class="upload-modal-overlay" id="uploadModal" style="display:none;">
-    <div class="upload-modal">
-      <div class="upload-modal-header">
-        <h3>Upload Story</h3>
-        <button class="upload-modal-close" onclick="closeUploadModal()"><i class="fas fa-xmark"></i></button>
-      </div>
-      <div class="upload-modal-body">
-        <div class="upload-dropzone" id="dropzone">
-          <div class="upload-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>
-          <h4>Drag & drop your file here</h4>
-          <p>or click to browse from your computer</p>
-          <button class="browse-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
-          <div class="file-types">Supports: JPG, PNG, GIF, WEBP</div>
-        </div>
-        <div class="upload-preview" id="uploadPreview">
-          <div class="upload-preview-card">
-            <div class="upload-preview-thumb" id="previewThumb"></div>
-            <div class="upload-preview-info">
-              <div class="upload-preview-name" id="previewName"></div>
-              <div class="upload-preview-size" id="previewSize"></div>
-            </div>
-            <button class="upload-preview-remove" onclick="removePreview()"><i class="fas fa-trash-can"></i></button>
-          </div>
-        </div>
-        <div class="upload-progress" id="uploadProgress">
-          <div class="upload-progress-bar-bg"><div class="upload-progress-bar" id="progressBar"></div></div>
-          <div class="upload-progress-text" id="progressText">Uploading...</div>
-        </div>
-      </div>
-      <div class="upload-modal-footer">
-        <button class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
-        <button class="btn-upload" id="uploadBtn" disabled onclick="confirmUpload()"><i class="fas fa-upload" style="margin-right:6px;"></i>Upload</button>
-      </div>
-    </div>
-  </div>
-  <input type="file" id="fileInput" style="display:none" accept="image/*">
-
+  <div id="confirmDialog" style="display:none;"></div>
+  <div class="toast-container" id="toastContainer"></div>
   <button class="chat-fab" onclick="toggleChat()"><i class="fas fa-comments"></i></button>
   <div class="chat-window" id="chatContainer">
     <div class="chat-window-header"><span><i class="fas fa-robot" style="margin-right:8px;"></i>AniMaker Chat</span><button onclick="toggleChat()"><i class="fas fa-xmark"></i></button></div>
     <div class="chat-messages" id="chatBox"><div class="chat-empty">No messages yet</div></div>
     <div class="chat-input-area"><input type="text" id="receiver" placeholder="Receiver"><input type="text" id="message" placeholder="Type a message" style="flex:1;"><button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button></div>
-  </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/profile.js"></script>
+  <script src="../js/posts.js"></script>
   <script>
-    var selectedFile = null;
-
-    // Require authentication before showing page
-    requireAuth().then(async function(user) {
-      await updateNavbarAuth();
-    });
-
-
+    requireAuth().then(async function() { await updateNavbarAuth(); loadWriterFeed(); });
     function toggleChat(){document.getElementById('chatContainer').classList.toggle('active');}
-    function sendMessage(){var c=document.getElementById('chatBox'),r=document.getElementById('receiver').value,m=document.getElementById('message').value;if(r&&m){var e=c.querySelector('.chat-empty');if(e)e.remove();var el=document.createElement('div');el.classList.add('chat-msg');el.innerHTML='<div class="chat-msg-sender">You → '+r+'</div>'+m;c.appendChild(el);c.scrollTop=c.scrollHeight;document.getElementById('message').value='';}}
-
-    function openUploadModal(){
-      document.getElementById('uploadModal').style.display='flex';
-      resetUploadModal();
-    }
-    function closeUploadModal(){
-      document.getElementById('uploadModal').style.display='none';
-      resetUploadModal();
-    }
-    function resetUploadModal(){
-      selectedFile=null;
-      document.getElementById('fileInput').value='';
-      document.getElementById('uploadPreview').classList.remove('active');
-      document.getElementById('dropzone').style.display='';
-      document.getElementById('uploadBtn').disabled=true;
-      document.getElementById('uploadProgress').classList.remove('active');
-      document.getElementById('progressBar').style.width='0%';
-    }
-
-    function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
-
-    document.getElementById('fileInput').addEventListener('change',function(e){handleFile(e.target.files[0]);});
-    var dz=document.getElementById('dropzone');
-    dz.addEventListener('click',function(e){if(e.target.tagName!=='BUTTON')document.getElementById('fileInput').click();});
-    dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('dragover');});
-    dz.addEventListener('dragleave',function(){dz.classList.remove('dragover');});
-    dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0]);});
-
-    function handleFile(f){
-      if(!f||!f.type.startsWith('image/'))return;
-      selectedFile=f;
-      var r=new FileReader();
-      r.onload=function(ev){
-        document.getElementById('previewThumb').innerHTML='<img src="'+ev.target.result+'" alt="preview">';
-        document.getElementById('previewName').textContent=f.name;
-        document.getElementById('previewSize').textContent=formatSize(f.size);
-        document.getElementById('uploadPreview').classList.add('active');
-        document.getElementById('dropzone').style.display='none';
-        document.getElementById('uploadBtn').disabled=false;
-      };
-      r.readAsDataURL(f);
-    }
-
-    function removePreview(){resetUploadModal();}
-
-    function confirmUpload(){
-      if(!selectedFile)return;
-      document.getElementById('uploadProgress').classList.add('active');
-      document.getElementById('uploadBtn').disabled=true;
-      var bar=document.getElementById('progressBar');
-      var txt=document.getElementById('progressText');
-      var pct=0;
-      var iv=setInterval(function(){pct+=Math.random()*25+10;if(pct>=100){pct=100;clearInterval(iv);txt.textContent='Upload complete!';setTimeout(function(){addToGallery(selectedFile);closeUploadModal();},500);}bar.style.width=pct+'%';},200);
-    }
-
-    function addToGallery(f){
-      var r=new FileReader();
-      r.onload=function(ev){
-        var g=document.querySelector('.gallery-masonry');
-        var up=g.querySelector('.gallery-upload');
-        var a=document.createElement('a');
-        a.className='gallery-item';
-        a.href=ev.target.result;a.target='_blank';
-        a.innerHTML='<img src="'+ev.target.result+'" alt="'+f.name+'"><div class="gallery-overlay"><span>'+f.name+'</span></div>';
-        g.insertBefore(a,up);
-      };
-      r.readAsDataURL(f);
+    function sendMessage(){var c=document.getElementById('chatBox'),r=document.getElementById('receiver').value,m=document.getElementById('message').value;if(r&&m){var e=c.querySelector('.chat-empty');if(e)e.remove();var el=document.createElement('div');el.classList.add('chat-msg');el.innerHTML='<div class="chat-msg-sender">You \u2192 '+r+'</div>'+m;c.appendChild(el);c.scrollTop=c.scrollHeight;document.getElementById('message').value='';}}
+    async function loadWriterFeed(){
+      var container=document.getElementById('writerFeedPosts'),loading=document.getElementById('writerFeedLoading'),empty=document.getElementById('writerFeedEmpty');
+      loading.style.display='block';
+      var p1=await fetchPosts({limit:20,category:'Storytelling'});
+      var p2=await fetchPosts({limit:20,category:'Writing'});
+      var p3=await fetchPosts({limit:20,category:'World Building'});
+      var all=(p1||[]).concat(p2||[]).concat(p3||[]);
+      var seen={};all=all.filter(function(p){if(seen[p.id])return false;seen[p.id]=true;return true;});
+      loading.style.display='none';
+      if(all.length===0){empty.style.display='block';return;}
+      all.forEach(function(post){
+        var card=document.createElement('div');card.className='gallery-item';
+        if(post.media_type==='video'){card.innerHTML='<video src="'+post.media_url+'" preload="metadata" muted style="width:100%;"></video><div class="gallery-overlay"><span>'+(post.title||post.caption||'')+'</span></div>';}
+        else{card.innerHTML='<img src="'+post.media_url+'" alt="'+(post.title||'')+'" loading="lazy"><div class="gallery-overlay"><span>'+(post.title||post.caption||'')+'</span></div>';}
+        container.appendChild(card);
+      });
     }
   </script>
 </body>

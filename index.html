@@ -97,41 +97,6 @@
         </div>
       </section>
 
-      <!-- Creative Feed (shown when logged in) -->
-      <section id="feedSection" class="section" style="display:none;padding:0;">
-        <div class="feed-container">
-          <div class="feed-header">
-            <h1>Creative Feed</h1>
-          </div>
-
-          <!-- Create post trigger -->
-          <div class="create-post-trigger" id="createPostTrigger" onclick="openCreatePost()">
-            <div class="trigger-avatar" id="triggerAvatar"></div>
-            <span class="trigger-text">Share your latest creation...</span>
-            <span class="trigger-btn"><i class="fas fa-plus" style="margin-right:4px;"></i> Create</span>
-          </div>
-
-          <!-- Posts feed -->
-          <div id="feedPosts"></div>
-
-          <!-- Loading skeleton -->
-          <div id="feedLoading">
-            <div class="skeleton-post"><div class="skeleton-post-header"><div class="skeleton" style="width:40px;height:40px;border-radius:50%;"></div><div style="flex:1;"><div class="skeleton skeleton-text-sm" style="width:120px;margin-bottom:4px;"></div><div class="skeleton skeleton-text-sm" style="width:80px;"></div></div></div><div class="skeleton-post-media"></div></div>
-            <div class="skeleton-post"><div class="skeleton-post-header"><div class="skeleton" style="width:40px;height:40px;border-radius:50%;"></div><div style="flex:1;"><div class="skeleton skeleton-text-sm" style="width:120px;margin-bottom:4px;"></div><div class="skeleton skeleton-text-sm" style="width:80px;"></div></div></div><div class="skeleton-post-media"></div></div>
-          </div>
-
-          <!-- Empty state -->
-          <div id="feedEmpty" style="display:none;text-align:center;padding:60px 20px;">
-            <i class="fas fa-sparkles" style="font-size:48px;color:var(--text-muted);opacity:0.4;margin-bottom:16px;display:block;"></i>
-            <p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">No creations yet</p>
-            <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;">Be the first animator to share something amazing.</p>
-            <button class="btn btn-primary" onclick="openCreatePost()"><i class="fas fa-plus" style="margin-right:6px;"></i>Create Post</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Landing sections (shown when logged out) -->
-      <div id="landingSections">
       <section id="roles" class="section">
         <div class="page-container">
           <div class="section-header">
@@ -234,7 +199,6 @@
           </div>
         </div>
       </footer>
-      </div><!-- end landingSections -->
     </main>
   </div>
 
@@ -593,33 +557,10 @@
       await updateNavbarAuth();
       var heroActions = document.getElementById('heroActions');
       var ctaActions = document.getElementById('ctaActions');
-      var feedSection = document.getElementById('feedSection');
-      var landingSections = document.getElementById('landingSections');
-
       if (await isLoggedIn()) {
-        // Show feed, hide landing
-        feedSection.style.display = 'block';
-        landingSections.style.display = 'none';
-
-        // Set trigger avatar
-        var profile = await getCurrentProfile();
-        var avatarEl = document.getElementById('triggerAvatar');
-        if (profile && profile.avatar_url) {
-          avatarEl.innerHTML = '<img src="' + profile.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-        } else {
-          var name = (profile && (profile.full_name || profile.username)) || 'U';
-          avatarEl.textContent = name.charAt(0).toUpperCase();
-        }
-
         heroActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Creator Studio</a> <a href="pages/writer.html" class="btn btn-secondary btn-lg"><i class="fas fa-pen-nib"></i> Writer Studio</a> <a href="pages/maker.html" class="btn btn-secondary btn-lg"><i class="fas fa-cube"></i> Maker Studio</a>';
         ctaActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Open Dashboard</a>';
-
-        loadFeed();
       } else {
-        // Show landing, hide feed
-        feedSection.style.display = 'none';
-        landingSections.style.display = '';
-
         heroActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Start Creating</a><a href="pages/about.html" class="btn btn-secondary btn-lg">Learn More</a>';
         ctaActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Create Free Account</a>';
       }

@@ -661,7 +661,8 @@
       var actionsEl = document.getElementById('profileActions');
       if (isOwn) {
         actionsEl.innerHTML =
-          '<button class="btn btn-secondary" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>';
+          '<button class="btn btn-secondary" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>' +
+          '<button class="btn btn-primary btn-sm" onclick="openCreatePostFromProfile()"><i class="fas fa-plus"></i> Create Post</button>';
         document.getElementById('avatarUploadBtn').style.display = 'flex';
       } else {
         actionsEl.innerHTML =
@@ -848,6 +849,123 @@
     window.closeEditProfile = function(e) {
       if (e && e.target && !e.target.classList.contains('edit-modal-overlay')) return;
       document.getElementById('editProfileModal').style.display = 'none';
+    };
+
+    /* ---- Create Post from Profile ---- */
+    var createSelectedFile = null;
+
+    window.openCreatePostFromProfile = async function() {
+      var session = await getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      var profile = await getCurrentProfile();
+      var username = (profile && profile.username) || 'User';
+
+      var categoryOptions = '';
+      POST_CATEGORIES.forEach(function(c) {
+        categoryOptions += '<option value="' + c + '">' + c + '</option>';
+      });
+
+      var modal = document.getElementById('createPostModal');
+      modal.style.display = 'block';
+      modal.innerHTML = '<div class="create-modal-overlay" onclick="if(event.target===this)closeCreatePostProfile()">' +
+        '<div class="create-modal" onclick="event.stopPropagation()">' +
+          '<div class="create-modal-header"><h3>Create Post</h3><button class="upload-modal-close" onclick="closeCreatePostProfile()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="create-modal-body">' +
+            '<div class="create-dropzone" id="createDropzoneP">' +
+              '<div class="create-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
+              '<h4>Drag & drop your file here</h4>' +
+              '<p>Images (JPG, PNG, GIF, WEBP) or Videos (MP4, WEBM)</p>' +
+            '</div>' +
+            '<div id="createMediaPreviewP" style="display:none;"></div>' +
+            '<div id="createUploadProgressP" class="create-upload-progress" style="display:none;"><div class="progress-bar-bg"><div class="progress-bar" id="createProgressBarP"></div></div><div class="progress-text" id="createProgressTextP">Uploading...</div></div>' +
+            '<input type="file" id="createFileInputP" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">' +
+            '<div class="form-group"><label for="createTitleP">Title</label><input type="text" id="createTitleP" class="form-input" placeholder="Give your creation a name" maxlength="100"></div>' +
+            '<div class="form-group"><label for="createCaptionP">Caption</label><textarea id="createCaptionP" class="form-input" placeholder="Tell the story behind this creation..." maxlength="1000" rows="3"></textarea></div>' +
+            '<div class="form-group"><label for="createCategoryP">Category</label><select id="createCategoryP" class="category-select">' + categoryOptions + '</select></div>' +
+          '</div>' +
+          '<div class="create-modal-footer">' +
+            '<button class="btn btn-secondary" onclick="closeCreatePostProfile()">Cancel</button>' +
+            '<button class="btn btn-primary" id="publishBtnP" disabled onclick="handlePublishProfile()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+      var dz = document.getElementById('createDropzoneP');
+      var fi = document.getElementById('createFileInputP');
+      dz.addEventListener('click', function(e) { if (e.target.tagName !== 'BUTTON') fi.click(); });
+      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleCreateFileP(e.dataTransfer.files[0]); });
+      fi.addEventListener('change', function(e) { if (e.target.files[0]) handleCreateFileP(e.target.files[0]); });
+    };
+
+    function handleCreateFileP(file) {
+      var isImage = VALID_IMAGE_TYPES.includes(file.type);
+      var isVideo = VALID_VIDEO_TYPES.includes(file.type);
+      if (!isImage && !isVideo) { showToast('Unsupported file type.', 'error'); return; }
+      if (isImage && file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
+      if (isVideo && file.size > MAX_VIDEO_SIZE) { showToast('Video must be less than 100MB.', 'error'); return; }
+      createSelectedFile = file;
+      var preview = document.getElementById('createMediaPreviewP');
+      var icon = isImage ? 'fa-image' : 'fa-video';
+      preview.innerHTML = '<div class="create-media-preview">' +
+        (isVideo ? '<video controls preload="metadata" style="width:100%;max-height:300px;"></video>' : '<img src="" alt="Preview" style="width:100%;max-height:300px;object-fit:contain;">') +
+        '<button class="create-media-remove" onclick="removeCreateMediaP()"><i class="fas fa-xmark"></i></button>' +
+        '</div>' +
+        '<div class="create-media-info"><span class="file-icon"><i class="fas ' + icon + '"></i></span> ' + file.name + ' (' + formatFileSize(file.size) + ')</div>';
+      preview.style.display = 'block';
+      document.getElementById('createDropzoneP').style.display = 'none';
+      document.getElementById('publishBtnP').disabled = false;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        if (isVideo) preview.querySelector('video').src = e.target.result;
+        else preview.querySelector('img').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.removeCreateMediaP = function() {
+      createSelectedFile = null;
+      document.getElementById('createMediaPreviewP').style.display = 'none';
+      document.getElementById('createDropzoneP').style.display = '';
+      document.getElementById('publishBtnP').disabled = true;
+      document.getElementById('createFileInputP').value = '';
+    };
+
+    window.closeCreatePostProfile = function() {
+      document.getElementById('createPostModal').style.display = 'none';
+      createSelectedFile = null;
+    };
+
+    window.handlePublishProfile = async function() {
+      if (!createSelectedFile) return;
+      var btn = document.getElementById('publishBtnP');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
+      document.getElementById('createUploadProgressP').style.display = 'block';
+      try {
+        var result = await uploadPostMedia(createSelectedFile, function(pct) {
+          document.getElementById('createProgressBarP').style.width = pct + '%';
+          document.getElementById('createProgressTextP').textContent = pct < 100 ? 'Uploading... ' + pct + '%' : 'Processing...';
+        });
+        await createPost({
+          title: document.getElementById('createTitleP').value.trim(),
+          caption: document.getElementById('createCaptionP').value.trim(),
+          media_url: result.url,
+          media_type: result.type,
+          category: document.getElementById('createCategoryP').value
+        });
+        closeCreatePostProfile();
+        showToast('Post published!', 'success');
+        var profile = await getCurrentProfile();
+        if (profile) { renderProfile(profile, true); loadProfilePosts(profile.id); }
+      } catch (err) {
+        showToast(err.message || 'Failed to publish.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
+        document.getElementById('createUploadProgressP').style.display = 'none';
+      }
     };
 
     window.removeAvatar = async function() {
