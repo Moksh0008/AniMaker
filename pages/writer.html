@@ -7,6 +7,85 @@
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .story-popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-size: cover;
+      background-position: center;
+      background-color: #0a0a0f;
+      animation: fadeIn 0.2s ease;
+    }
+    .story-popup-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 15, 0.5);
+      z-index: 0;
+    }
+    .story-popup-close {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
+      color: #fff;
+      border: none;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.25s ease;
+      z-index: 5001;
+    }
+    .story-popup-close:hover { transform: scale(1.1); }
+    .story-popup-content {
+      position: relative;
+      z-index: 1;
+      max-width: 750px;
+      width: 90%;
+      text-align: center;
+    }
+    .story-popup-content h2 {
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.9);
+    }
+    .story-popup-box {
+      text-align: justify;
+      line-height: 1.7;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 24px;
+      border-radius: 12px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .story-popup-box p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 14px;
+    }
+    .story-popup-box p:last-child { margin-bottom: 0; }
+    .story-popup-author {
+      margin-top: 16px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+  </style>
 </head>
 <body>
   <div class="auth-loading-overlay" id="authLoading"><div class="auth-spinner"></div><p>Verifying your session...</p></div>
@@ -56,33 +135,50 @@
   <script src="../js/posts.js"></script>
   <script>
     var defaultStories = [
-      { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg', type: 'writer', profiles: {}, detailPage: 'writer-pic1.html' },
-      { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg', type: 'writer', profiles: {}, detailPage: 'writer-pic2.html' },
-      { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg', type: 'writer', profiles: {}, detailPage: null },
-      { id: 'default-w4', title: 'Story 4', cover_image_url: '../assets/images/writer/writer-pic-4.jpg', type: 'writer', profiles: {}, detailPage: null },
-      { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg', type: 'writer', profiles: {}, detailPage: null },
-      { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg', type: 'writer', profiles: {}, detailPage: null },
-      { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg', type: 'writer', profiles: {}, detailPage: null },
-      { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg', type: 'writer', profiles: {}, detailPage: null }
+      { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg',
+        story: '<p>In a small, peaceful village on Earth, Goku\'s younger brother, Luffy, was born. Unlike Goku, Luffy\'s personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.</p><p>Luffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn\'t mind; every loss made him stronger, and every challenge gave him more fire. "One day, I\'ll be as strong as you!" he\'d shout with a grin, despite his bruises.</p><p>As they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world\'s greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.</p><p>Goku would often send Luffy letters with encouragement, but Luffy\'s only reply would be a laughing message: "I\'m already on my way to being the King of the Sea, big bro!"</p><p>Years later, Luffy\'s name became known across the seas, just as Goku\'s became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected. Luffy may not have had the same calm nature as Goku, but his heart was just as pure, his dreams just as big.</p>'
+      },
+      { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg',
+        story: '<p>Naruto, Luffy, and Goku were three young adventurers brought together by fate in a world where ninjas, pirates, and martial artists lived side by side. Though their personalities were completely different, they quickly became inseparable. Goku was calm and fearless, Luffy was wild and cheerful, while Naruto was determined and never willing to give up.</p><p>They would often train together, turning every practice session into a friendly competition. Goku challenged them to test their strength, Luffy rushed into every fight with a huge grin, and Naruto refused to let either of them get ahead. Even when they lost, they would laugh, learn, and promise to become stronger together.</p><p>As they grew older, each of them began chasing their own dream. Goku wanted to become the greatest martial artist, Luffy dreamed of becoming the Pirate King, and Naruto wanted to become Hokage and earn the respect of everyone around him. Their paths were different, but their determination was the same.</p><p>Years later, their names became legends across the world. Goku was known throughout the universe, Luffy became a feared and respected pirate, and Naruto became one of the greatest shinobi. No matter how far their journeys took them, the three friends always found their way back to each other.</p>'
+      },
+      { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg',
+        story: '<p>There was something magical about a warm bowl of ramen that brought even the greatest warriors together. Every Sunday evening, Naruto, Goku, and Luffy would gather at Ichiraku Ramen, the only place in the world where a Hokage, a Saiyan, and a Pirate King could sit side by side and simply enjoy a meal.</p><p>Naruto always ordered the same thing — miso ramen with extra pork. Goku, being Goku, ordered ten bowls of everything. Luffy would吃 (eat) until the entire shop ran out of ingredients, laughing the whole time. The shop owner, Old Man Teuchi, never complained. He was proud to serve heroes.</p><p>"You know," Naruto said between slurps, "this is the best part of my day." Goku nodded, his mouth full of noodles. Luffy grinned, sauce on his face. "Better than treasure!" he declared.</p><p>They talked about their adventures, their dreams, and their friends. They laughed at each other\'s stories and cheered each other on. In those quiet moments over steaming bowls of ramen, they weren\'t legends or heroes — they were just three friends, sharing a meal and a bond that would last forever.</p>'
+      },
+      { id: 'default-w4', title: 'The Last Battle', cover_image_url: '../assets/images/writer/writer-pic-4.jpg',
+        story: '<p>The sky turned dark as the ultimate threat emerged — a villain so powerful that even the gods trembled. Naruto, Goku, and Luffy stood side by side, facing the enemy that threatened to destroy everything they had ever loved.</p><p>"Ready?" Goku asked, his voice calm despite the chaos around them. Naruto grinned, his eyes blazing with determination. "Always." Luffy cracked his knuckles, his hat pulled low. "Let\'s do this."</p><p>The battle was unlike anything the world had ever seen. Goku transformed through his forms, his power reaching new heights with every blow. Naruto unleashed the full force of the Nine-Tails, his chakra painting the sky in golden light. Luffy activated Gear 5, his body bending reality itself as he struck with impossible force.</p><p>Together, they were unstoppable. Each attack was perfectly timed, each movement synchronized as if they had fought together their entire lives. When the final blow landed, the darkness shattered like glass, and the sun broke through the clouds.</p><p>Breathing heavily, the three warriors looked at each other and smiled. They had won — not alone, but together. That was the power of friendship, the power of three legends who refused to give up.</p>'
+      },
+      { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg',
+        story: '<p>In a world where power meant everything, three names echoed across every land, every sea, every universe — Goku, Naruto, and Luffy. They were known as the GOATs, the Greatest Of All Time, and their reputation preceded them wherever they went.</p><p>But fame never changed them. Goku still trained every morning with a smile, always seeking a stronger opponent. Naruto still visited his friends in the Hidden Leaf Village, helping with whatever needed to be done. Luffy still gathered his crew, laughing and dreaming of new adventures on the Grand Line.</p><p>They met once a year at a secret location — a small island in the middle of the ocean that only they knew about. There, they would train, fight, eat, and share stories of their journeys. No cameras, no fans, no titles. Just three friends being themselves.</p><p>"You know what I love most?" Luffy said one evening, watching the sunset. "This. Just us." Goku nodded, stretching his arms behind his head. Naruto smiled. "Me too. This is what it\'s all about."</p><p>And so the GOATs continued their journeys, knowing that no matter how far apart they traveled, their bond would always bring them back together.</p>'
+      },
+      { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg',
+        story: '<p>Monkey D. Luffy had always been fearless, but when he discovered the legendary treasure of Gol D. Roger, everything changed. The treasure wasn\'t gold or jewels — it was a map to a hidden island where the greatest pirates in history had left their legacy.</p><p>Luffy gathered his crew and set sail immediately. "We\'re going to find this treasure!" he declared, his eyes shining with excitement. Zoro drew his swords, Sanji lit a cigarette, and Nami studied the map with a grin.</p><p>The journey was filled with challenges — treacherous storms, powerful enemies, and impossible obstacles. But Luffy faced every challenge with his signature grin and unwavering determination. "I\'m going to be the Pirate King!" he shouted at every storm, every enemy, every challenge.</p><p>When they finally reached the island, Luffy found something unexpected — a letter from Gol D. Roger himself. "The real treasure isn\'t on this island," it read. "It\'s the journey you took to get here, and the friends who traveled with you."</p><p>Luffy laughed, holding the letter to his chest. "He\'s right!" he said, looking at his crew. "You guys are my treasure!" And with that, the Straw Hat Pirates sailed home, their hearts full and their spirits high.</p>'
+      },
+      { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg',
+        story: '<p>They called him the Pirate Slayer, but that wasn\'t quite right. Roronoa Zoro didn\'t slay pirates for money or fame — he did it because it was the right thing to do. With his three swords and an unbreakable will, he had earned a reputation as the most feared swordsman in the world.</p><p>His journey began in a small village where he trained under a master swordsman. "To become truly strong," his master told him, "you must fight for something more than yourself." Those words stayed with Zoro as he grew from a young boy with a wooden sword into a legend with three blades.</p><p>Along the way, he met friends who changed his life. He joined Luffy\'s crew, finding brothers in the Straw Hat Pirates. He trained with Mihawk, his rival and inspiration. He faced death more times than he could count, but each time he rose stronger.</p><p>"The world will know my name," Zoro once said, "as the greatest swordsman who ever lived." And he was right. But what made him truly great wasn\'t his skill with a blade — it was his loyalty, his honor, and his unbreakable spirit. The Pirate Slayer had become a legend, not just for how he fought, but for why he fought.</p>'
+      },
+      { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg',
+        story: '<p>In the entire multiverse, there was one combination that no enemy could defeat — the Unbeatable Combo of Goku, Naruto, and Luffy. Together, they had faced gods, aliens, demons, and pirates, and they had never lost.</p><p>The secret to their power wasn\'t just their individual strength — it was how they worked together. Goku\'s raw power, Naruto\'s strategic mind, and Luffy\'s unpredictable fighting style created a combination that was impossible to counter.</p><p>When Goku attacked with a Kamehameha, Naruto would follow with a Rasenshuriken, and Luffy would finish with a Gear 5 punch that bent reality itself. No enemy could withstand all three attacks at once.</p><p>"We\'re unstoppable!" Luffy would shout after every victory. Goku would laugh, rubbing the back of his head. Naruto would grin, crossing his arms. "Believe it!"</p><p>Their legend grew with every battle. Villains whispered their names in fear. Heroes looked up to them with admiration. And the three friends continued their journey, knowing that as long as they had each other, they could face anything the universe threw at them.</p><p>The Unbeatable Combo wasn\'t just a fighting team — it was a family, bound by friendship, loyalty, and the shared dream of protecting the world they loved.</p>'
+      }
     ];
 
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
 
-    function openDefaultImage(url, title) {
+    function openStoryPopup(bgImage, title, storyHtml) {
       var overlay = document.createElement('div');
-      overlay.className = 'detail-overlay';
+      overlay.className = 'story-popup-overlay';
+      overlay.style.backgroundImage = 'url(' + bgImage + ')';
       overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-      overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
-        '<div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">' +
-          '<img src="' + url + '" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;">' +
-        '</div>' +
-        '<div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;font-weight:500;text-shadow:0 2px 8px rgba(0,0,0,0.5);">' + title + '</div>';
+      overlay.innerHTML = '<button class="story-popup-close" onclick="this.parentElement.remove()"><i class="fas fa-arrow-left"></i></button>' +
+        '<div class="story-popup-content">' +
+          '<h2>' + title + '</h2>' +
+          '<div class="story-popup-box">' + storyHtml + '</div>' +
+        '</div>';
       document.body.appendChild(overlay);
     }
 
     document.getElementById('searchInput').addEventListener('input', function() {
       var q = this.value.toLowerCase();
-      document.querySelectorAll('#writerGallery .creation-card, #writerGallery .story-card').forEach(function(card) {
+      document.querySelectorAll('#writerGallery .creation-card').forEach(function(card) {
         card.style.display = card.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
       });
     });
@@ -95,16 +191,10 @@
       var creations = await fetchCreations({ limit: 50, type: 'writer' });
       loading.style.display = 'none';
 
-      // Render default images first
       defaultStories.forEach(function(c) {
         var card = document.createElement('div');
         card.className = 'creation-card';
-        if (c.detailPage) {
-          card.onclick = function() { window.location.href = c.detailPage; };
-          card.style.cursor = 'pointer';
-        } else {
-          card.onclick = function() { openDefaultImage(c.cover_image_url, c.title); };
-        }
+        card.onclick = function() { openStoryPopup(c.cover_image_url, c.title, c.story); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
@@ -112,18 +202,15 @@
         container.appendChild(card);
       });
 
-      // Render Supabase creations
       creations.forEach(function(c) {
         var profile = c.profiles || {};
         var card = document.createElement('div');
         card.className = 'creation-card';
         card.setAttribute('data-creation-id', c.id);
         card.onclick = function() { openStoryDetail(c.id); };
-
         var coverHtml = c.cover_image_url
           ? '<img src="' + c.cover_image_url + '" loading="lazy">'
           : '<div style="display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);height:200px;"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--text-muted);"></i></div>';
-
         card.innerHTML = '<div class="creation-card-image">' + coverHtml + '</div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
