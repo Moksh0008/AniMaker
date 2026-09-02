@@ -99,6 +99,47 @@
 
     .profile-actions .btn { font-size: 13px; padding: 8px 20px; }
 
+    /* Instagram-style create button */
+    .create-new-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      margin: 20px 0 0 0;
+    }
+
+    .create-new-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .create-new-circle:hover {
+      border-color: #fff;
+    }
+
+    .create-new-circle i {
+      font-size: 32px;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    .create-new-circle:hover i {
+      color: #fff;
+    }
+
+    .create-new-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
     .profile-stats {
       display: flex;
       gap: 32px;
@@ -662,8 +703,14 @@
       if (isOwn) {
         actionsEl.innerHTML =
           '<button class="btn btn-secondary" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>' +
-          '<button class="btn btn-primary btn-sm" onclick="openCreatePostFromProfile()"><i class="fas fa-plus"></i> Create Post</button>';
+          '<button class="btn btn-secondary" onclick="openEditProfile()">View archive</button>';
         document.getElementById('avatarUploadBtn').style.display = 'flex';
+        // Add Instagram-style create button below actions
+        var createBtn = document.createElement('div');
+        createBtn.className = 'create-new-btn';
+        createBtn.onclick = function() { openCreatePostFromProfile(); };
+        createBtn.innerHTML = '<div class="create-new-circle"><i class="fas fa-plus"></i></div><span class="create-new-label">New</span>';
+        actionsEl.parentElement.appendChild(createBtn);
       } else {
         actionsEl.innerHTML =
           '<button class="btn btn-primary btn-sm"><i class="fas fa-user-plus"></i> Follow</button>' +

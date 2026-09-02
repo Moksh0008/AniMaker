@@ -53,12 +53,7 @@
           <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-8.mp4')"><img src="../assets/images/maker/maker-pic-8.jpg" alt="Animation 8"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 8</span></div></div>
           <div class="gallery-item" onclick="openVideoModal('../assets/videos/animation-9.mp4')"><img src="../assets/images/maker/maker-pic-9.jpg" alt="Animation 9"><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>Animation 9</span></div></div>
         </div>
-        <div style="margin-top:32px;">
-          <h2 style="font-family:var(--font-display);font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:16px;text-align:center;">Community Animations</h2>
-          <div id="makerFeedPosts" class="gallery gallery-masonry"></div>
-          <div id="makerFeedLoading" style="text-align:center;padding:40px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
-          <div id="makerFeedEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);"><p>No community animations yet.</p></div>
-        </div>
+
       </div>
     </main>
   </div>
@@ -78,31 +73,16 @@
   <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/profile.js"></script>
-  <script src="../js/posts.js"></script>
+
   <script>
-    requireAuth().then(async function() { await updateNavbarAuth(); loadMakerFeed(); });
+    requireAuth().then(async function() { await updateNavbarAuth(); });
     function toggleChat(){document.getElementById('chatContainer').classList.toggle('active');}
     function sendMessage(){var c=document.getElementById('chatBox'),r=document.getElementById('receiver').value,m=document.getElementById('message').value;if(r&&m){var e=c.querySelector('.chat-empty');if(e)e.remove();var el=document.createElement('div');el.classList.add('chat-msg');el.innerHTML='<div class="chat-msg-sender">You \u2192 '+r+'</div>'+m;c.appendChild(el);c.scrollTop=c.scrollHeight;document.getElementById('message').value='';}}
     document.getElementById('searchInput').addEventListener('input',function(){var q=this.value.toLowerCase();document.querySelectorAll('#videoGallery .gallery-item').forEach(function(item){item.style.display=item.textContent.toLowerCase().indexOf(q)!==-1?'':'none';});});
     function openVideoModal(src){var m=document.getElementById('videoModal'),v=document.getElementById('modalVideo');v.src=src;m.style.display='flex';v.play();}
     function closeVideoModal(e){if(e.target===document.getElementById('videoModal')||e.currentTarget.classList.contains('video-modal-close')){var m=document.getElementById('videoModal'),v=document.getElementById('modalVideo');v.pause();v.src='';m.style.display='none';}}
     document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('videoModal');if(m.style.display==='flex'){var v=document.getElementById('modalVideo');v.pause();v.src='';m.style.display='none';}}});
-    async function loadMakerFeed(){
-      var container=document.getElementById('makerFeedPosts'),loading=document.getElementById('makerFeedLoading'),empty=document.getElementById('makerFeedEmpty');
-      loading.style.display='block';
-      var p1=await fetchPosts({limit:20,category:'Animation'});
-      var p2=await fetchPosts({limit:20,category:'Short Film'});
-      var all=(p1||[]).concat(p2||[]);
-      var seen={};all=all.filter(function(p){if(seen[p.id])return false;seen[p.id]=true;return true;});
-      loading.style.display='none';
-      if(all.length===0){empty.style.display='block';return;}
-      all.forEach(function(post){
-        var card=document.createElement('div');card.className='gallery-item';
-        if(post.media_type==='video'){card.innerHTML='<video src="'+post.media_url+'" preload="metadata" muted style="width:100%;"></video><div class="play-icon"><i class="fas fa-play"></i></div><div class="gallery-overlay"><span>'+(post.title||post.caption||'')+'</span></div>';}
-        else{card.innerHTML='<img src="'+post.media_url+'" alt="'+(post.title||'')+'" loading="lazy"><div class="gallery-overlay"><span>'+(post.title||post.caption||'')+'</span></div>';}
-        container.appendChild(card);
-      });
-    }
+
   </script>
 </body>
 </html>

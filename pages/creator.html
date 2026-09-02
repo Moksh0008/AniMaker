@@ -52,12 +52,7 @@
           <a href="../assets/images/creator/creator-pic-7.jpg" class="gallery-item" target="_blank"><img src="../assets/images/creator/creator-pic-7.jpg" alt="Gear 5 Baryon"><div class="gallery-overlay"><span>Gear 5 Baryon</span></div></a>
           <a href="../assets/images/creator/creator-pic-8.jpg" class="gallery-item" target="_blank"><img src="../assets/images/creator/creator-pic-8.jpg" alt="Lugoto"><div class="gallery-overlay"><span>Lugoto</span></div></a>
         </div>
-        <div style="margin-top:32px;">
-          <h2 style="font-family:var(--font-display);font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:16px;text-align:center;">Community Creations</h2>
-          <div id="creatorFeedPosts" class="gallery gallery-masonry"></div>
-          <div id="creatorFeedLoading" style="text-align:center;padding:40px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
-          <div id="creatorFeedEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);"><p>No community creations yet.</p></div>
-        </div>
+
       </div>
     </main>
   </div>
@@ -73,28 +68,12 @@
   <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/profile.js"></script>
-  <script src="../js/posts.js"></script>
+
   <script>
-    requireAuth().then(async function() { await updateNavbarAuth(); loadCreatorFeed(); });
+    requireAuth().then(async function() { await updateNavbarAuth(); });
     function toggleChat(){document.getElementById('chatContainer').classList.toggle('active');}
     function sendMessage(){var c=document.getElementById('chatBox'),r=document.getElementById('receiver').value,m=document.getElementById('message').value;if(r&&m){var e=c.querySelector('.chat-empty');if(e)e.remove();var el=document.createElement('div');el.classList.add('chat-msg');el.innerHTML='<div class="chat-msg-sender">You \u2192 '+r+'</div>'+m;c.appendChild(el);c.scrollTop=c.scrollHeight;document.getElementById('message').value='';}}
-    async function loadCreatorFeed(){
-      var container=document.getElementById('creatorFeedPosts'),loading=document.getElementById('creatorFeedLoading'),empty=document.getElementById('creatorFeedEmpty');
-      loading.style.display='block';
-      var p1=await fetchPosts({limit:20,category:'Character Design'});
-      var p2=await fetchPosts({limit:20,category:'Animation'});
-      var p3=await fetchPosts({limit:20,category:'Concept Art'});
-      var all=(p1||[]).concat(p2||[]).concat(p3||[]);
-      var seen={};all=all.filter(function(p){if(seen[p.id])return false;seen[p.id]=true;return true;});
-      loading.style.display='none';
-      if(all.length===0){empty.style.display='block';return;}
-      all.forEach(function(post){
-        var card=document.createElement('div');card.className='gallery-item';
-        if(post.media_type==='video'){card.innerHTML='<video src="'+post.media_url+'" preload="metadata" muted style="width:100%;"></video><div class="gallery-overlay"><span>'+(post.title||post.caption||'')+'</span></div>';}
-        else{card.innerHTML='<img src="'+post.media_url+'" alt="'+(post.title||'')+'" loading="lazy"><div class="gallery-overlay"><span>'+(post.title||post.caption||'')+'</span></div>';}
-        container.appendChild(card);
-      });
-    }
+
   </script>
 </body>
 </html>
