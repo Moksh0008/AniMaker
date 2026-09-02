@@ -4143,6 +4143,7 @@ textarea.form-input {
 /* ---- Profile Creations Tabs ---- */
 .profile-creation-tabs {
   display: flex;
+  justify-content: center;
   gap: 24px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 20px;

@@ -44,11 +44,6 @@
         </div>
         <div class="gallery gallery-masonry" id="creatorGallery"></div>
         <div id="galleryLoading" style="text-align:center;padding:60px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
-        <div id="galleryEmpty" style="display:none;text-align:center;padding:80px 24px;">
-          <i class="fas fa-image" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;opacity:0.4;"></i>
-          <p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">No creations yet</p>
-          <span style="font-size:14px;color:var(--text-muted);">Be the first creator to share something amazing.</span>
-        </div>
       </div>
     </main>
   </div>
@@ -60,11 +55,22 @@
   <script src="../js/profile.js"></script>
   <script src="../js/posts.js"></script>
   <script>
+    var defaultCreations = [
+      { id: 'default-1', title: 'A Fusion of Naruto and Goku', cover_image_url: '../assets/images/creator/creator-pic-1.jpg', type: 'creator', profiles: {} },
+      { id: 'default-2', title: 'Super Saiyan Nine Tails', cover_image_url: '../assets/images/creator/creator-pic-2.jpg', type: 'creator', profiles: {} },
+      { id: 'default-3', title: 'Gear 5 Goku', cover_image_url: '../assets/images/creator/creator-pic-3.jpg', type: 'creator', profiles: {} },
+      { id: 'default-4', title: 'Ichigo Naruto', cover_image_url: '../assets/images/creator/creator-pic-4.jpg', type: 'creator', profiles: {} },
+      { id: 'default-5', title: 'Creation 5', cover_image_url: '../assets/images/creator/creator-pic-5.jpg', type: 'creator', profiles: {} },
+      { id: 'default-6', title: 'Vegetto', cover_image_url: '../assets/images/creator/creator-pic-6.jpg', type: 'creator', profiles: {} },
+      { id: 'default-7', title: 'Gear 5 Baryon', cover_image_url: '../assets/images/creator/creator-pic-7.jpg', type: 'creator', profiles: {} },
+      { id: 'default-8', title: 'Lugoto', cover_image_url: '../assets/images/creator/creator-pic-8.jpg', type: 'creator', profiles: {} }
+    ];
+
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
 
     document.getElementById('searchInput').addEventListener('input', function() {
       var q = this.value.toLowerCase();
-      document.querySelectorAll('#creatorGallery .creation-card, #creatorGallery .story-card').forEach(function(card) {
+      document.querySelectorAll('#creatorGallery .creation-card').forEach(function(card) {
         card.style.display = card.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
       });
     });
@@ -72,14 +78,24 @@
     async function loadGallery() {
       var container = document.getElementById('creatorGallery');
       var loading = document.getElementById('galleryLoading');
-      var empty = document.getElementById('galleryEmpty');
       loading.style.display = 'block';
 
+      // Load user creations from Supabase
       var creations = await fetchCreations({ limit: 50, type: 'creator' });
       loading.style.display = 'none';
 
-      if (creations.length === 0) { empty.style.display = 'block'; return; }
+      // Render default images first
+      defaultCreations.forEach(function(c) {
+        var card = document.createElement('div');
+        card.className = 'creation-card';
+        card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
+          '<div class="creation-card-body">' +
+            '<div class="creation-card-title">' + c.title + '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
 
+      // Render Supabase creations
       creations.forEach(function(c) {
         var profile = c.profiles || {};
         var card = document.createElement('div');

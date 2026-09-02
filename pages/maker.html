@@ -44,13 +44,12 @@
         </div>
         <div class="gallery gallery-masonry" id="makerGallery"></div>
         <div id="galleryLoading" style="text-align:center;padding:60px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
-        <div id="galleryEmpty" style="display:none;text-align:center;padding:80px 24px;">
-          <i class="fas fa-video" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;opacity:0.4;"></i>
-          <p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">No animations yet</p>
-          <span style="font-size:14px;color:var(--text-muted);">Be the first maker to share an animation.</span>
-        </div>
       </div>
     </main>
+  </div>
+  <div class="video-modal-overlay" id="videoModal" style="display:none;" onclick="closeVideoModal(event)">
+    <button class="video-modal-close" onclick="closeVideoModal(event)"><i class="fas fa-xmark"></i></button>
+    <video id="modalVideo" controls></video>
   </div>
   <div id="confirmDialog" style="display:none;"></div>
   <div class="toast-container" id="toastContainer"></div>
@@ -60,6 +59,18 @@
   <script src="../js/profile.js"></script>
   <script src="../js/posts.js"></script>
   <script>
+    var defaultVideos = [
+      { id: 'default-m1', title: 'Animation 1', cover_image_url: '../assets/images/maker/maker-pic-1.jpg', video_url: '../assets/videos/animation-1.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m2', title: 'Animation 2', cover_image_url: '../assets/images/maker/maker-pic-2.jpg', video_url: '../assets/videos/animation-2.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m3', title: 'Animation 3', cover_image_url: '../assets/images/maker/maker-pic-3.jpg', video_url: '../assets/videos/animation-3.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m4', title: 'Animation 4', cover_image_url: '../assets/images/maker/maker-pic-4.jpg', video_url: '../assets/videos/animation-4.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m5', title: 'Animation 5', cover_image_url: '../assets/images/maker/maker-pic-5.jpg', video_url: '../assets/videos/animation-5.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m6', title: 'Animation 6', cover_image_url: '../assets/images/maker/maker-pic-6.jpg', video_url: '../assets/videos/animation-6.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m7', title: 'Animation 7', cover_image_url: '../assets/images/maker/maker-pic-7.jpg', video_url: '../assets/videos/animation-7.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m8', title: 'Animation 8', cover_image_url: '../assets/images/maker/maker-pic-8.jpg', video_url: '../assets/videos/animation-8.mp4', type: 'maker', profiles: {} },
+      { id: 'default-m9', title: 'Animation 9', cover_image_url: '../assets/images/maker/maker-pic-9.jpg', video_url: '../assets/videos/animation-9.mp4', type: 'maker', profiles: {} }
+    ];
+
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
 
     document.getElementById('searchInput').addEventListener('input', function() {
@@ -69,17 +80,45 @@
       });
     });
 
+    function openVideoModal(src) {
+      var m = document.getElementById('videoModal');
+      var v = document.getElementById('modalVideo');
+      v.src = src;
+      m.style.display = 'flex';
+      v.play();
+    }
+
+    function closeVideoModal(e) {
+      if (e.target === document.getElementById('videoModal') || e.currentTarget.classList.contains('video-modal-close')) {
+        var m = document.getElementById('videoModal');
+        var v = document.getElementById('modalVideo');
+        v.pause();
+        v.src = '';
+        m.style.display = 'none';
+      }
+    }
+
     async function loadGallery() {
       var container = document.getElementById('makerGallery');
       var loading = document.getElementById('galleryLoading');
-      var empty = document.getElementById('galleryEmpty');
       loading.style.display = 'block';
 
       var creations = await fetchCreations({ limit: 50, type: 'maker' });
       loading.style.display = 'none';
 
-      if (creations.length === 0) { empty.style.display = 'block'; return; }
+      // Render default videos first
+      defaultVideos.forEach(function(c) {
+        var card = document.createElement('div');
+        card.className = 'creation-card';
+        card.onclick = function() { openVideoModal(c.video_url); };
+        card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div></div>' +
+          '<div class="creation-card-body">' +
+            '<div class="creation-card-title">' + c.title + '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
 
+      // Render Supabase creations
       creations.forEach(function(c) {
         var profile = c.profiles || {};
         var card = document.createElement('div');

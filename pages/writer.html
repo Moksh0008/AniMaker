@@ -44,11 +44,6 @@
         </div>
         <div class="gallery gallery-masonry" id="writerGallery"></div>
         <div id="galleryLoading" style="text-align:center;padding:60px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
-        <div id="galleryEmpty" style="display:none;text-align:center;padding:80px 24px;">
-          <i class="fas fa-pen-nib" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;opacity:0.4;"></i>
-          <p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">No stories yet</p>
-          <span style="font-size:14px;color:var(--text-muted);">Be the first writer to share a story.</span>
-        </div>
       </div>
     </main>
   </div>
@@ -60,11 +55,22 @@
   <script src="../js/profile.js"></script>
   <script src="../js/posts.js"></script>
   <script>
+    var defaultStories = [
+      { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg', type: 'writer', profiles: {} },
+      { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg', type: 'writer', profiles: {} },
+      { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg', type: 'writer', profiles: {} },
+      { id: 'default-w4', title: 'Story 4', cover_image_url: '../assets/images/writer/writer-pic-4.jpg', type: 'writer', profiles: {} },
+      { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg', type: 'writer', profiles: {} },
+      { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg', type: 'writer', profiles: {} },
+      { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg', type: 'writer', profiles: {} },
+      { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg', type: 'writer', profiles: {} }
+    ];
+
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
 
     document.getElementById('searchInput').addEventListener('input', function() {
       var q = this.value.toLowerCase();
-      document.querySelectorAll('#writerGallery .story-card').forEach(function(card) {
+      document.querySelectorAll('#writerGallery .creation-card, #writerGallery .story-card').forEach(function(card) {
         card.style.display = card.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
       });
     });
@@ -72,14 +78,23 @@
     async function loadGallery() {
       var container = document.getElementById('writerGallery');
       var loading = document.getElementById('galleryLoading');
-      var empty = document.getElementById('galleryEmpty');
       loading.style.display = 'block';
 
       var creations = await fetchCreations({ limit: 50, type: 'writer' });
       loading.style.display = 'none';
 
-      if (creations.length === 0) { empty.style.display = 'block'; return; }
+      // Render default images first
+      defaultStories.forEach(function(c) {
+        var card = document.createElement('div');
+        card.className = 'story-card';
+        card.innerHTML = '<img class="story-card-cover" src="' + c.cover_image_url + '" loading="lazy">' +
+          '<div class="story-card-body">' +
+            '<div class="story-card-title">' + c.title + '</div>' +
+          '</div>';
+        container.appendChild(card);
+      });
 
+      // Render Supabase creations
       creations.forEach(function(c) {
         var profile = c.profiles || {};
         var card = document.createElement('div');
