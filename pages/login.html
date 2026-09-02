@@ -92,8 +92,12 @@
     var googleLoginBtn = document.getElementById('googleLoginBtn');
     var googleLoading = false;
 
-    if (googleLoginBtn && supabaseClient) {
+    if (googleLoginBtn) {
       googleLoginBtn.addEventListener('click', async function() {
+        if (!supabaseClient) {
+          showError('Google sign-in is not configured. Please add your Supabase credentials in js/supabase.js');
+          return;
+        }
         if (googleLoading) return;
         googleLoading = true;
         googleLoginBtn.disabled = true;
