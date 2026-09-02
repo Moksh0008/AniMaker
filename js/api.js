@@ -345,7 +345,7 @@ if (supabaseClient) {
   });
 }
 
-/* Ensure a profile row exists for the user (safety net for Google OAuth) */
+/* Ensure a profile row exists for the user (safety net for Google OAuth + existing users) */
 async function ensureProfileExists(user) {
   if (!supabaseClient || !user) return;
   try {
@@ -360,15 +360,29 @@ async function ensureProfileExists(user) {
       var username = meta.username || meta.preferred_username || user.email.split('@')[0];
       var fullName = meta.full_name || meta.name || '';
       var avatarUrl = meta.avatar_url || meta.profileImage || '';
-      await supabaseClient.from('profiles').insert({
+
+      // Ensure username uniqueness
+      const { data: existing } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle();
+      if (existing) {
+        username = username + '_' + user.id.substring(0, 6);
+      }
+
+      const { error } = await supabaseClient.from('profiles').insert({
         id: user.id,
         username: username,
         full_name: fullName,
         email: user.email,
         avatar_url: avatarUrl
       });
+      if (error) console.error('[AniMaker] Failed to create profile:', error.message);
     }
-  } catch {}
+  } catch (e) {
+    console.error('[AniMaker] ensureProfileExists error:', e.message);
+  }
 }
 
 /* ---- Settings Panel ---- */
