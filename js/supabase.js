@@ -11,13 +11,13 @@ var supabaseClient = null;
   // ================= ============================================
   // REPLACE THESE with your actual Supabase credentials
   // ================= ============================================
-  var SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
-  var SUPABASE_ANON = 'YOUR_ANON_KEY_HERE';
+  var SUPABASE_URL  = 'https://wdjimkdtnuzgeabrpdba.supabase.co';
+  var SUPABASE_ANON = 'sb_publishable_jGNzoZqM7IIe6YuocWAkhQ_DChRiovN';
   // ================= ============================================
 
-  if (SUPABASE_URL.includes('YOUR_PROJECT_ID') || SUPABASE_ANON.includes('YOUR_ANON_KEY')) {
+  if (SUPABASE_URL.includes('wdjimkdtnuzgeabrpdba') || SUPABASE_ANON.includes('sb_publishable_jGNzoZqM7IIe6YuocWAkhQ_DChRiovN')) {
     console.error('[AniMaker] ⚠️ Supabase credentials NOT configured in js/supabase.js');
-    console.error('[AniMaker] Replace YOUR_PROJECT_ID and YOUR_ANON_KEY with your actual values from Supabase Dashboard → Project Settings → API');
+    console.error('[AniMaker] Replace wdjimkdtnuzgeabrpdba and sb_publishable_jGNzoZqM7IIe6YuocWAkhQ_DChRiovN with your actual values from Supabase Dashboard → Project Settings → API');
     return;
   }
 
