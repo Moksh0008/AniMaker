@@ -151,13 +151,15 @@
     <div class="chat-input-area"><input type="text" id="receiver" placeholder="Receiver"><input type="text" id="message" placeholder="Type a message" style="flex:1;"><button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button></div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
   <script>
     var selectedFile = null;
 
     // Require authentication before showing page
-    requireAuth().then(function(user) {
-      updateNavbarAuth();
+    requireAuth().then(async function(user) {
+      await updateNavbarAuth();
     });
 
     // --- Search / filter ---

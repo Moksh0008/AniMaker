@@ -202,21 +202,25 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/api.js"></script>
   <script>
     document.querySelector('.nav-toggle')?.addEventListener('click', () => {
       document.getElementById('navLinks').classList.toggle('active');
     });
-    updateNavbarAuth();
-    var heroActions = document.getElementById('heroActions');
-    var ctaActions = document.getElementById('ctaActions');
-    if (isLoggedIn()) {
-      heroActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Creator Studio</a> <a href="pages/writer.html" class="btn btn-secondary btn-lg"><i class="fas fa-pen-nib"></i> Writer Studio</a> <a href="pages/maker.html" class="btn btn-secondary btn-lg"><i class="fas fa-cube"></i> Maker Studio</a>';
-      ctaActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Open Dashboard</a>';
-    } else {
-      heroActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Start Creating</a><a href="pages/about.html" class="btn btn-secondary btn-lg">Learn More</a>';
-      ctaActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Create Free Account</a>';
-    }
+    (async function() {
+      await updateNavbarAuth();
+      var heroActions = document.getElementById('heroActions');
+      var ctaActions = document.getElementById('ctaActions');
+      if (await isLoggedIn()) {
+        heroActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Creator Studio</a> <a href="pages/writer.html" class="btn btn-secondary btn-lg"><i class="fas fa-pen-nib"></i> Writer Studio</a> <a href="pages/maker.html" class="btn btn-secondary btn-lg"><i class="fas fa-cube"></i> Maker Studio</a>';
+        ctaActions.innerHTML = '<a href="pages/creator.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Open Dashboard</a>';
+      } else {
+        heroActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Start Creating</a><a href="pages/about.html" class="btn btn-secondary btn-lg">Learn More</a>';
+        ctaActions.innerHTML = '<a href="pages/signup.html" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Create Free Account</a>';
+      }
+    })();
 
     // Scroll-triggered animations
     const observer = new IntersectionObserver((entries) => {

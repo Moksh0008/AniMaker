@@ -1887,6 +1887,68 @@ input, textarea, select {
   color: var(--accent-hover);
 }
 
+/* Auth divider (OR line) */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0 20px;
+  gap: 16px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border, rgba(255,255,255,0.1));
+}
+
+.auth-divider span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Google OAuth button */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: 1px solid var(--border, rgba(255,255,255,0.12));
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary, #f3f4f6);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-google:hover:not(:disabled) {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+
+.btn-google:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-google .google-icon {
+  flex-shrink: 0;
+}
+
 
 /* ============================================
    FORMS

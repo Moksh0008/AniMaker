@@ -1,47 +1,83 @@
 /* =========================================================
-   AniMaker — API & Authentication Layer
+   AniMaker — API & Authentication Layer (Supabase)
+   
+   Uses Supabase Auth for session management.
+   Old localStorage-based tokens are replaced with
+   supabaseClient.auth.getSession() / onAuthStateChange().
    ========================================================= */
 
 const API_BASE = 'http://localhost:5000/api';
 
-/* ---- Local-storage helpers ---- */
+/* ---- Session helpers (Supabase-backed) ---- */
 
-function getToken() {
-  return localStorage.getItem('animaker_token');
-}
+// Cached current Supabase session user
+var _currentSupabaseUser = null;
 
-function setToken(token) {
-  localStorage.setItem('animaker_token', token);
-}
-
-function removeToken() {
-  localStorage.removeItem('animaker_token');
-}
-
-function getUser() {
+async function getSession() {
+  if (!supabaseClient) return null;
   try {
-    const raw = localStorage.getItem('animaker_user');
-    return raw ? JSON.parse(raw) : null;
+    const { data } = await supabaseClient.auth.getSession();
+    return data.session || null;
   } catch {
     return null;
   }
 }
 
-function setUser(user) {
-  localStorage.setItem('animaker_user', JSON.stringify(user));
+async function getToken() {
+  const session = await getSession();
+  return session ? session.access_token : null;
+}
+
+function setToken() {
+  // No-op — Supabase manages tokens internally
+}
+
+function removeToken() {
+  // No-op — supabase.auth.signOut() handles this
+}
+
+async function getUser() {
+  // Return cached user if available (fast path)
+  if (_currentSupabaseUser) return formatSupabaseUser(_currentSupabaseUser);
+
+  const session = await getSession();
+  if (session && session.user) {
+    _currentSupabaseUser = session.user;
+    return formatSupabaseUser(session.user);
+  }
+  return null;
+}
+
+function setUser() {
+  // No-op — Supabase manages user state internally
 }
 
 function removeUser() {
-  localStorage.removeItem('animaker_user');
+  _currentSupabaseUser = null;
 }
 
-function isLoggedIn() {
-  return !!getToken();
+// Format Supabase user into the shape AniMaker UI expects
+function formatSupabaseUser(supabaseUser) {
+  if (!supabaseUser) return null;
+  const meta = supabaseUser.user_metadata || {};
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    username: meta.username || meta.preferred_username || '',
+    name: meta.full_name || meta.name || '',
+    bio: meta.bio || '',
+    profileImage: meta.avatar_url || meta.profileImage || '',
+    created_at: supabaseUser.created_at
+  };
+}
+
+async function isLoggedIn() {
+  const session = await getSession();
+  return !!session;
 }
 
 /* ---- Safe redirect helpers ---- */
 
-// Pages that are safe to redirect to (prevents open-redirect attacks)
 const SAFE_REDIRECT_PATHS = [
   'index.html',
   'pages/creator.html',
@@ -56,35 +92,22 @@ function getRedirectUrl() {
   const params = new URLSearchParams(window.location.search);
   const raw = params.get('redirect');
   if (!raw) return null;
-
-  // Decode and normalise
   const decoded = decodeURIComponent(raw);
-
-  // Only allow relative paths starting with ../ or no protocol
   if (/^https?:\/\//i.test(decoded)) return null;
-
-  // Strip leading slashes and ../ prefixes to get a clean relative path
   const cleaned = decoded.replace(/^(\.\.\/)*/, '');
-
-  // Check it's in our safe list
   if (SAFE_REDIRECT_PATHS.includes(cleaned)) return cleaned;
-
-  // Also allow it if it starts with a safe path prefix
   for (const safe of SAFE_REDIRECT_PATHS) {
     if (cleaned === safe || cleaned === '../' + safe) return cleaned;
   }
-
   return null;
 }
 
 function safeRedirect(targetPath) {
   const currentPath = window.location.pathname;
   const isOnRoot = currentPath === '/' || currentPath.endsWith('index.html');
-
   if (isOnRoot) {
-    window.location.href = targetPath.startsWith('pages/') ? targetPath : targetPath;
+    window.location.href = targetPath;
   } else {
-    // We're inside /pages/ — use ../ to go up
     const clean = targetPath.replace(/^(\.\.\/)+/, '');
     window.location.href = clean.startsWith('pages/') ? '../' + clean : clean;
   }
@@ -93,7 +116,7 @@ function safeRedirect(targetPath) {
 /* ---- API request with global 401 handling ---- */
 
 async function apiRequest(url, options = {}) {
-  const token = getToken();
+  const token = await getToken();
 
   const config = {
     headers: {
@@ -112,11 +135,9 @@ async function apiRequest(url, options = {}) {
   try {
     response = await fetch(API_BASE + url, config);
   } catch (err) {
-    // Network error / backend offline
     throw new Error('Unable to connect to server. Please check your connection.');
   }
 
-  // Handle empty / non-JSON responses
   let data;
   const text = await response.text();
   if (text) {
@@ -132,10 +153,12 @@ async function apiRequest(url, options = {}) {
     data = {};
   }
 
-  // Global 401 handling — clear stale auth
+  // Global 401 handling — sign out from Supabase
   if (response.status === 401) {
-    removeToken();
     removeUser();
+    if (supabaseClient) {
+      await supabaseClient.auth.signOut().catch(() => {});
+    }
     updateNavbarAuth && updateNavbarAuth();
   }
 
@@ -146,53 +169,31 @@ async function apiRequest(url, options = {}) {
   return data;
 }
 
-/* ---- Session restoration: verify token with backend ---- */
+/* ---- Session restoration via Supabase ---- */
 
 async function checkAuth() {
-  if (!getToken()) return null;
+  const session = await getSession();
+  if (!session) return null;
 
-  try {
-    const data = await apiRequest('/auth/me');
-    if (data && data.user) {
-      setUser(data.user);
-      return data.user;
-    }
-  } catch {
-    // Token invalid/expired — already cleared by apiRequest 401 handler
-  }
-  return null;
+  _currentSupabaseUser = session.user;
+  return formatSupabaseUser(session.user);
 }
 
-/**
- * requireAuth() — for protected pages.
- *
- * Returns a promise that resolves with the user if authenticated,
- * or redirects to login with ?redirect= and never resolves.
- *
- * Shows a loading overlay while checking.
- */
 function requireAuth() {
   return new Promise(async (resolve) => {
-    // Quick local check first
-    if (!getToken()) {
+    const session = await getSession();
+    if (!session) {
       redirectToLogin();
-      return; // never resolves
+      return;
     }
 
-    // Show loading overlay
+    _currentSupabaseUser = session.user;
+
     const overlay = document.getElementById('authLoading');
-    if (overlay) overlay.style.display = 'flex';
+    if (overlay) overlay.style.display = 'none';
+    document.body.classList.add('auth-checked');
 
-    const user = await checkAuth();
-
-    if (user) {
-      // Hide loading, show page
-      if (overlay) overlay.style.display = 'none';
-      document.body.classList.add('auth-checked');
-      resolve(user);
-    } else {
-      redirectToLogin();
-    }
+    resolve(formatSupabaseUser(session.user));
   });
 }
 
@@ -200,19 +201,12 @@ function redirectToLogin() {
   const currentPath = window.location.pathname;
   const isOnRoot = currentPath === '/' || currentPath.endsWith('index.html');
 
-  let loginUrl;
-  if (isOnRoot) {
-    loginUrl = 'pages/login.html';
-  } else {
-    loginUrl = 'login.html';
-  }
+  const loginUrl = isOnRoot ? 'pages/login.html' : 'login.html';
 
-  // Build redirect param — point back to the current page
   let returnPage;
   if (isOnRoot) {
     returnPage = 'index.html';
   } else {
-    // Extract filename from path (e.g. /pages/creator.html → creator.html)
     const parts = currentPath.split('/');
     const filename = parts[parts.length - 1];
     returnPage = 'pages/' + filename;
@@ -224,17 +218,17 @@ function redirectToLogin() {
 /* ---- Logout ---- */
 
 async function logout() {
-  try {
-    await apiRequest('/auth/logout', { method: 'POST' });
-  } catch {
-    // Cookie might already be cleared — that's fine
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut().catch(() => {});
   }
 
-  removeToken();
-  removeUser();
+  // Clear any leftover MongoDB tokens from old auth system
+  localStorage.removeItem('animaker_token');
+  localStorage.removeItem('animaker_user');
+
+  _currentSupabaseUser = null;
   updateNavbarAuth && updateNavbarAuth();
 
-  // Redirect to homepage (handle relative paths)
   const currentPath = window.location.pathname;
   const isOnRoot = currentPath === '/' || currentPath.endsWith('index.html');
   window.location.href = isOnRoot ? 'index.html' : '../index.html';
@@ -242,25 +236,41 @@ async function logout() {
 
 /* ---- Navbar auth state ---- */
 
-function updateNavbarAuth() {
+async function updateNavbarAuth() {
   const navActions = document.querySelector('.nav-actions');
   if (!navActions) return;
 
-  if (isLoggedIn()) {
-    const user = getUser();
-    const displayName = (user && (user.name || user.username)) || 'User';
+  // On first call, check session to populate cache
+  if (!_currentSupabaseUser && supabaseClient) {
+    try {
+      const { data } = await supabaseClient.auth.getSession();
+      if (data.session && data.session.user) {
+        _currentSupabaseUser = data.session.user;
+      }
+    } catch {}
+  }
+
+  const user = _currentSupabaseUser ? formatSupabaseUser(_currentSupabaseUser) : null;
+
+  if (user) {
+    const displayName = user.name || user.username || 'User';
     const initial = displayName.charAt(0).toUpperCase();
     const isOnRoot = window.location.pathname === '/' || window.location.pathname.endsWith('index.html');
     const prefix = isOnRoot ? 'pages/' : '';
 
+    // Use Google avatar if available, otherwise show initial
+    const avatarHtml = user.profileImage
+      ? '<img src="' + user.profileImage + '" alt="' + displayName + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">'
+      : initial;
+
     navActions.innerHTML =
-      '<button class="nav-user-btn" id="navUserBtn">' + initial + '</button>' +
+      '<button class="nav-user-btn" id="navUserBtn">' + avatarHtml + '</button>' +
       '<div class="user-dropdown" id="userDropdown">' +
         '<div class="user-dropdown-header">' +
-          '<div class="user-dropdown-avatar">' + initial + '</div>' +
+          '<div class="user-dropdown-avatar">' + avatarHtml + '</div>' +
           '<div class="user-dropdown-info">' +
             '<div class="user-dropdown-name">' + displayName + '</div>' +
-            '<div class="user-dropdown-email">' + ((user && user.email) || '') + '</div>' +
+            '<div class="user-dropdown-email">' + user.email + '</div>' +
           '</div>' +
         '</div>' +
         '<a href="' + prefix + 'creator.html" class="user-dropdown-item"><i class="fas fa-film"></i> Creator Studio</a>' +
@@ -291,6 +301,24 @@ document.addEventListener('click', function() {
   const dd = document.getElementById('userDropdown');
   if (dd) dd.classList.remove('show');
 });
+
+/* ---- Auth state change listener ---- */
+
+if (supabaseClient) {
+  supabaseClient.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session && session.user) {
+      _currentSupabaseUser = session.user;
+      updateNavbarAuth();
+    } else if (event === 'SIGNED_OUT') {
+      _currentSupabaseUser = null;
+      localStorage.removeItem('animaker_token');
+      localStorage.removeItem('animaker_user');
+      updateNavbarAuth();
+    } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
+      _currentSupabaseUser = session.user;
+    }
+  });
+}
 
 /* ---- Settings Panel ---- */
 
@@ -347,7 +375,6 @@ function openSettings() {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  // Prevent background scroll when scrolling inside settings
   const body = document.getElementById('settingsBody');
   body.addEventListener('wheel', function(e) {
     const atTop = body.scrollTop === 0 && e.deltaY < 0;
