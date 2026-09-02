@@ -19,19 +19,21 @@ async function getCurrentProfile() {
     const session = await getSession();
     if (!session || !session.user) return null;
 
+    console.log('[Profile] Querying profile for user:', session.user.id);
     const { data, error } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      console.error('[AniMaker] Profile query error:', error.message);
+      console.error('[AniMaker] Profile query error:', error.code, error.message, error.details, error.hint);
       if (error.message && error.message.includes('relation') && error.message.includes('does not exist')) {
         console.error('[AniMaker] ⚠️ The profiles table does not exist. Run supabase-profiles-setup.sql in your Supabase SQL Editor.');
       }
       return null;
     }
+    console.log('[Profile] Query result:', data);
     if (!data) return null;
 
     _currentProfile = data;

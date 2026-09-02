@@ -549,6 +549,8 @@
       var viewUsername = params.get('user');
       var viewId = params.get('id');
       var session = await getSession();
+      console.log('[Profile] Session:', session ? session.user.id : 'null');
+      console.log('[Profile] supabaseClient:', !!supabaseClient);
 
       var profile = null;
       var isOwnProfile = false;
@@ -562,6 +564,7 @@
         profile = await getCurrentProfile();
         isOwnProfile = true;
       }
+      console.log('[Profile] Profile result:', profile);
 
       if (!profile) {
         document.getElementById('profileSkeleton').innerHTML =
