@@ -1,23 +1,24 @@
 /* =========================================================
    AniMaker — Supabase Client Initialization
    
-   REPLACE THE TWO VALUES BELOW with your Supabase credentials.
+   Credentials are configured below.
    Get them from: https://supabase.com/dashboard → Project Settings → API
    ========================================================= */
 
 var supabaseClient = null;
 
 (function initSupabase() {
-  // ================= ============================================
-  // REPLACE THESE with your actual Supabase credentials
-  // ================= ============================================
   var SUPABASE_URL  = 'https://wdjimkdtnuzgeabrpdba.supabase.co';
   var SUPABASE_ANON = 'sb_publishable_jGNzoZqM7IIe6YuocWAkhQ_DChRiovN';
-  // ================= ============================================
 
-  if (SUPABASE_URL.includes('wdjimkdtnuzgeabrpdba') || SUPABASE_ANON.includes('sb_publishable_jGNzoZqM7IIe6YuocWAkhQ_DChRiovN')) {
-    console.error('[AniMaker] ⚠️ Supabase credentials NOT configured in js/supabase.js');
-    console.error('[AniMaker] Replace wdjimkdtnuzgeabrpdba and sb_publishable_jGNzoZqM7IIe6YuocWAkhQ_DChRiovN with your actual values from Supabase Dashboard → Project Settings → API');
+  // Validate that credentials look real (not empty or obviously placeholder)
+  if (!SUPABASE_URL || !SUPABASE_URL.startsWith('https://') || !SUPABASE_URL.includes('.supabase.co')) {
+    console.error('[AniMaker] ⚠️ Invalid Supabase URL. Check js/supabase.js');
+    return;
+  }
+
+  if (!SUPABASE_ANON || SUPABASE_ANON.length < 20) {
+    console.error('[AniMaker] ⚠️ Invalid Supabase anon key. Check js/supabase.js');
     return;
   }
 
