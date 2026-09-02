@@ -86,10 +86,10 @@
       // Render default images first
       defaultStories.forEach(function(c) {
         var card = document.createElement('div');
-        card.className = 'story-card';
-        card.innerHTML = '<img class="story-card-cover" src="' + c.cover_image_url + '" loading="lazy">' +
-          '<div class="story-card-body">' +
-            '<div class="story-card-title">' + c.title + '</div>' +
+        card.className = 'creation-card';
+        card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
+          '<div class="creation-card-body">' +
+            '<div class="creation-card-title">' + c.title + '</div>' +
           '</div>';
         container.appendChild(card);
       });
@@ -98,22 +98,19 @@
       creations.forEach(function(c) {
         var profile = c.profiles || {};
         var card = document.createElement('div');
-        card.className = 'story-card';
+        card.className = 'creation-card';
         card.setAttribute('data-creation-id', c.id);
         card.onclick = function() { openStoryDetail(c.id); };
 
         var coverHtml = c.cover_image_url
-          ? '<img class="story-card-cover" src="' + c.cover_image_url + '" loading="lazy">'
-          : '<div class="story-card-cover" style="display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--text-muted);"></i></div>';
+          ? '<img src="' + c.cover_image_url + '" loading="lazy">'
+          : '<div style="display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);height:200px;"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--text-muted);"></i></div>';
 
-        card.innerHTML = coverHtml +
-          '<div class="story-card-body">' +
-            '<div class="story-card-title">' + postEscapeHtml(c.title) + '</div>' +
-            (c.description ? '<div class="story-card-summary">' + postEscapeHtml(c.description) + '</div>' : '') +
-            '<div class="story-card-footer">' +
-              '<span>' + getCreationUserName(profile) + '</span>' +
-              '<span>' + timeAgo(c.created_at) + '</span>' +
-            '</div>' +
+        card.innerHTML = '<div class="creation-card-image">' + coverHtml + '</div>' +
+          '<div class="creation-card-body">' +
+            '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
+            '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span></div>' +
+            '<div class="creation-card-meta"><span>' + timeAgo(c.created_at) + '</span></div>' +
           '</div>';
         container.appendChild(card);
       });
