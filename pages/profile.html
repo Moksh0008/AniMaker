@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Profile page styles */
+    .profile-page { padding: 0 0 60px; }
+
+    .profile-header {
+      max-width: 935px;
+      margin: 0 auto;
+      padding: 32px 24px 0;
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .profile-avatar-wrap {
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .profile-avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--bg-tertiary);
+      border: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-avatar .avatar-initial {
+      font-size: 56px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-upload-btn {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      border: 3px solid var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      z-index: 2;
+    }
+
+    .avatar-upload-btn:hover { transform: scale(1.1); }
+
+    .profile-info { flex: 1; min-width: 0; }
+
+    .profile-top-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .profile-username {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .profile-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .profile-actions .btn { font-size: 13px; padding: 8px 20px; }
+
+    .profile-stats {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 16px;
+    }
+
+    .profile-stat {
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    .profile-stat strong {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .profile-fullname {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .profile-bio {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 8px;
+      white-space: pre-line;
+    }
+
+    .profile-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .profile-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .profile-meta a {
+      color: var(--accent);
+    }
+
+    .profile-meta a:hover {
+      text-decoration: underline;
+    }
+
+    .profile-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      background: var(--accent-muted);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    /* Profile tabs */
+    .profile-tabs {
+      max-width: 935px;
+      margin: 32px auto 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+    }
+
+    .profile-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 0;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-top: 2px solid transparent;
+      margin-top: -1px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .profile-tab:hover { color: var(--text-secondary); }
+    .profile-tab.active {
+      color: #fff;
+      border-top-color: #fff;
+    }
+
+    /* Profile content grid */
+    .profile-content {
+      max-width: 935px;
+      margin: 24px auto 0;
+      padding: 0 24px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+
+    .profile-grid-item {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--bg-tertiary);
+    }
+
+    .profile-grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.2s ease;
+    }
+
+    .profile-grid-item:hover img { opacity: 0.7; }
+
+    .profile-empty {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--text-muted);
+    }
+
+    .profile-empty i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      opacity: 0.4;
+    }
+
+    .profile-empty p {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    /* Skeleton loading */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-elevated) 50%, var(--bg-tertiary) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s ease infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-avatar { width: 150px; height: 150px; border-radius: 50%; }
+    .skeleton-text { height: 16px; border-radius: 4px; }
+    .skeleton-text-sm { height: 12px; border-radius: 4px; width: 60%; }
+    .skeleton-text-lg { height: 24px; border-radius: 4px; width: 40%; }
+    .skeleton-btn { height: 36px; width: 120px; border-radius: 8px; }
+    .skeleton-stat { height: 14px; width: 80px; border-radius: 4px; }
+
+    /* Edit Profile Modal */
+    .edit-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .edit-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 540px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .edit-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 1;
+    }
+
+    .edit-modal-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0;
+    }
+
+    .edit-modal-body { padding: 24px; }
+
+    .edit-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .edit-avatar-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .edit-avatar-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--bg-tertiary);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .edit-avatar-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .edit-avatar-actions label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    .edit-avatar-actions label:hover { text-decoration: underline; }
+
+    .edit-avatar-actions .remove-avatar {
+      font-size: 12px;
+      color: var(--error);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-weight: 500;
+    }
+
+    .edit-avatar-actions .remove-avatar:hover { text-decoration: underline; }
+
+    .edit-form .form-group { margin-bottom: 16px; }
+
+    .edit-form .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .edit-form .form-input {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+    }
+
+    .edit-form textarea.form-input {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .char-counter {
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .edit-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 4000;
+      animation: fadeUp 0.2s ease;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .edit-toast.success { background: #065f46; color: #a7f3d0; border: 1px solid rgba(167,243,208,0.2); }
+    .edit-toast.error { background: #7f1d1d; color: #fca5a5; border: 1px solid rgba(252,165,165,0.2); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .profile-header { flex-direction: column; align-items: center; text-align: center; gap: 20px; padding: 24px 16px 0; }
+      .profile-avatar { width: 100px; height: 100px; }
+      .profile-avatar .avatar-initial { font-size: 40px; }
+      .profile-top-row { justify-content: center; }
+      .profile-stats { justify-content: center; gap: 24px; }
+      .profile-meta { justify-content: center; }
+      .profile-role-badge { margin-left: auto; margin-right: auto; }
+      .profile-grid { grid-template-columns: repeat(3, 1fr); gap: 2px; }
+      .profile-tabs { gap: 24px; }
+    }
+
+    @media (max-width: 480px) {
+      .profile-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../index.html" class="logo"><img src="../assets/images/logo.png" alt="AniMaker"> AniMaker</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" style="position:relative;"></div>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link" data-tooltip="Home"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="creator.html" class="sidebar-link" data-tooltip="Creator"><i class="fas fa-film"></i><span>Creator</span></a>
+        <a href="writer.html" class="sidebar-link" data-tooltip="Writer"><i class="fas fa-pen-nib"></i><span>Writer</span></a>
+        <a href="maker.html" class="sidebar-link" data-tooltip="Maker"><i class="fas fa-cube"></i><span>Maker</span></a>
+        <div class="sidebar-divider"></div>
+        <a href="services.html" class="sidebar-link" data-tooltip="Services"><i class="fas fa-th-large"></i><span>Services</span></a>
+        <a href="contact.html" class="sidebar-link" data-tooltip="Contact"><i class="fas fa-envelope"></i><span>Contact</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a href="javascript:void(0)" class="sidebar-link" data-tooltip="Settings" onclick="openSettings()"><i class="fas fa-gear"></i><span>Settings</span></a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="profile-page" id="profilePage">
+        <!-- Skeleton loading state -->
+        <div id="profileSkeleton">
+          <div class="profile-header">
+            <div class="profile-avatar-wrap"><div class="skeleton skeleton-avatar"></div></div>
+            <div class="profile-info" style="width:100%;">
+              <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
+                <div class="skeleton skeleton-text-lg" style="width:200px;"></div>
+                <div class="skeleton skeleton-btn"></div>
+              </div>
+              <div style="display:flex;gap:32px;margin-bottom:16px;">
+                <div class="skeleton skeleton-stat"></div>
+                <div class="skeleton skeleton-stat"></div>
+                <div class="skeleton skeleton-stat"></div>
+              </div>
+              <div class="skeleton skeleton-text" style="width:140px;margin-bottom:8px;"></div>
+              <div class="skeleton skeleton-text-sm" style="width:300px;margin-bottom:8px;"></div>
+              <div class="skeleton skeleton-text-sm" style="width:200px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actual profile (hidden until loaded) -->
+        <div id="profileContent" style="display:none;">
+          <div class="profile-header">
+            <div class="profile-avatar-wrap" id="avatarWrap">
+              <div class="profile-avatar" id="profileAvatar"></div>
+              <label class="avatar-upload-btn" id="avatarUploadBtn" title="Change profile picture" style="display:none;">
+                <i class="fas fa-camera"></i>
+                <input type="file" accept="image/*" style="display:none;" id="avatarFileInput">
+              </label>
+            </div>
+            <div class="profile-info">
+              <div class="profile-top-row">
+                <span class="profile-username" id="profileUsername"></span>
+                <div class="profile-actions" id="profileActions"></div>
+              </div>
+              <div class="profile-stats" id="profileStats">
+                <span class="profile-stat"><strong id="postsCount">0</strong> posts</span>
+                <span class="profile-stat"><strong id="followersCount">0</strong> followers</span>
+                <span class="profile-stat"><strong id="followingCount">0</strong> following</span>
+              </div>
+              <div class="profile-role-badge" id="profileRole" style="display:none;"></div>
+              <div class="profile-fullname" id="profileFullName"></div>
+              <div class="profile-bio" id="profileBio"></div>
+              <div class="profile-meta" id="profileMeta"></div>
+            </div>
+          </div>
+
+          <div class="profile-tabs">
+            <div class="profile-tab active"><i class="fas fa-th"></i> Posts</div>
+            <div class="profile-tab"><i class="fas fa-bookmark"></i> Saved</div>
+            <div class="profile-tab"><i class="fas fa-tag"></i> Tagged</div>
+          </div>
+
+          <div class="profile-content">
+            <div class="profile-grid" id="profileGrid" style="display:none;"></div>
+            <div class="profile-empty" id="profileEmpty" style="display:none;">
+              <i class="fas fa-film"></i>
+              <p>No posts yet</p>
+              <span>Share your first creation with the community.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit Profile Modal (hidden) -->
+  <div id="editProfileModal" style="display:none;"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/profile.js"></script>
+  <script>
+    (async function() {
+      await updateNavbarAuth();
+
+      // Get username from URL: profile.html?user=username or ?id=uuid
+      var params = new URLSearchParams(window.location.search);
+      var viewUsername = params.get('user');
+      var viewId = params.get('id');
+      var session = await getSession();
+
+      var profile = null;
+      var isOwnProfile = false;
+
+      if (viewUsername) {
+        profile = await loadUserProfile(viewUsername);
+      } else if (viewId) {
+        profile = await loadUserProfile(viewId);
+      } else if (session && session.user) {
+        // No param — show own profile
+        profile = await getCurrentProfile();
+        isOwnProfile = true;
+      }
+
+      if (!profile) {
+        document.getElementById('profileSkeleton').innerHTML =
+          '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
+          '<i class="fas fa-user-slash" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+          '<p style="font-size:16px;">Profile not found</p>' +
+          '</div>';
+        return;
+      }
+
+      // Check if viewing own profile
+      if (session && session.user && profile.id === session.user.id) {
+        isOwnProfile = true;
+      }
+
+      // Render profile
+      renderProfile(profile, isOwnProfile);
+
+      document.getElementById('profileSkeleton').style.display = 'none';
+      document.getElementById('profileContent').style.display = 'block';
+    })();
+
+    function renderProfile(profile, isOwn) {
+      var p = formatProfile(profile);
+
+      // Avatar
+      var avatarEl = document.getElementById('profileAvatar');
+      if (p.avatarUrl) {
+        avatarEl.innerHTML = '<img src="' + p.avatarUrl + '" alt="' + p.username + '">';
+      } else {
+        var initial = (p.fullName || p.username || 'U').charAt(0).toUpperCase();
+        avatarEl.innerHTML = '<div class="avatar-initial">' + initial + '</div>';
+      }
+
+      // Username
+      document.getElementById('profileUsername').textContent = p.username;
+
+      // Stats
+      document.getElementById('postsCount').textContent = p.postsCount;
+      document.getElementById('followersCount').textContent = p.followersCount;
+      document.getElementById('followingCount').textContent = p.followingCount;
+
+      // Role badge
+      var roleEl = document.getElementById('profileRole');
+      if (p.role) {
+        roleEl.style.display = 'inline-flex';
+        var roleIcons = { 'Creator': 'fa-film', 'Writer': 'fa-pen-nib', 'Maker': 'fa-cube', 'Animator': 'fa-wand-magic-sparkles' };
+        var icon = roleIcons[p.role] || 'fa-star';
+        roleEl.innerHTML = '<i class="fas ' + icon + '"></i> ' + p.role;
+      }
+
+      // Full name
+      document.getElementById('profileFullName').textContent = p.fullName || '';
+
+      // Bio
+      var bioEl = document.getElementById('profileBio');
+      bioEl.textContent = p.bio || '';
+      bioEl.style.display = p.bio ? 'block' : 'none';
+
+      // Meta (location, website, member since)
+      var metaHtml = '';
+      if (p.location) metaHtml += '<span><i class="fas fa-location-dot"></i> ' + escapeHtml(p.location) + '</span>';
+      if (p.website) metaHtml += '<span><i class="fas fa-link"></i> <a href="' + escapeHtml(p.website) + '" target="_blank" rel="noopener">' + escapeHtml(p.website) + '</a></span>';
+      if (p.createdAt) {
+        var d = new Date(p.createdAt);
+        metaHtml += '<span><i class="fas fa-calendar"></i> Joined ' + d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) + '</span>';
+      }
+      document.getElementById('profileMeta').innerHTML = metaHtml;
+
+      // Actions
+      var actionsEl = document.getElementById('profileActions');
+      if (isOwn) {
+        actionsEl.innerHTML =
+          '<button class="btn btn-secondary" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>';
+        document.getElementById('avatarUploadBtn').style.display = 'flex';
+      } else {
+        actionsEl.innerHTML =
+          '<button class="btn btn-primary btn-sm"><i class="fas fa-user-plus"></i> Follow</button>' +
+          '<button class="btn btn-secondary btn-sm"><i class="fas fa-envelope"></i> Message</button>';
+      }
+    }
+
+    // Avatar upload
+    document.getElementById('avatarFileInput').addEventListener('change', async function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        var url = await uploadAvatar(file);
+        document.getElementById('profileAvatar').innerHTML = '<img src="' + url + '" alt="Avatar">';
+        showToast('Profile picture updated!', 'success');
+        await updateNavbarAuth();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function showToast(msg, type) {
+      var existing = document.querySelector('.edit-toast');
+      if (existing) existing.remove();
+
+      var toast = document.createElement('div');
+      toast.className = 'edit-toast ' + (type || 'success');
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(function() { toast.remove(); }, 3000);
+    }
+
+    /* ---- Edit Profile Modal ---- */
+    window.openEditProfile = async function() {
+      var profile = await getCurrentProfile();
+      if (!profile) return;
+
+      var modal = document.getElementById('editProfileModal');
+      modal.style.display = 'block';
+      modal.innerHTML =
+        '<div class="edit-modal-overlay" onclick="closeEditProfile(event)">' +
+          '<div class="edit-modal" onclick="event.stopPropagation()">' +
+            '<div class="edit-modal-header">' +
+              '<h3>Edit Profile</h3>' +
+              '<button class="upload-modal-close" onclick="closeEditProfile()"><i class="fas fa-xmark"></i></button>' +
+            '</div>' +
+            '<div class="edit-modal-body">' +
+              '<div class="edit-avatar-section">' +
+                '<div class="edit-avatar-preview" id="editAvatarPreview">' + getAvatarHtml(profile, 80) + '</div>' +
+                '<div class="edit-avatar-actions">' +
+                  '<label for="editAvatarInput"><i class="fas fa-camera"></i> Change profile photo</label>' +
+                  '<input type="file" accept="image/*" id="editAvatarInput" style="display:none;">' +
+                '</div>' +
+              '</div>' +
+              '<div class="edit-form">' +
+                '<div class="form-group">' +
+                  '<label for="editFullName">Full Name</label>' +
+                  '<input type="text" id="editFullName" class="form-input" value="' + escapeAttr(profile.full_name || '') + '" maxlength="50">' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label for="editUsername">Username</label>' +
+                  '<input type="text" id="editUsername" class="form-input" value="' + escapeAttr(profile.username || '') + '" minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+">' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label for="editBio">Bio</label>' +
+                  '<textarea id="editBio" class="form-input" maxlength="200" rows="3">' + escapeAttr(profile.bio || '') + '</textarea>' +
+                  '<div class="char-counter"><span id="bioCharCount">' + (profile.bio || '').length + '</span>/200</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label for="editRole">Role</label>' +
+                  '<select id="editRole" class="form-input">' +
+                    '<option value="">Select your role</option>' +
+                    '<option value="Creator"' + (profile.role === 'Creator' ? ' selected' : '') + '>Creator</option>' +
+                    '<option value="Writer"' + (profile.role === 'Writer' ? ' selected' : '') + '>Writer</option>' +
+                    '<option value="Maker"' + (profile.role === 'Maker' ? ' selected' : '') + '>Maker</option>' +
+                    '<option value="Animator"' + (profile.role === 'Animator' ? ' selected' : '') + '>Animator</option>' +
+                  '</select>' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label for="editWebsite">Website</label>' +
+                  '<input type="url" id="editWebsite" class="form-input" value="' + escapeAttr(profile.website || '') + '" placeholder="https://yoursite.com">' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label for="editLocation">Location</label>' +
+                  '<input type="text" id="editLocation" class="form-input" value="' + escapeAttr(profile.location || '') + '" maxlength="50" placeholder="City, Country">' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="edit-modal-footer">' +
+              '<button class="btn btn-secondary" onclick="closeEditProfile()">Cancel</button>' +
+              '<button class="btn btn-primary" id="saveProfileBtn" onclick="saveProfile()"><i class="fas fa-check" style="margin-right:6px;"></i>Save Changes</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      // Bio char counter
+      document.getElementById('editBio').addEventListener('input', function() {
+        document.getElementById('bioCharCount').textContent = this.value.length;
+      });
+
+      // Avatar change inside modal
+      document.getElementById('editAvatarInput').addEventListener('change', async function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        try {
+          var url = await uploadAvatar(file);
+          document.getElementById('editAvatarPreview').innerHTML = '<img src="' + url + '" alt="Avatar" style="width:80px;height:80px;border-radius:50%;object-fit:cover;">';
+          await updateNavbarAuth();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    };
+
+    window.closeEditProfile = function(e) {
+      if (e && e.target && !e.target.classList.contains('edit-modal-overlay')) return;
+      document.getElementById('editProfileModal').style.display = 'none';
+    };
+
+    window.saveProfile = async function() {
+      var btn = document.getElementById('saveProfileBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Saving...';
+
+      try {
+        var updates = {
+          full_name: document.getElementById('editFullName').value.trim(),
+          username: document.getElementById('editUsername').value.trim(),
+          bio: document.getElementById('editBio').value.trim(),
+          role: document.getElementById('editRole').value,
+          website: document.getElementById('editWebsite').value.trim(),
+          location: document.getElementById('editLocation').value.trim()
+        };
+
+        await updateUserProfile(updates);
+        closeEditProfile();
+        showToast('Profile updated!', 'success');
+
+        // Re-render profile
+        var profile = await getCurrentProfile();
+        if (profile) renderProfile(profile, true);
+        await updateNavbarAuth();
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check" style="margin-right:6px;"></i>Save Changes';
+      }
+    };
+
+    function escapeAttr(str) {
+      return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  </script>
+</body>
+</html>

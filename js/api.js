@@ -85,7 +85,8 @@ const SAFE_REDIRECT_PATHS = [
   'pages/maker.html',
   'pages/about.html',
   'pages/services.html',
-  'pages/contact.html'
+  'pages/contact.html',
+  'pages/profile.html'
 ];
 
 function getRedirectUrl() {
@@ -227,6 +228,7 @@ async function logout() {
   localStorage.removeItem('animaker_user');
 
   _currentSupabaseUser = null;
+  if (typeof clearProfileCache === 'function') clearProfileCache();
   updateNavbarAuth && updateNavbarAuth();
 
   const currentPath = window.location.pathname;
@@ -258,10 +260,30 @@ async function updateNavbarAuth() {
     const isOnRoot = window.location.pathname === '/' || window.location.pathname.endsWith('index.html');
     const prefix = isOnRoot ? 'pages/' : '';
 
-    // Use Google avatar if available, otherwise show initial
-    const avatarHtml = user.profileImage
-      ? '<img src="' + user.profileImage + '" alt="' + displayName + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">'
+    // Try to get avatar from profiles table
+    var avatarUrl = '';
+    try {
+      if (supabaseClient && user.id) {
+        const { data: profData } = await supabaseClient
+          .from('profiles')
+          .select('avatar_url, username')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (profData) {
+          avatarUrl = profData.avatar_url || '';
+          if (profData.username && !user.username) user.username = profData.username;
+        }
+      }
+    } catch {}
+
+    // Fallback to auth metadata avatar
+    if (!avatarUrl) avatarUrl = user.profileImage || '';
+
+    const avatarHtml = avatarUrl
+      ? '<img src="' + avatarUrl + '" alt="' + displayName + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">'
       : initial;
+
+    var profileUrl = prefix + 'profile.html';
 
     navActions.innerHTML =
       '<button class="nav-user-btn" id="navUserBtn">' + avatarHtml + '</button>' +
@@ -273,11 +295,11 @@ async function updateNavbarAuth() {
             '<div class="user-dropdown-email">' + user.email + '</div>' +
           '</div>' +
         '</div>' +
+        '<a href="' + profileUrl + '" class="user-dropdown-item"><i class="fas fa-user"></i> My Profile</a>' +
         '<a href="' + prefix + 'creator.html" class="user-dropdown-item"><i class="fas fa-film"></i> Creator Studio</a>' +
         '<a href="' + prefix + 'writer.html" class="user-dropdown-item"><i class="fas fa-pen-nib"></i> Writer Studio</a>' +
         '<a href="' + prefix + 'maker.html" class="user-dropdown-item"><i class="fas fa-cube"></i> Maker Studio</a>' +
         '<div class="user-dropdown-divider"></div>' +
-        '<a href="#" class="user-dropdown-item"><i class="fas fa-user"></i> Your Profile</a>' +
         '<a href="javascript:void(0)" class="user-dropdown-item" onclick="document.getElementById(\'userDropdown\').classList.remove(\'show\');openSettings()"><i class="fas fa-gear"></i> Settings</a>' +
         '<div class="user-dropdown-divider"></div>' +
         '<button class="user-dropdown-item logout" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Log out</button>' +
@@ -308,16 +330,45 @@ if (supabaseClient) {
   supabaseClient.auth.onAuthStateChange(function(event, session) {
     if (event === 'SIGNED_IN' && session && session.user) {
       _currentSupabaseUser = session.user;
+      // Ensure profile exists (safety net for Google users)
+      ensureProfileExists(session.user);
       updateNavbarAuth();
     } else if (event === 'SIGNED_OUT') {
       _currentSupabaseUser = null;
       localStorage.removeItem('animaker_token');
       localStorage.removeItem('animaker_user');
+      if (typeof clearProfileCache === 'function') clearProfileCache();
       updateNavbarAuth();
     } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
       _currentSupabaseUser = session.user;
     }
   });
+}
+
+/* Ensure a profile row exists for the user (safety net for Google OAuth) */
+async function ensureProfileExists(user) {
+  if (!supabaseClient || !user) return;
+  try {
+    const { data } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (!data) {
+      // Profile doesn't exist — create it from auth metadata
+      const meta = user.user_metadata || {};
+      var username = meta.username || meta.preferred_username || user.email.split('@')[0];
+      var fullName = meta.full_name || meta.name || '';
+      var avatarUrl = meta.avatar_url || meta.profileImage || '';
+      await supabaseClient.from('profiles').insert({
+        id: user.id,
+        username: username,
+        full_name: fullName,
+        email: user.email,
+        avatar_url: avatarUrl
+      });
+    }
+  } catch {}
 }
 
 /* ---- Settings Panel ---- */
