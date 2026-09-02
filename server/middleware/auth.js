@@ -1,7 +1,10 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { createRemoteJWKSet, jwtVerify } = require('jose');
 
-// Protect routes - require authentication
+// Supabase JWT verification endpoint
+const supabaseJwksUrl = new URL(`${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`);
+const jwks = createRemoteJWKSet(supabaseJwksUrl);
+
+// Protect routes — require authentication via Supabase JWT
 const protect = async (req, res, next) => {
   let token;
 
@@ -20,21 +23,34 @@ const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id);
+    // Verify the Supabase JWT using JWKS
+    const { payload } = await jwtVerify(token, jwks, {
+      issuer: `${process.env.SUPABASE_URL}/auth/v1`
+    });
 
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User no longer exists.'
-      });
-    }
+    // payload.sub is the Supabase user ID (UUID)
+    // payload.email is the user's email
+    // payload.user_metadata contains custom fields (name, username, etc.)
+    req.user = {
+      id: payload.sub,
+      email: payload.email,
+      user_metadata: payload.user_metadata || {},
+      app_metadata: payload.app_metadata || {}
+    };
 
     next();
   } catch (error) {
+    let message = 'Not authorized. Token invalid or expired.';
+
+    if (error.code === 'ERR_JWT_EXPIRED') {
+      message = 'Session expired. Please log in again.';
+    } else if (error.code === 'ERR_JWT_SIGNATURE_INVALID') {
+      message = 'Invalid token. Please log in again.';
+    }
+
     return res.status(401).json({
       success: false,
-      message: 'Not authorized. Token invalid or expired.'
+      message
     });
   }
 };

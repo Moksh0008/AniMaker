@@ -7,12 +7,8 @@ require('dotenv').config({
   path: path.join(__dirname, '.env')
 });
 
-const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const { protect } = require('./middleware/auth');
-
-// Connect to MongoDB
-connectDB();
 
 const app = express();
 
@@ -34,7 +30,11 @@ app.get('/api/protected', protect, (req, res) => {
   res.json({
     success: true,
     message: 'You have access to protected content',
-    user: req.user.toSafeObject()
+    user: {
+      id: req.user.id,
+      email: req.user.email,
+      ...req.user.user_metadata
+    }
   });
 });
 
