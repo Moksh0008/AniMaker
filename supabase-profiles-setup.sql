@@ -24,6 +24,11 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- 2. Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
+-- Grant permissions to authenticated role
+GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON storage.objects TO authenticated;
+GRANT SELECT ON storage.buckets TO authenticated;
+
 -- 3. RLS Policies
 
 -- Anyone can view public profiles
