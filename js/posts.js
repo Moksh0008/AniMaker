@@ -51,11 +51,21 @@ async function uploadPostMedia(file, onProgress) {
   var filePath = session.user.id + '/' + timestamp + '-' + random + '.' + ext;
 
   // Upload with progress tracking via XMLHttpRequest
+  var storageUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object';
+  var apiKey = '';
+  try { apiKey = supabaseClient._headers?.apikey || ''; } catch {}
+  if (!apiKey) {
+    // Fallback: use Supabase SDK upload without progress
+    var { data, error } = await supabaseClient.storage.from('post-media').upload(filePath, file, { cacheControl: '3600', upsert: false });
+    if (error) throw new Error(error.message || 'Upload failed');
+    var publicUrl = supabaseClient.supabaseUrl + '/storage/v1/object/public/post-media/' + filePath;
+    return { url: publicUrl, type: isImage ? 'image' : 'video', path: filePath };
+  }
+
   return new Promise(function(resolve, reject) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', supabaseClient.storageUrl + '/object/post-media/' + filePath);
+    xhr.open('POST', storageUrl + '/post-media/' + filePath);
 
-    var apiKey = supabaseClient.headers?.apikey || '';
     xhr.setRequestHeader('apikey', apiKey);
     xhr.setRequestHeader('Authorization', 'Bearer ' + session.access_token);
 
@@ -69,7 +79,7 @@ async function uploadPostMedia(file, onProgress) {
 
     xhr.onload = function() {
       if (xhr.status >= 200 && xhr.status < 300) {
-        var publicUrl = supabaseClient.storageUrl + '/object/public/post-media/' + filePath;
+        var publicUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object/public/post-media/' + filePath;
         resolve({ url: publicUrl, type: isImage ? 'image' : 'video', path: filePath });
       } else {
         reject(new Error('Upload failed: ' + (xhr.statusText || 'Server error')));

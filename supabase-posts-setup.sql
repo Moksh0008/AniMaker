@@ -18,7 +18,10 @@ CREATE TABLE IF NOT EXISTS posts (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Index for efficient feed queries
+-- 2. Foreign key to profiles for Supabase joins
+ALTER TABLE posts ADD CONSTRAINT fk_posts_profile FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+
+-- 3. Index for efficient feed queries
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category);
