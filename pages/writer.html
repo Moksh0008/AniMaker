@@ -56,14 +56,14 @@
   <script src="../js/posts.js"></script>
   <script>
     var defaultStories = [
-      { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg', type: 'writer', profiles: {} },
-      { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg', type: 'writer', profiles: {} },
-      { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg', type: 'writer', profiles: {} },
-      { id: 'default-w4', title: 'Story 4', cover_image_url: '../assets/images/writer/writer-pic-4.jpg', type: 'writer', profiles: {} },
-      { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg', type: 'writer', profiles: {} },
-      { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg', type: 'writer', profiles: {} },
-      { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg', type: 'writer', profiles: {} },
-      { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg', type: 'writer', profiles: {} }
+      { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg', type: 'writer', profiles: {}, detailPage: 'writer-pic1.html' },
+      { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg', type: 'writer', profiles: {}, detailPage: 'writer-pic2.html' },
+      { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg', type: 'writer', profiles: {}, detailPage: null },
+      { id: 'default-w4', title: 'Story 4', cover_image_url: '../assets/images/writer/writer-pic-4.jpg', type: 'writer', profiles: {}, detailPage: null },
+      { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg', type: 'writer', profiles: {}, detailPage: null },
+      { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg', type: 'writer', profiles: {}, detailPage: null },
+      { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg', type: 'writer', profiles: {}, detailPage: null },
+      { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg', type: 'writer', profiles: {}, detailPage: null }
     ];
 
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
@@ -99,7 +99,12 @@
       defaultStories.forEach(function(c) {
         var card = document.createElement('div');
         card.className = 'creation-card';
-        card.onclick = function() { openDefaultImage(c.cover_image_url, c.title); };
+        if (c.detailPage) {
+          card.onclick = function() { window.location.href = c.detailPage; };
+          card.style.cursor = 'pointer';
+        } else {
+          card.onclick = function() { openDefaultImage(c.cover_image_url, c.title); };
+        }
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +

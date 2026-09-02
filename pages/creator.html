@@ -56,14 +56,14 @@
   <script src="../js/posts.js"></script>
   <script>
     var defaultCreations = [
-      { id: 'default-1', title: 'A Fusion of Naruto and Goku', cover_image_url: '../assets/images/creator/creator-pic-1.jpg', type: 'creator', profiles: {} },
-      { id: 'default-2', title: 'Super Saiyan Nine Tails', cover_image_url: '../assets/images/creator/creator-pic-2.jpg', type: 'creator', profiles: {} },
-      { id: 'default-3', title: 'Gear 5 Goku', cover_image_url: '../assets/images/creator/creator-pic-3.jpg', type: 'creator', profiles: {} },
-      { id: 'default-4', title: 'Ichigo Naruto', cover_image_url: '../assets/images/creator/creator-pic-4.jpg', type: 'creator', profiles: {} },
-      { id: 'default-5', title: 'Creation 5', cover_image_url: '../assets/images/creator/creator-pic-5.jpg', type: 'creator', profiles: {} },
-      { id: 'default-6', title: 'Vegetto', cover_image_url: '../assets/images/creator/creator-pic-6.jpg', type: 'creator', profiles: {} },
-      { id: 'default-7', title: 'Gear 5 Baryon', cover_image_url: '../assets/images/creator/creator-pic-7.jpg', type: 'creator', profiles: {} },
-      { id: 'default-8', title: 'Lugoto', cover_image_url: '../assets/images/creator/creator-pic-8.jpg', type: 'creator', profiles: {} }
+      { id: 'default-1', title: 'A Fusion of Naruto and Goku', cover_image_url: '../assets/images/creator/creator-pic-1.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic1.html' },
+      { id: 'default-2', title: 'Super Saiyan Nine Tails', cover_image_url: '../assets/images/creator/creator-pic-2.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic2.html' },
+      { id: 'default-3', title: 'Gear 5 Goku', cover_image_url: '../assets/images/creator/creator-pic-3.jpg', type: 'creator', profiles: {}, detailPage: null },
+      { id: 'default-4', title: 'Ichigo Naruto', cover_image_url: '../assets/images/creator/creator-pic-4.jpg', type: 'creator', profiles: {}, detailPage: null },
+      { id: 'default-5', title: 'Creation 5', cover_image_url: '../assets/images/creator/creator-pic-5.jpg', type: 'creator', profiles: {}, detailPage: null },
+      { id: 'default-6', title: 'Vegetto', cover_image_url: '../assets/images/creator/creator-pic-6.jpg', type: 'creator', profiles: {}, detailPage: null },
+      { id: 'default-7', title: 'Gear 5 Baryon', cover_image_url: '../assets/images/creator/creator-pic-7.jpg', type: 'creator', profiles: {}, detailPage: null },
+      { id: 'default-8', title: 'Lugoto', cover_image_url: '../assets/images/creator/creator-pic-8.jpg', type: 'creator', profiles: {}, detailPage: null }
     ];
 
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
@@ -100,7 +100,12 @@
       defaultCreations.forEach(function(c) {
         var card = document.createElement('div');
         card.className = 'creation-card';
-        card.onclick = function() { openDefaultImage(c.cover_image_url, c.title); };
+        if (c.detailPage) {
+          card.onclick = function() { window.location.href = c.detailPage; };
+          card.style.cursor = 'pointer';
+        } else {
+          card.onclick = function() { openDefaultImage(c.cover_image_url, c.title); };
+        }
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
