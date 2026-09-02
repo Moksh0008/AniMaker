@@ -68,6 +68,18 @@
 
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
 
+    function openDefaultImage(url, title) {
+      var overlay = document.createElement('div');
+      overlay.className = 'detail-overlay';
+      overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+      overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+        '<div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">' +
+          '<img src="' + url + '" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;">' +
+        '</div>' +
+        '<div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;font-weight:500;text-shadow:0 2px 8px rgba(0,0,0,0.5);">' + title + '</div>';
+      document.body.appendChild(overlay);
+    }
+
     document.getElementById('searchInput').addEventListener('input', function() {
       var q = this.value.toLowerCase();
       document.querySelectorAll('#creatorGallery .creation-card').forEach(function(card) {
@@ -88,6 +100,7 @@
       defaultCreations.forEach(function(c) {
         var card = document.createElement('div');
         card.className = 'creation-card';
+        card.onclick = function() { openDefaultImage(c.cover_image_url, c.title); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
