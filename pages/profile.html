@@ -192,7 +192,7 @@
       transition: all 0.15s ease;
     }
 
-    .profile-tab:hover { color: var(--text-secondary); }
+    .profile-tab:hover { color: var(--text-secondary); cursor: pointer; }
     .profile-tab.active {
       color: #fff;
       border-top-color: #fff;
@@ -515,17 +515,27 @@
           </div>
 
           <div class="profile-tabs">
-            <div class="profile-tab active"><i class="fas fa-th"></i> Posts</div>
-            <div class="profile-tab"><i class="fas fa-bookmark"></i> Saved</div>
-            <div class="profile-tab"><i class="fas fa-tag"></i> Tagged</div>
+            <div class="profile-tab active" data-tab="posts" onclick="switchTab('posts')"><i class="fas fa-th"></i> Posts</div>
+            <div class="profile-tab" data-tab="saved" onclick="switchTab('saved')"><i class="fas fa-bookmark"></i> Saved</div>
+            <div class="profile-tab" data-tab="tagged" onclick="switchTab('tagged')"><i class="fas fa-tag"></i> Tagged</div>
           </div>
 
           <div class="profile-content">
             <div class="profile-grid" id="profileGrid" style="display:none;"></div>
-            <div class="profile-empty" id="profileEmpty" style="display:none;">
+            <div class="profile-empty" id="postsEmpty" style="display:none;">
               <i class="fas fa-film"></i>
               <p>No posts yet</p>
               <span>Share your first creation with the community.</span>
+            </div>
+            <div class="profile-empty" id="savedEmpty" style="display:none;">
+              <i class="fas fa-bookmark"></i>
+              <p>No saved posts</p>
+              <span>Posts you save will appear here.</span>
+            </div>
+            <div class="profile-empty" id="taggedEmpty" style="display:none;">
+              <i class="fas fa-tag"></i>
+              <p>No tagged posts</p>
+              <span>Posts you're tagged in will appear here.</span>
             </div>
           </div>
         </div>
@@ -662,6 +672,32 @@
         showToast(err.message, 'error');
       }
     });
+
+    // Tab switching
+    var currentTab = 'posts';
+    window.switchTab = function(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.profile-tab').forEach(function(t) {
+        t.classList.toggle('active', t.getAttribute('data-tab') === tab);
+      });
+      document.getElementById('profileGrid').style.display = 'none';
+      document.getElementById('postsEmpty').style.display = 'none';
+      document.getElementById('savedEmpty').style.display = 'none';
+      document.getElementById('taggedEmpty').style.display = 'none';
+
+      if (tab === 'posts') {
+        var grid = document.getElementById('profileGrid');
+        if (grid.children.length > 0) {
+          grid.style.display = 'grid';
+        } else {
+          document.getElementById('postsEmpty').style.display = 'block';
+        }
+      } else if (tab === 'saved') {
+        document.getElementById('savedEmpty').style.display = 'block';
+      } else if (tab === 'tagged') {
+        document.getElementById('taggedEmpty').style.display = 'block';
+      }
+    };
 
     function escapeHtml(str) {
       var div = document.createElement('div');
