@@ -7,6 +7,101 @@
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .creator-popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      animation: fadeIn 0.2s ease;
+    }
+    .creator-popup {
+      display: flex;
+      width: 90%;
+      max-width: 900px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .creator-popup-image {
+      flex: 0 0 40%;
+      max-width: 40%;
+      overflow: hidden;
+    }
+    .creator-popup-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .creator-popup-info {
+      flex: 0 0 60%;
+      max-width: 60%;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .creator-popup-info h1 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 0 0 20px;
+      color: #fff;
+    }
+    .creator-popup-info ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .creator-popup-info ul li {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.7;
+      margin-bottom: 14px;
+      padding-left: 20px;
+      position: relative;
+    }
+    .creator-popup-info ul li::before {
+      content: '✦';
+      position: absolute;
+      left: 0;
+      color: #8b5cf6;
+      font-size: 12px;
+    }
+    .creator-popup-info ul li strong { color: #fff; }
+    .creator-popup-close {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5001;
+      transition: background 0.15s ease;
+    }
+    .creator-popup-close:hover { background: rgba(255, 255, 255, 0.2); }
+    @media (max-width: 700px) {
+      .creator-popup { flex-direction: column; }
+      .creator-popup-image, .creator-popup-info { flex: none; max-width: 100%; }
+      .creator-popup-image { max-height: 280px; }
+    }
+  </style>
 </head>
 <body>
   <div class="auth-loading-overlay" id="authLoading"><div class="auth-spinner"></div><p>Verifying your session...</p></div>
@@ -56,27 +151,34 @@
   <script src="../js/posts.js"></script>
   <script>
     var defaultCreations = [
-      { id: 'default-1', title: 'A Fusion of Naruto and Goku', cover_image_url: '../assets/images/creator/creator-pic-1.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic1.html' },
-      { id: 'default-2', title: 'Super Saiyan Nine Tails', cover_image_url: '../assets/images/creator/creator-pic-2.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic2.html' },
-      { id: 'default-3', title: 'Gear 5 Goku', cover_image_url: '../assets/images/creator/creator-pic-3.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic3.html' },
-      { id: 'default-4', title: 'Ichigo Naruto', cover_image_url: '../assets/images/creator/creator-pic-4.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic4.html' },
-      { id: 'default-5', title: 'Creation 5', cover_image_url: '../assets/images/creator/creator-pic-5.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic5.html' },
-      { id: 'default-6', title: 'Vegetto', cover_image_url: '../assets/images/creator/creator-pic-6.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic6.html' },
-      { id: 'default-7', title: 'Gear 5 Baryon', cover_image_url: '../assets/images/creator/creator-pic-7.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic7.html' },
-      { id: 'default-8', title: 'Lugoto', cover_image_url: '../assets/images/creator/creator-pic-8.jpg', type: 'creator', profiles: {}, detailPage: 'creator-pic8.html' }
+      { id: 'default-1', title: 'A Fusion of Naruto andoku', cover_image_url: '../assets/images/creator/creator-pic-1.jpg', points: ['A fusion of <strong>Naruto</strong> and <strong>Goku</strong>.', 'Combines Naruto\'s fiery determination.', 'Merges with <strong>Goku\'s</strong> raw Saiyan power.', 'Represents a tribute to two anime legends.'] },
+      { id: 'default-2', title: 'Super Saiyan Nine Tails', cover_image_url: '../assets/images/creator/creator-pic-2.jpg', points: ['A fusion of <strong>Super Saiyan</strong> and <strong>Nine-Tails</strong>.', 'Combines Saiyan transformations with Kurama\'s chakra.', 'Unmatched power in a single form.', 'A tribute to two iconic transformations.'] },
+      { id: 'default-3', title: 'Gear 5oku', cover_image_url: '../assets/images/creator/creator-pic-3.jpg', points: ['<strong>Goku</strong> reaches his ultimate form with Gear 5.', 'Unlocks the power of <strong>Nika</strong>, the Sun God.', 'Reality-bending abilities and cartoon-like powers.', 'The peak of Saiyan transformation.'] },
+      { id: 'default-4', title: 'Ichigo Naruto', cover_image_url: '../assets/images/creator/creator-pic-4.jpg', points: ['A fusion of <strong>Ichigo</strong> and <strong>Naruto</strong>.', 'Combines Hollow powers with Nine-Tails chakra.', 'Wields both Zangetsu and Rasengan.', 'A warrior from two worlds.'] },
+      { id: 'default-5', title: 'Creation 5', cover_image_url: '../assets/images/creator/creator-pic-5.jpg', points: ['An original <strong>anime character design</strong>.', 'Inspired by popular shonen anime art styles.', 'Features unique color palette and dynamic posing.', 'A tribute to the anime community.'] },
+      { id: 'default-6', title: 'Vegetto', cover_image_url: '../assets/images/creator/creator-pic-6.jpg', points: ['The fusion of <strong>Vegeta</strong> and <strong>Goku</strong>.', 'Wears the iconic <strong>Potara earrings</strong>.', 'Combines Saiyan pride with warrior instinct.', 'One of the most powerful warriors.'] },
+      { id: 'default-7', title: 'Gear 5 Baryon', cover_image_url: '../assets/images/creator/creator-pic-7.jpg', points: ['A fusion of <strong>Gear 5</strong> and <strong>Baryon Mode</strong>.', 'Combines the power of the <strong>Sun God Nika</strong>.', 'Merges with <strong>Nine-Tails</strong> chakra form.', 'The ultimate transformation.'] },
+      { id: 'default-8', title: 'Lugoto', cover_image_url: '../assets/images/creator/creator-pic-8.jpg', points: ['A creative fusion of <strong>Luffy</strong> and <strong>Goku</strong>.', 'Combines pirate spirit with Saiyan strength.', 'Features unique <strong>rubber-like</strong> abilities.', 'A tribute to One Piece and Dragon Ball.'] }
     ];
 
     requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
 
-    function openDefaultImage(url, title) {
+    function openCreatorPopup(url, title, points) {
+      var pointsHtml = '';
+      if (points && points.length) {
+        pointsHtml = '<ul>' + points.map(function(p) { return '<li>' + p + '</li>'; }).join('') + '</ul>';
+      }
       var overlay = document.createElement('div');
-      overlay.className = 'detail-overlay';
+      overlay.className = 'creator-popup-overlay';
       overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-      overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
-        '<div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">' +
-          '<img src="' + url + '" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;">' +
-        '</div>' +
-        '<div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;font-weight:500;text-shadow:0 2px 8px rgba(0,0,0,0.5);">' + title + '</div>';
+      overlay.innerHTML = '<button class="creator-popup-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+        '<div class="creator-popup">' +
+          '<div class="creator-popup-image"><img src="' + url + '" alt="' + title + '"></div>' +
+          '<div class="creator-popup-info">' +
+            '<h1>' + title + '</h1>' +
+            pointsHtml +
+          '</div>' +
+        '</div>';
       document.body.appendChild(overlay);
     }
 
@@ -92,20 +194,13 @@
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
 
-      // Load user creations from Supabase
       var creations = await fetchCreations({ limit: 50, type: 'creator' });
       loading.style.display = 'none';
 
-      // Render default images first
       defaultCreations.forEach(function(c) {
         var card = document.createElement('div');
         card.className = 'creation-card';
-        if (c.detailPage) {
-          card.onclick = function() { window.location.href = c.detailPage; };
-          card.style.cursor = 'pointer';
-        } else {
-          card.onclick = function() { openDefaultImage(c.cover_image_url, c.title); };
-        }
+        card.onclick = function() { openCreatorPopup(c.cover_image_url, c.title, c.points); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
@@ -113,7 +208,6 @@
         container.appendChild(card);
       });
 
-      // Render Supabase creations
       creations.forEach(function(c) {
         var profile = c.profiles || {};
         var card = document.createElement('div');
