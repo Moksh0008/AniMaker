@@ -408,9 +408,9 @@ function openSettings() {
       '<div class="settings-body" id="settingsBody">' +
         '<div class="settings-group">' +
           '<div class="settings-group-label">Account</div>' +
-          '<div class="settings-item"><i class="fas fa-user"></i><span class="settings-item-text">Edit Profile</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
-          '<div class="settings-item"><i class="fas fa-lock"></i><span class="settings-item-text">Change Password</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
-          '<div class="settings-item"><i class="fas fa-envelope"></i><span class="settings-item-text">Email Preferences</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
+          '<div class="settings-item" onclick="closeSettings();window.location.href=\'' + prefix + 'profile.html\'"><i class="fas fa-user"></i><span class="settings-item-text">Edit Profile</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
+          '<div class="settings-item" onclick="closeSettings();showChangePasswordModal()"><i class="fas fa-lock"></i><span class="settings-item-text">Change Password</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
+          '<div class="settings-item" onclick="closeSettings();showToast(\'Email preferences coming soon!\', \"info\")"><i class="fas fa-envelope"></i><span class="settings-item-text">Email Preferences</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
         '</div>' +
         '<div class="settings-group">' +
           '<div class="settings-group-label">Notifications</div>' +
@@ -430,9 +430,9 @@ function openSettings() {
         '</div>' +
         '<div class="settings-group">' +
           '<div class="settings-group-label">Support</div>' +
-          '<div class="settings-item"><i class="fas fa-circle-question"></i><span class="settings-item-text">Help Center</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
-          '<div class="settings-item"><i class="fas fa-file-lines"></i><span class="settings-item-text">Terms of Service</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
-          '<div class="settings-item"><i class="fas fa-shield"></i><span class="settings-item-text">Privacy Policy</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
+          '<div class="settings-item" onclick="closeSettings();showToast(\'Help Center coming soon!\', \"info\")"><i class="fas fa-circle-question"></i><span class="settings-item-text">Help Center</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
+          '<div class="settings-item" onclick="closeSettings();showToast(\'Terms of Service coming soon!\', \"info\")"><i class="fas fa-file-lines"></i><span class="settings-item-text">Terms of Service</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
+          '<div class="settings-item" onclick="closeSettings();showToast(\'Privacy Policy coming soon!\', \"info\")"><i class="fas fa-shield"></i><span class="settings-item-text">Privacy Policy</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -465,3 +465,56 @@ document.addEventListener('keydown', function(e) {
     if (dd) dd.classList.remove('show');
   }
 });
+
+/* ---- Toast Notification ---- */
+function showToast(msg, type) {
+  var existing = document.querySelector('.animaker-toast');
+  if (existing) existing.remove();
+
+  var toast = document.createElement('div');
+  toast.className = 'animaker-toast ' + (type || 'success');
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
+
+/* ---- Change Password Modal ---- */
+function showChangePasswordModal() {
+  if (!supabaseClient) { showToast('Supabase not available', 'error'); return; }
+  var overlay = document.createElement('div');
+  overlay.className = 'settings-overlay show';
+  overlay.innerHTML = '<div class="settings-backdrop" onclick="this.parentElement.remove()"></div>' +
+    '<div class="settings-panel" style="max-width:400px;width:90%;">' +
+      '<div class="settings-header">' +
+        '<h2>Change Password</h2>' +
+        '<button class="settings-close" onclick="this.closest(\'.settings-overlay\').remove()"><i class="fas fa-xmark"></i></button>' +
+      '</div>' +
+      '<div style="padding:24px;" id="changePasswordBody">' +
+        '<div class="form-group" style="margin-bottom:16px;">' +
+          '<label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">New Password</label>' +
+          '<input type="password" id="newPassword" style="width:100%;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px;" placeholder="Enter new password" minlength="6">' +
+        '</div>' +
+        '<div class="form-group" style="margin-bottom:20px;">' +
+          '<label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Confirm Password</label>' +
+          '<input type="password" id="confirmNewPassword" style="width:100%;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px;" placeholder="Confirm new password" minlength="6">' +
+        '</div>' +
+        '<button class="btn btn-primary" style="width:100%;" onclick="handleChangePassword()">Update Password</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+}
+
+async function handleChangePassword() {
+  var pw = document.getElementById('newPassword').value;
+  var cpw = document.getElementById('confirmNewPassword').value;
+  if (!pw || pw.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+  if (pw !== cpw) { showToast('Passwords do not match', 'error'); return; }
+  try {
+    var { error } = await supabaseClient.auth.updateUser({ password: pw });
+    if (error) throw error;
+    document.querySelector('.settings-overlay').remove();
+    showToast('Password updated successfully!', 'success');
+  } catch (err) {
+    showToast(err.message || 'Failed to update password', 'error');
+  }
+}

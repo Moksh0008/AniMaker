@@ -2502,9 +2502,24 @@ input, textarea, select {
   white-space: nowrap;
 }
 
-.toast.success { background: #065f46; color: #a7f3d0; border: 1px solid rgba(167,243,208,0.2); }
-.toast.error { background: #7f1d1d; color: #fca5a5; border: 1px solid rgba(252,165,165,0.2); }
-.toast.info { background: #1e3a5f; color: #93c5fd; border: 1px solid rgba(147,197,253,0.2); }
+.toast.success, .animaker-toast.success { background: #065f46; color: #a7f3d0; border: 1px solid rgba(167,243,208,0.2); }
+.toast.error, .animaker-toast.error { background: #7f1d1d; color: #fca5a5; border: 1px solid rgba(252,165,165,0.2); }
+.toast.info, .animaker-toast.info { background: #1e3a5f; color: #93c5fd; border: 1px solid rgba(147,197,253,0.2); }
+
+.animaker-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp 0.2s ease;
+  white-space: nowrap;
+}
 
 /* Confirm dialog */
 .confirm-overlay {
