@@ -22,10 +22,7 @@
       <li><a href="services.html">Services</a></li>
       <li><a href="contact.html">Contact</a></li>
     </ul>
-    <div class="nav-actions">
-      <a href="login.html" class="btn btn-ghost">Log in</a>
-      <a href="signup.html" class="btn btn-primary">Get Started</a>
-    </div>
+    <div class="nav-actions" style="position:relative;"></div>
     <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')">
       <span></span><span></span><span></span>
     </div>
@@ -103,13 +100,12 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/profile.js"></script>
   <script>
-    // Sidebar hover expand
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
-      sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
-      sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
-    }
+    updateNavbarAuth();
   </script>
 </body>
 </html>
