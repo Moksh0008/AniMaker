@@ -785,6 +785,10 @@ input, textarea, select {
   padding: 0 8px;
 }
 
+.sidebar:hover .sidebar-bottom {
+  align-items: stretch;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     display: none;
