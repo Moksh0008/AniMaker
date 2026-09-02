@@ -736,6 +736,7 @@
                 '<div class="edit-avatar-actions">' +
                   '<label for="editAvatarInput"><i class="fas fa-camera"></i> Change profile photo</label>' +
                   '<input type="file" accept="image/*" id="editAvatarInput" style="display:none;">' +
+                  (profile.avatar_url ? '<button type="button" class="remove-avatar" onclick="removeAvatar()"><i class="fas fa-trash"></i> Remove profile photo</button>' : '') +
                 '</div>' +
               '</div>' +
               '<div class="edit-form">' +
@@ -801,6 +802,19 @@
     window.closeEditProfile = function(e) {
       if (e && e.target && !e.target.classList.contains('edit-modal-overlay')) return;
       document.getElementById('editProfileModal').style.display = 'none';
+    };
+
+    window.removeAvatar = async function() {
+      try {
+        await updateUserProfile({ avatar_url: '' });
+        var profile = await getCurrentProfile();
+        if (profile) renderProfile(profile, true);
+        await updateNavbarAuth();
+        showToast('Profile photo removed', 'success');
+        closeEditProfile();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     };
 
     window.saveProfile = async function() {
