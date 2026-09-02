@@ -317,3 +317,69 @@ function getCreationUserName(profile) {
   if (!profile) return 'Unknown';
   return profile.full_name || profile.username || 'Unknown';
 }
+
+/* ---- Detail View Functions ---- */
+
+function openCreatorDetail(id) {
+  fetchCreation(id).then(function(c) {
+    if (!c) return;
+    var profile = c.profiles || {};
+    var overlay = document.createElement('div');
+    overlay.className = 'detail-overlay';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+      '<div class="creator-detail">' +
+        '<div class="creator-detail-image"><img src="' + (c.cover_image_url || '') + '"></div>' +
+        '<div class="creator-detail-info">' +
+          '<div class="creator-detail-header">' + getCreationUserAvatar(profile, 40) + '<div class="user-info"><div class="name">' + getCreationUserName(profile) + '</div><div class="type">Creator</div></div></div>' +
+          '<div class="creator-detail-body">' +
+            '<div class="creator-detail-title">' + postEscapeHtml(c.title) + '</div>' +
+            '<div class="creator-detail-desc">' + postEscapeHtml(c.description || '').replace(/\n/g, '<br>') + '</div>' +
+            '<div class="creator-detail-time">' + timeAgo(c.created_at) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+  });
+}
+
+function openStoryDetail(id) {
+  fetchCreation(id).then(function(c) {
+    if (!c) return;
+    var profile = c.profiles || {};
+    var overlay = document.createElement('div');
+    overlay.className = 'detail-overlay';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+      '<div class="story-detail">' +
+        (c.cover_image_url ? '<img class="story-detail-cover" src="' + c.cover_image_url + '">' : '') +
+        '<div class="story-detail-body">' +
+          '<div class="story-detail-title">' + postEscapeHtml(c.title) + '</div>' +
+          '<div class="story-detail-author">' + getCreationUserAvatar(profile, 40) + '<div><div class="author-name">' + getCreationUserName(profile) + '</div><div class="author-meta">' + estimateReadingTime(c.story_content) + '</div></div></div>' +
+          '<div class="story-detail-content">' + postEscapeHtml(c.story_content || '').replace(/\n/g, '<br>') + '</div>' +
+          '<div class="story-detail-footer"><span>' + timeAgo(c.created_at) + '</span></div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+  });
+}
+
+function openMakerDetail(id) {
+  fetchCreation(id).then(function(c) {
+    if (!c) return;
+    var profile = c.profiles || {};
+    var overlay = document.createElement('div');
+    overlay.className = 'detail-overlay';
+    overlay.onclick = function(e) { if (e.target === overlay) { var v = overlay.querySelector('video'); if (v) v.pause(); overlay.remove(); } };
+    overlay.innerHTML = '<button class="detail-close" onclick="var v=this.parentElement.querySelector(\'video\');if(v)v.pause();this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+      '<div class="maker-detail">' +
+        '<video src="' + (c.media_url || '') + '" controls playsinline></video>' +
+        '<div class="maker-detail-info">' +
+          '<div class="maker-detail-title">' + postEscapeHtml(c.title) + '</div>' +
+          (c.description ? '<div class="maker-detail-desc">' + postEscapeHtml(c.description).replace(/\n/g, '<br>') + '</div>' : '') +
+          '<div class="maker-detail-author">' + getCreationUserAvatar(profile, 40) + '<div><div class="author-name">' + getCreationUserName(profile) + '</div><div class="author-meta">' + timeAgo(c.created_at) + '</div></div></div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+  });
+}

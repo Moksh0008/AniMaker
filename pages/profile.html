@@ -808,6 +808,27 @@
 
     window.switchCreationTab = function(tab) { showProfileTab(tab); };
 
+    function showConfirm(title, message) {
+      return new Promise(function(resolve) {
+        var dialog = document.getElementById('confirmDialog');
+        dialog.style.display = 'block';
+        dialog.innerHTML = '<div class="confirm-overlay" onclick="event.target===this && document.getElementById(\'confirmDialog\').style.display=\'none\'">' +
+          '<div class="confirm-box">' +
+            '<h4>' + title + '</h4>' +
+            '<p>' + message + '</p>' +
+            '<div class="confirm-actions">' +
+              '<button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'confirmDialog\').style.display=\'none\'">Cancel</button>' +
+              '<button class="btn btn-primary btn-sm" id="confirmYesBtn">Delete</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+        document.getElementById('confirmYesBtn').onclick = function() {
+          dialog.style.display = 'none';
+          resolve(true);
+        };
+      });
+    }
+
     function escapeHtml(str) {
       var div = document.createElement('div');
       div.textContent = str;
