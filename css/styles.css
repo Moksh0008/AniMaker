@@ -2866,23 +2866,6 @@ textarea.form-input {
   flex-shrink: 0;
 }
 
-/* Coming soon badge */
-.footer-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  background: rgba(124, 92, 252, 0.1);
-  border: 1px solid rgba(124, 92, 252, 0.2);
-  border-radius: var(--radius-full);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--accent);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 /* Social / Connect section */
 .footer-social {
   border-top: 1px solid var(--border);
