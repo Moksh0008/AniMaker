@@ -328,19 +328,23 @@ function openCreatorDetail(id) {
   fetchCreation(id).then(function(c) {
     if (!c) return;
     var profile = c.profiles || {};
+    var userName = getCreationUserName(profile);
+    var userInitial = userName.charAt(0).toUpperCase();
+    var desc = postEscapeHtml(c.description || '').replace(/\n/g, '<br>');
     var overlay = document.createElement('div');
-    overlay.className = 'detail-overlay';
+    overlay.className = 'creator-popup-overlay';
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-    overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
-      '<div class="creator-detail">' +
-        '<div class="creator-detail-image"><img src="' + (c.cover_image_url || '') + '"></div>' +
-        '<div class="creator-detail-info">' +
-          '<div class="creator-detail-header">' + getCreationUserAvatar(profile, 40) + '<div class="user-info"><div class="name">' + getCreationUserName(profile) + '</div><div class="type">Creator</div></div></div>' +
-          '<div class="creator-detail-body">' +
-            '<div class="creator-detail-title">' + postEscapeHtml(c.title) + '</div>' +
-            '<div class="creator-detail-desc">' + postEscapeHtml(c.description || '').replace(/\n/g, '<br>') + '</div>' +
-            '<div class="creator-detail-time">' + timeAgo(c.created_at) + '</div>' +
+    overlay.innerHTML = '<button class="creator-popup-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
+      '<div class="creator-popup">' +
+        '<div class="creator-popup-image"><img src="' + (c.cover_image_url || '') + '"></div>' +
+        '<div class="creator-popup-info">' +
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">' +
+            getCreationUserAvatar(profile, 44) +
+            '<div><div style="color:#fff;font-weight:600;font-size:15px;">' + userName + '</div><div style="color:var(--accent);font-size:13px;">Creator</div></div>' +
           '</div>' +
+          '<h1>' + postEscapeHtml(c.title) + '</h1>' +
+          '<div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;">' + desc + '</div>' +
+          '<div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted);">' + timeAgo(c.created_at) + '</div>' +
         '</div>' +
       '</div>';
     document.body.appendChild(overlay);
