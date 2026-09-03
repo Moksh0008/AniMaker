@@ -10,6 +10,99 @@
   <style>
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .creator-popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      animation: fadeIn 0.2s ease;
+    }
+    .creator-popup {
+      display: flex;
+      width: 90%;
+      max-width: 900px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .creator-popup-image {
+      flex: 0 0 40%;
+      max-width: 40%;
+      overflow: hidden;
+    }
+    .creator-popup-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .creator-popup-info {
+      flex: 0 0 60%;
+      max-width: 60%;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .creator-popup-info h1 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 0 0 20px;
+      color: #fff;
+    }
+    .creator-popup-info ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .creator-popup-info ul li {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.7;
+      margin-bottom: 14px;
+      padding-left: 20px;
+      position: relative;
+    }
+    .creator-popup-info ul li::before {
+      content: '✦';
+      position: absolute;
+      left: 0;
+      color: #8b5cf6;
+      font-size: 12px;
+    }
+    .creator-popup-info ul li strong { color: #fff; }
+    .creator-popup-close {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5001;
+      transition: background 0.15s ease;
+    }
+    .creator-popup-close:hover { background: rgba(255, 255, 255, 0.2); }
+    @media (max-width: 700px) {
+      .creator-popup { flex-direction: column; }
+      .creator-popup-image, .creator-popup-info { flex: none; max-width: 100%; }
+      .creator-popup-image { max-height: 280px; }
+    }
   </style>
 </head>
 <body>
