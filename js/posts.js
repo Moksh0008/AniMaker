@@ -41,7 +41,7 @@ async function uploadCreationFile(file, bucket, onProgress) {
   var random = Math.random().toString(36).substring(2, 8);
   var filePath = session.user.id + '/' + timestamp + '-' + random + '.' + ext;
 
-  var storageUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object';
+  var storageUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object/upload';
   var apiKey = '';
   try { apiKey = supabaseClient._headers?.apikey || ''; } catch(e) {}
 
