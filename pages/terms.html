@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .policy-page { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+    .policy-page h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .policy-page .policy-date { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+    .policy-page h2 { font-size: 1.15rem; font-weight: 700; color: #fff; margin: 32px 0 12px; }
+    .policy-page p, .policy-page li { font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
+    .policy-page p { margin-bottom: 16px; }
+    .policy-page ul { list-style: disc; padding-left: 24px; margin-bottom: 16px; }
+    .policy-page li { margin-bottom: 8px; }
+    .policy-page a { color: var(--accent); }
+    .policy-page a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../index.html" class="logo"><img src="../assets/images/logo.png" alt="AniMaker"> AniMaker</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" style="position:relative;"></div>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
+  </nav>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link" data-tooltip="Home"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="creator.html" class="sidebar-link" data-tooltip="Creator"><i class="fas fa-film"></i><span>Creator</span></a>
+        <a href="writer.html" class="sidebar-link" data-tooltip="Writer"><i class="fas fa-pen-nib"></i><span>Writer</span></a>
+        <a href="maker.html" class="sidebar-link" data-tooltip="Maker"><i class="fas fa-cube"></i><span>Maker</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a href="javascript:void(0)" class="sidebar-link" data-tooltip="Settings" onclick="openSettings()"><i class="fas fa-gear"></i><span>Settings</span></a>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="policy-page">
+        <h1>Terms of Service</h1>
+        <p class="policy-date">Last updated: September 2026</p>
+        <p>Welcome to AniMaker. By using our platform, you agree to these Terms of Service. Please read them carefully.</p>
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing or using AniMaker, you agree to be bound by these Terms and our <a href="privacy.html">Privacy Policy</a>. If you do not agree, please do not use the platform.</p>
+        <h2>2. Account Registration</h2>
+        <p>To use certain features, you must create an account. You are responsible for:</p>
+        <ul>
+          <li>Keeping your login credentials secure</li>
+          <li>All activity that occurs under your account</li>
+          <li>Notifying us of any unauthorized use</li>
+        </ul>
+        <h2>3. Content Ownership</h2>
+        <p>You retain ownership of all content you create and upload to AniMaker. By uploading content, you grant AniMaker a limited license to display, distribute, and promote your content on the platform.</p>
+        <h2>4. Content Guidelines</h2>
+        <p>You agree not to upload content that:</p>
+        <ul>
+          <li>Infringes on intellectual property rights</li>
+          <li>Contains harmful, offensive, or illegal material</li>
+          <li>Violates the privacy of others</li>
+          <li>Contains malware or harmful code</li>
+        </ul>
+        <h2>5. Platform Usage</h2>
+        <p>You agree to use AniMaker responsibly and not to:</p>
+        <ul>
+          <li>Attempt to gain unauthorized access to other accounts or systems</li>
+          <li>Use automated tools to scrape or manipulate the platform</li>
+          <li>Engage in harassment or harmful behavior toward other users</li>
+        </ul>
+        <h2>6. Termination</h2>
+        <p>We reserve the right to suspend or terminate your account at our discretion if you violate these terms.</p>
+        <h2>7. Changes to Terms</h2>
+        <p>We may update these terms from time to time. Continued use of the platform after changes constitutes acceptance of the new terms.</p>
+        <h2>8. Contact</h2>
+        <p>If you have questions about these Terms, please <a href="contact.html">contact us</a>.</p>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/profile.js"></script>
+  <script>updateNavbarAuth();</script>
+</body>
+</html>

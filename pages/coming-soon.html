@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">Coming Soon — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .coming-soon {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 24px;
+    }
+    .coming-soon-inner {
+      max-width: 480px;
+    }
+    .coming-soon-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--accent-muted);
+      border: 2px solid var(--border-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 32px;
+      color: var(--accent);
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .coming-soon h1 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .coming-soon p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .coming-soon .btn {
+      margin: 0 6px;
+    }
+    .coming-soon-features {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+    .coming-soon-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .coming-soon-feature i {
+      color: var(--accent);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../index.html" class="logo">
+      <img src="../assets/images/logo.png" alt="AniMaker">
+      AniMaker
+    </a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" style="position:relative;"></div>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link" data-tooltip="Home"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="creator.html" class="sidebar-link" data-tooltip="Creator"><i class="fas fa-film"></i><span>Creator</span></a>
+        <a href="writer.html" class="sidebar-link" data-tooltip="Writer"><i class="fas fa-pen-nib"></i><span>Writer</span></a>
+        <a href="maker.html" class="sidebar-link" data-tooltip="Maker"><i class="fas fa-cube"></i><span>Maker</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a href="javascript:void(0)" class="sidebar-link" data-tooltip="Settings" onclick="openSettings()"><i class="fas fa-gear"></i><span>Settings</span></a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="coming-soon">
+        <div class="coming-soon-inner">
+          <div class="coming-soon-icon" id="csIcon"><i class="fas fa-rocket"></i></div>
+          <h1 id="csTitle">Coming Soon</h1>
+          <p id="csDesc">This feature is currently in development. We're working hard to bring you something amazing. Stay tuned!</p>
+          <div>
+            <a href="../index.html" class="btn btn-primary"><i class="fas fa-home" style="margin-right:6px;"></i> Back to Home</a>
+            <a href="contact.html" class="btn btn-secondary"><i class="fas fa-envelope" style="margin-right:6px;"></i> Contact Us</a>
+          </div>
+          <div class="coming-soon-features">
+            <div class="coming-soon-feature"><i class="fas fa-sparkles"></i> Exciting features ahead</div>
+            <div class="coming-soon-feature"><i class="fas fa-bolt"></i> Built for creators</div>
+            <div class="coming-soon-feature"><i class="fas fa-heart"></i> Made with love</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/profile.js"></script>
+  <script>
+    updateNavbarAuth();
+
+    // Configure page content from URL params
+    var params = new URLSearchParams(window.location.search);
+    var page = params.get('page') || '';
+
+    var pages = {
+      'blog': { icon: 'fa-rss', title: 'AniMaker Blog', desc: 'Our blog is launching soon with tutorials, creator stories, and industry insights. Stay tuned for creative content and tips!' },
+      'challenges': { icon: 'fa-trophy', title: 'Creator Challenges', desc: 'Compete with creators worldwide in themed challenges. Show off your skills, win prizes, and get featured on AniMaker!' },
+      'featured': { icon: 'fa-star', title: 'Featured Creators', desc: 'Discover top creators handpicked by our community. Your spotlight moment is coming!' },
+      'community-challenges': { icon: 'fa-people-group', title: 'Community Challenges', desc: 'Join collaborative challenges and create alongside the AniMaker community. Something special is cooking!' },
+      'spotlight': { icon: 'fa-microphone', title: 'Creator Spotlight', desc: 'Get featured and share your creative journey. The Spotlight is coming soon!' },
+      'grow': { icon: 'fa-chart-line', title: 'Grow Your Audience', desc: 'Analytics, insights, and tools to help you grow your creative following on AniMaker.' },
+      'analytics': { icon: 'fa-chart-bar', title: 'Creator Analytics', desc: 'Deep insights into your content performance, audience engagement, and growth metrics.' },
+      'monetization': { icon: 'fa-coins', title: 'Creator Monetization', desc: 'Turn your passion into profit. Monetization features are coming soon to AniMaker.' },
+      'premium': { icon: 'fa-crown', title: 'Premium Features', desc: 'Unlock advanced tools, priority support, and exclusive content with AniMaker Premium.' },
+      'fund': { icon: 'fa-hand-holding-dollar', title: 'Creator Fund', desc: 'The AniMaker Creator Fund will support talented creators with grants and resources.' },
+      'help': { icon: 'fa-circle-question', title: 'Help Center', desc: 'Our help center with guides, FAQs, and support articles is coming soon.' },
+      'report': { icon: 'fa-flag', title: 'Report Content', desc: 'Content reporting tools are being built to keep our community safe and respectful.' },
+      'youtube': { icon: 'fa-youtube', title: 'AniMaker YouTube', desc: 'Our official YouTube channel with tutorials, showcases, and behind-the-scenes content is launching soon!' },
+      'discord': { icon: 'fa-discord', title: 'AniMaker Discord', desc: 'Join our Discord community for real-time chats, feedback, and collaboration. Server launching soon!' },
+      'twitter': { icon: 'fa-x-twitter', title: 'AniMaker on X', desc: 'Follow us on X for the latest updates, creator highlights, and community news!' },
+      'terms': { icon: 'fa-file-contract', title: 'Terms of Service', desc: 'Our terms of service are being finalized to ensure a fair and safe environment for all creators.' },
+      'privacy': { icon: 'fa-shield-halved', title: 'Privacy Policy', desc: 'Your privacy matters. Our comprehensive privacy policy is being drafted to protect your data.' },
+      'cookies': { icon: 'fa-cookie', title: 'Cookie Policy', desc: 'Information about how AniMaker uses cookies and similar technologies. Full policy coming soon.' },
+      'content-policy': { icon: 'fa-file-shield', title: 'Content Policy', desc: 'Guidelines for creating and sharing content on AniMaker. Full policy is being developed.' }
+    };
+
+    if (pages[page]) {
+      var data = pages[page];
+      document.getElementById('pageTitle').textContent = data.title + ' — AniMaker';
+      document.getElementById('csIcon').innerHTML = '<i class="fas ' + data.icon + '"></i>';
+      document.getElementById('csTitle').textContent = data.title;
+      document.getElementById('csDesc').textContent = data.desc;
+    }
+  </script>
+</body>
+</html>
