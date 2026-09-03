@@ -490,12 +490,32 @@
       try { creations = await fetchCreations({ limit: 50, type: 'writer' }); } catch(e) { console.error('[Writer] fetch error:', e); }
       loading.style.display = 'none';
 
-      defaultStories.forEach(function(c) {
+      var randomUsers = [
+        { name: 'StoryWeaver', initial: 'S' },
+        { name: 'AnimeScribe', initial: 'A' },
+        { name: 'MangaWriter', initial: 'M' },
+        { name: 'NinjaNarrator', initial: 'N' },
+        { name: 'PiratePoet', initial: 'P' },
+        { name: 'SaiyanStories', initial: 'S' },
+        { name: 'ShonenAuthor', initial: 'S' },
+        { name: 'AnimeWriter', initial: 'A' }
+      ];
+      var randomDates = ['3h ago', '8h ago', '1d ago', '2d ago', '4d ago', '1w ago', '2w ago', '1mo ago'];
+
+      defaultStories.forEach(function(c, i) {
+        var user = randomUsers[i % randomUsers.length];
         var card = document.createElement('div');
         card.className = 'creation-card';
         card.onclick = function() { openStoryPopup(c.cover_image_url, c.title, c.story); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
-          '<div class="creation-card-body"><div class="creation-card-title">' + c.title + '</div></div>';
+          '<div class="creation-card-body">' +
+            '<div class="creation-card-title">' + c.title + '</div>' +
+            '<div class="creation-card-user">' +
+              '<div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;">' + user.initial + '</div>' +
+              '<span>' + user.name + '</span>' +
+            '</div>' +
+            '<div class="creation-card-meta"><span>' + randomDates[i % randomDates.length] + '</span></div>' +
+          '</div>';
         container.appendChild(card);
       });
 

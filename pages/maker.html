@@ -374,12 +374,33 @@
       try { creations = await fetchCreations({ limit: 50, type: 'maker' }); } catch(e) { console.error('[Maker] fetch error:', e); }
       loading.style.display = 'none';
 
-      defaultVideos.forEach(function(c) {
+      var randomUsers = [
+        { name: 'AnimeVFX', initial: 'A' },
+        { name: 'ShonenStudio', initial: 'S' },
+        { name: 'NinjaAnimate', initial: 'N' },
+        { name: 'PirateFrames', initial: 'P' },
+        { name: 'SaiyanMotion', initial: 'S' },
+        { name: 'HollowAnime', initial: 'H' },
+        { name: 'DemonSlayerFX', initial: 'D' },
+        { name: 'JujutsuStudio', initial: 'J' },
+        { name: 'FinalCutAnime', initial: 'F' }
+      ];
+      var randomDates = ['1h ago', '4h ago', '12h ago', '1d ago', '3d ago', '5d ago', '1w ago', '2w ago', '1mo ago'];
+
+      defaultVideos.forEach(function(c, i) {
+        var user = randomUsers[i % randomUsers.length];
         var card = document.createElement('div');
         card.className = 'creation-card';
         card.onclick = function() { openVideoModal(c.video_url); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div></div>' +
-          '<div class="creation-card-body"><div class="creation-card-title">' + c.title + '</div></div>';
+          '<div class="creation-card-body">' +
+            '<div class="creation-card-title">' + c.title + '</div>' +
+            '<div class="creation-card-user">' +
+              '<div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;">' + user.initial + '</div>' +
+              '<span>' + user.name + '</span>' +
+            '</div>' +
+            '<div class="creation-card-meta"><span>' + randomDates[i % randomDates.length] + '</span></div>' +
+          '</div>';
         container.appendChild(card);
       });
 

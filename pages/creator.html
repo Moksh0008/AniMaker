@@ -480,14 +480,31 @@
       try { creations = await fetchCreations({ limit: 50, type: 'creator' }); } catch(e) { console.error('[Creator] fetch error:', e); }
       loading.style.display = 'none';
 
-      // Render default creations
-      defaultCreations.forEach(function(c) {
+      var randomUsers = [
+        { name: 'AkiraSensei', initial: 'A' },
+        { name: 'NarutoFan99', initial: 'N' },
+        { name: 'SaiyanArtist', initial: 'S' },
+        { name: 'LuffyLover', initial: 'L' },
+        { name: 'IchigoInk', initial: 'I' },
+        { name: 'ZoroDraws', initial: 'Z' },
+        { name: 'Gear5Creator', initial: 'G' },
+        { name: 'AkatsukiArt', initial: 'A' }
+      ];
+      var randomDates = ['2h ago', '5h ago', '1d ago', '3d ago', '5d ago', '1w ago', '2w ago', '1mo ago'];
+
+      defaultCreations.forEach(function(c, i) {
+        var user = randomUsers[i % randomUsers.length];
         var card = document.createElement('div');
         card.className = 'creation-card';
         card.onclick = function() { openCreatorPopup(c.cover_image_url, c.title, c.points); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
+            '<div class="creation-card-user">' +
+              '<div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;">' + user.initial + '</div>' +
+              '<span>' + user.name + '</span>' +
+            '</div>' +
+            '<div class="creation-card-meta"><span>' + randomDates[i % randomDates.length] + '</span></div>' +
           '</div>';
         container.appendChild(card);
       });
