@@ -185,15 +185,21 @@
 
     var currentUserId = null;
 
-    // Hide auth overlay and load gallery immediately
-    var authOverlay = document.getElementById('authLoading');
-    if (authOverlay) authOverlay.style.display = 'none';
-    document.body.classList.add('auth-checked');
-    updateNavbarAuth();
-    getSession().then(function(session) {
-      if (session && session.user) currentUserId = session.user.id;
-    });
-    loadGallery();
+    // Hide auth overlay immediately - must run first
+    try {
+      var authOverlay = document.getElementById('authLoading');
+      if (authOverlay) authOverlay.style.display = 'none';
+      document.body.classList.add('auth-checked');
+    } catch(e) {}
+
+    // Load gallery
+    try { loadGallery(); } catch(e) { console.error('[Creator] loadGallery error:', e); }
+    try { updateNavbarAuth(); } catch(e) {}
+    try {
+      getSession().then(function(session) {
+        if (session && session.user) currentUserId = session.user.id;
+      }).catch(function() {});
+    } catch(e) {}
 
     /* ---- Toast ---- */
     function showToast(msg, type) {

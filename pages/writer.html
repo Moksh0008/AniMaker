@@ -164,14 +164,18 @@
 
     var currentUserId = null;
 
-    var authOverlay = document.getElementById('authLoading');
-    if (authOverlay) authOverlay.style.display = 'none';
-    document.body.classList.add('auth-checked');
-    updateNavbarAuth();
-    getSession().then(function(session) {
-      if (session && session.user) currentUserId = session.user.id;
-    });
-    loadGallery();
+    try {
+      var authOverlay = document.getElementById('authLoading');
+      if (authOverlay) authOverlay.style.display = 'none';
+      document.body.classList.add('auth-checked');
+    } catch(e) {}
+    try { loadGallery(); } catch(e) {}
+    try { updateNavbarAuth(); } catch(e) {}
+    try {
+      getSession().then(function(session) {
+        if (session && session.user) currentUserId = session.user.id;
+      }).catch(function() {});
+    } catch(e) {}
 
     function showToast(msg, type) {
       var container = document.getElementById('toastContainer');
