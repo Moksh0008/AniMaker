@@ -237,7 +237,7 @@
       document.getElementById('uploadProgress').classList.add('active');
 
       try {
-        var vidResult = await uploadCreationFile(_uploadVideoFile, 'maker-videos', function(pct) {
+        var vidResult = await uploadCreationFile(_uploadVideoFile, 'post-media', function(pct) {
           document.getElementById('uploadProgressBar').style.width = pct + '%';
           document.getElementById('uploadProgressText').textContent = pct < 100 ? 'Uploading video... ' + pct + '%' : 'Processing...';
         });
@@ -251,7 +251,7 @@
         };
 
         if (_uploadThumbFile) {
-          var thumbResult = await uploadCreationFile(_uploadThumbFile, 'maker-thumbnails', function() {});
+          var thumbResult = await uploadCreationFile(_uploadThumbFile, 'post-media', function() {});
           data.cover_image_url = thumbResult.url;
         }
 

@@ -523,7 +523,7 @@
           var desc = (document.getElementById('createDesc') || {}).value || '';
           if (!desc.trim()) { showToast('Please add a description.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
           data.description = shortDesc.trim() + '\n\n' + desc.trim();
-          var imgResult = await uploadCreationFile(_createFile, 'creations', function(pct) {
+          var imgResult = await uploadCreationFile(_createFile, 'post-media', function(pct) {
             if (barEl) barEl.style.width = pct + '%';
             if (textEl) textEl.textContent = pct < 100 ? 'Uploading image... ' + pct + '%' : 'Processing...';
           });
@@ -537,7 +537,7 @@
           data.story_content = storyContent;
           data.genre = genre;
           if (_createFile) {
-            var coverResult = await uploadCreationFile(_createFile, 'creations', function(pct) {
+            var coverResult = await uploadCreationFile(_createFile, 'post-media', function(pct) {
               if (barEl) barEl.style.width = pct + '%';
               if (textEl) textEl.textContent = pct < 100 ? 'Uploading cover... ' + pct + '%' : 'Processing...';
             });
@@ -546,13 +546,13 @@
         } else if (_createType === 'maker') {
           var desc = (document.getElementById('createDesc') || {}).value || '';
           data.description = desc.trim();
-          var vidResult = await uploadCreationFile(_createFile, 'maker-videos', function(pct) {
+          var vidResult = await uploadCreationFile(_createFile, 'post-media', function(pct) {
             if (barEl) barEl.style.width = pct + '%';
             if (textEl) textEl.textContent = pct < 100 ? 'Uploading video... ' + pct + '%' : 'Processing...';
           });
           data.media_url = vidResult.url;
           if (_createCoverFile) {
-            var thumbResult = await uploadCreationFile(_createCoverFile, 'maker-thumbnails', function() {});
+            var thumbResult = await uploadCreationFile(_createCoverFile, 'post-media', function() {});
             data.cover_image_url = thumbResult.url;
           }
         }

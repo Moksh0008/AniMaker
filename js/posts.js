@@ -213,23 +213,13 @@ async function deleteCreation(id) {
   if (creation.user_id !== session.user.id) throw new Error('You can only delete your own creations');
 
   // Delete media files from storage
-  if (creation.type === 'creator' && creation.cover_image_url) {
-    var imgPath = extractStoragePath(creation.cover_image_url, 'creations');
-    if (imgPath) await deleteCreationFile('creations', imgPath);
+  if (creation.cover_image_url) {
+    var imgPath = extractStoragePath(creation.cover_image_url, 'post-media');
+    if (imgPath) await deleteCreationFile('post-media', imgPath);
   }
-  if (creation.type === 'maker') {
-    if (creation.media_url) {
-      var vidPath = extractStoragePath(creation.media_url, 'maker-videos');
-      if (vidPath) await deleteCreationFile('maker-videos', vidPath);
-    }
-    if (creation.cover_image_url) {
-      var thumbPath = extractStoragePath(creation.cover_image_url, 'maker-thumbnails');
-      if (thumbPath) await deleteCreationFile('maker-thumbnails', thumbPath);
-    }
-  }
-  if (creation.type === 'writer' && creation.cover_image_url) {
-    var coverPath = extractStoragePath(creation.cover_image_url, 'creations');
-    if (coverPath) await deleteCreationFile('creations', coverPath);
+  if (creation.media_url) {
+    var vidPath = extractStoragePath(creation.media_url, 'post-media');
+    if (vidPath) await deleteCreationFile('post-media', vidPath);
   }
 
   var { error } = await supabaseClient
