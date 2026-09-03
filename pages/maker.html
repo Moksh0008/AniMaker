@@ -91,11 +91,11 @@
 
     var currentUserId = null;
 
-    requireAuth().then(async function(user) {
-      await updateNavbarAuth();
-      if (user) currentUserId = user.id;
-      loadGallery();
+    updateNavbarAuth();
+    getSession().then(function(session) {
+      if (session && session.user) currentUserId = session.user.id;
     });
+    loadGallery();
 
     function showToast(msg, type) {
       var container = document.getElementById('toastContainer');
@@ -332,7 +332,8 @@
       searchTimeout = setTimeout(async function() {
         var gallery = document.getElementById('makerGallery');
         gallery.querySelectorAll('[data-creation-id]').forEach(function(c) { c.remove(); });
-        var results = q.trim() ? await searchCreations(q, 'maker') : await fetchCreations({ limit: 50, type: 'maker' });
+        var results = [];
+        try { results = q.trim() ? await searchCreations(q, 'maker') : await fetchCreations({ limit: 50, type: 'maker' }); } catch(e) {}
         results.forEach(function(c) { gallery.appendChild(renderSupabaseCard(c)); });
         checkEmpty();
       }, 300);
@@ -366,7 +367,8 @@
       loading.style.display = 'block';
       container.innerHTML = '';
 
-      var creations = await fetchCreations({ limit: 50, type: 'maker' });
+      var creations = [];
+      try { creations = await fetchCreations({ limit: 50, type: 'maker' }); } catch(e) { console.error('[Maker] fetch error:', e); }
       loading.style.display = 'none';
 
       defaultVideos.forEach(function(c) {

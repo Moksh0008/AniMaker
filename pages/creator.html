@@ -92,11 +92,12 @@
 
     var currentUserId = null;
 
-    requireAuth().then(async function(user) {
-      await updateNavbarAuth();
-      if (user) currentUserId = user.id;
-      loadGallery();
+    // Load gallery immediately (default images don't need auth)
+    updateNavbarAuth();
+    getSession().then(function(session) {
+      if (session && session.user) currentUserId = session.user.id;
     });
+    loadGallery();
 
     /* ---- Toast ---- */
     function showToast(msg, type) {
@@ -342,7 +343,8 @@
         var gallery = document.getElementById('creatorGallery');
         // Remove only Supabase cards (keep default ones)
         gallery.querySelectorAll('[data-creation-id]').forEach(function(c) { c.remove(); });
-        var results = q.trim() ? await searchCreations(q, 'creator') : await fetchCreations({ limit: 50, type: 'creator' });
+        var results = [];
+        try { results = q.trim() ? await searchCreations(q, 'creator') : await fetchCreations({ limit: 50, type: 'creator' }); } catch(e) {}
         results.forEach(function(c) { gallery.appendChild(renderSupabaseCard(c)); });
         checkEmpty();
       }, 300);
@@ -378,7 +380,8 @@
       loading.style.display = 'block';
       container.innerHTML = '';
 
-      var creations = await fetchCreations({ limit: 50, type: 'creator' });
+      var creations = [];
+      try { creations = await fetchCreations({ limit: 50, type: 'creator' }); } catch(e) { console.error('[Creator] fetch error:', e); }
       loading.style.display = 'none';
 
       // Render default creations

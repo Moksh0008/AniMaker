@@ -92,11 +92,11 @@
 
     var currentUserId = null;
 
-    requireAuth().then(async function(user) {
-      await updateNavbarAuth();
-      if (user) currentUserId = user.id;
-      loadGallery();
+    updateNavbarAuth();
+    getSession().then(function(session) {
+      if (session && session.user) currentUserId = session.user.id;
     });
+    loadGallery();
 
     function showToast(msg, type) {
       var container = document.getElementById('toastContainer');
@@ -371,7 +371,8 @@
       searchTimeout = setTimeout(async function() {
         var gallery = document.getElementById('writerGallery');
         gallery.querySelectorAll('[data-creation-id]').forEach(function(c) { c.remove(); });
-        var results = q.trim() ? await searchCreations(q, 'writer') : await fetchCreations({ limit: 50, type: 'writer' });
+        var results = [];
+        try { results = q.trim() ? await searchCreations(q, 'writer') : await fetchCreations({ limit: 50, type: 'writer' }); } catch(e) {}
         results.forEach(function(c) { gallery.appendChild(renderSupabaseCard(c)); });
         checkEmpty();
       }, 300);
@@ -410,7 +411,8 @@
       loading.style.display = 'block';
       container.innerHTML = '';
 
-      var creations = await fetchCreations({ limit: 50, type: 'writer' });
+      var creations = [];
+      try { creations = await fetchCreations({ limit: 50, type: 'writer' }); } catch(e) { console.error('[Writer] fetch error:', e); }
       loading.style.display = 'none';
 
       defaultStories.forEach(function(c) {
