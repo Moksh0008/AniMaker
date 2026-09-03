@@ -92,7 +92,10 @@
 
     var currentUserId = null;
 
-    // Load gallery immediately (default images don't need auth)
+    // Hide auth overlay and load gallery immediately
+    var authOverlay = document.getElementById('authLoading');
+    if (authOverlay) authOverlay.style.display = 'none';
+    document.body.classList.add('auth-checked');
     updateNavbarAuth();
     getSession().then(function(session) {
       if (session && session.user) currentUserId = session.user.id;

@@ -91,6 +91,9 @@
 
     var currentUserId = null;
 
+    var authOverlay = document.getElementById('authLoading');
+    if (authOverlay) authOverlay.style.display = 'none';
+    document.body.classList.add('auth-checked');
     updateNavbarAuth();
     getSession().then(function(session) {
       if (session && session.user) currentUserId = session.user.id;
