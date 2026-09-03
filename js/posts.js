@@ -41,46 +41,15 @@ async function uploadCreationFile(file, bucket, onProgress) {
   var random = Math.random().toString(36).substring(2, 8);
   var filePath = session.user.id + '/' + timestamp + '-' + random + '.' + ext;
 
-  var storageUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object/upload';
-  var apiKey = '';
-  try { apiKey = supabaseClient._headers?.apikey || ''; } catch(e) {}
+  // Use Supabase SDK directly
+  var { data, error } = await supabaseClient.storage
+    .from(bucket)
+    .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
-  if (!apiKey) {
-    var { data, error } = await supabaseClient.storage.from(bucket).upload(filePath, file, { cacheControl: '3600', upsert: false });
-    if (error) throw new Error(error.message || 'Upload failed');
-    var publicUrl = supabaseClient.supabaseUrl + '/storage/v1/object/public/' + bucket + '/' + filePath;
-    return { url: publicUrl, path: filePath };
-  }
+  if (error) throw new Error(error.message || 'Upload failed');
 
-  return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', storageUrl + '/' + bucket + '/' + filePath);
-    xhr.setRequestHeader('apikey', apiKey);
-    xhr.setRequestHeader('Authorization', 'Bearer ' + session.access_token);
-
-    if (onProgress) {
-      xhr.upload.addEventListener('progress', function(e) {
-        if (e.lengthComputable) {
-          onProgress(Math.round((e.loaded / e.total) * 100));
-        }
-      });
-    }
-
-    xhr.onload = function() {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        var publicUrl = (supabaseClient.supabaseUrl || '') + '/storage/v1/object/public/' + bucket + '/' + filePath;
-        resolve({ url: publicUrl, path: filePath });
-      } else {
-        reject(new Error('Upload failed: ' + (xhr.statusText || 'Server error')));
-      }
-    };
-
-    xhr.onerror = function() {
-      reject(new Error('Network error during upload.'));
-    };
-
-    xhr.send(file);
-  });
+  var publicUrl = supabaseClient.supabaseUrl + '/storage/v1/object/public/' + bucket + '/' + filePath;
+  return { url: publicUrl, path: filePath };
 }
 
 /* ---- Delete file from Supabase Storage ---- */
