@@ -41,12 +41,25 @@ async function uploadCreationFile(file, bucket, onProgress) {
   var random = Math.random().toString(36).substring(2, 8);
   var filePath = session.user.id + '/' + timestamp + '-' + random + '.' + ext;
 
-  // Use Supabase SDK directly
-  var { data, error } = await supabaseClient.storage
-    .from(bucket)
-    .upload(filePath, file, { cacheControl: '3600', upsert: false });
+  // Use fetch with known anon key
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indkamlta2R0bnV6Z2VhYnJwZGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDg5MTAsImV4cCI6MjEwMzkyNDkxMH0.TUgdAOmmwhYs02Zqb0IpvA3f3WDboACjibswoT_91JY';
+  var uploadUrl = supabaseClient.supabaseUrl + '/storage/v1/object/' + bucket + '/' + filePath;
 
-  if (error) throw new Error(error.message || 'Upload failed');
+  var response = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + session.access_token,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+
+  if (!response.ok) {
+    var errText = await response.text();
+    throw new Error('Upload failed: ' + errText);
+  }
 
   var publicUrl = supabaseClient.supabaseUrl + '/storage/v1/object/public/' + bucket + '/' + filePath;
   return { url: publicUrl, path: filePath };
