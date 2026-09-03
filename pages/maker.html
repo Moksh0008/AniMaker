@@ -382,15 +382,15 @@
       loading.style.display = 'none';
 
       var randomUsers = [
-        { name: 'AnimeVFX', initial: 'A' },
-        { name: 'ShonenStudio', initial: 'S' },
-        { name: 'NinjaAnimate', initial: 'N' },
-        { name: 'PirateFrames', initial: 'P' },
-        { name: 'SaiyanMotion', initial: 'S' },
-        { name: 'HollowAnime', initial: 'H' },
-        { name: 'DemonSlayerFX', initial: 'D' },
-        { name: 'JujutsuStudio', initial: 'J' },
-        { name: 'FinalCutAnime', initial: 'F' }
+        { name: 'AnimeVFX', initial: 'A', avatar: '../assets/images/avatars/avatar-17.jpg' },
+        { name: 'ShonenStudio', initial: 'S', avatar: '../assets/images/avatars/avatar-18.jpg' },
+        { name: 'NinjaAnimate', initial: 'N', avatar: '../assets/images/avatars/avatar-19.jpg' },
+        { name: 'PirateFrames', initial: 'P', avatar: '../assets/images/avatars/avatar-20.jpg' },
+        { name: 'SaiyanMotion', initial: 'S', avatar: '../assets/images/avatars/avatar-1.jpg' },
+        { name: 'HollowAnime', initial: 'H', avatar: '../assets/images/avatars/avatar-2.jpg' },
+        { name: 'DemonSlayerFX', initial: 'D', avatar: '../assets/images/avatars/avatar-3.jpg' },
+        { name: 'JujutsuStudio', initial: 'J', avatar: '../assets/images/avatars/avatar-4.jpg' },
+        { name: 'FinalCutAnime', initial: 'F', avatar: '../assets/images/avatars/avatar-5.jpg' }
       ];
       var randomDates = ['1h ago', '4h ago', '12h ago', '1d ago', '3d ago', '5d ago', '1w ago', '2w ago', '1mo ago'];
 
@@ -403,7 +403,7 @@
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
             '<div class="creation-card-user">' +
-              '<div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;">' + user.initial + '</div>' +
+              '<img src="' + user.avatar + '" alt="' + user.name + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">' +
               '<span>' + user.name + '</span>' +
             '</div>' +
             '<div class="creation-card-meta"><span>' + randomDates[i % randomDates.length] + '</span></div>' +

@@ -237,11 +237,13 @@
     }
 
     /* ---- Default image popup ---- */
-    function openCreatorPopup(url, title, points, userName, userInitial, timeAgo) {
+    function openCreatorPopup(url, title, points, userName, userAvatar, timeAgo) {
       userName = userName || 'Anonymous';
-      userInitial = userInitial || userName.charAt(0).toUpperCase();
       timeAgo = timeAgo || 'just now';
       var pointsHtml = points && points.length ? '<ul>' + points.map(function(p) { return '<li>' + p + '</li>'; }).join('') + '</ul>' : '';
+      var avatarHtml = userAvatar
+        ? '<img src="' + userAvatar + '" alt="' + userName + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+        : '<div style="width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0;">' + userName.charAt(0).toUpperCase() + '</div>';
       var overlay = document.createElement('div');
       overlay.className = 'creator-popup-overlay';
       overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
@@ -250,7 +252,7 @@
           '<div class="creator-popup-image"><img src="' + url + '" alt="' + title + '"></div>' +
           '<div class="creator-popup-info">' +
             '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">' +
-              '<div style="width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0;">' + userInitial + '</div>' +
+              avatarHtml +
               '<div><div style="color:#fff;font-weight:600;font-size:15px;">' + userName + '</div><div style="color:var(--accent);font-size:13px;">Creator</div></div>' +
             '</div>' +
             '<h1>' + title + '</h1>' +
@@ -497,14 +499,14 @@
       loading.style.display = 'none';
 
       var randomUsers = [
-        { name: 'AkiraSensei', initial: 'A' },
-        { name: 'NarutoFan99', initial: 'N' },
-        { name: 'SaiyanArtist', initial: 'S' },
-        { name: 'LuffyLover', initial: 'L' },
-        { name: 'IchigoInk', initial: 'I' },
-        { name: 'ZoroDraws', initial: 'Z' },
-        { name: 'Gear5Creator', initial: 'G' },
-        { name: 'AkatsukiArt', initial: 'A' }
+        { name: 'AkiraSensei', initial: 'A', avatar: '../assets/images/avatars/avatar-1.jpg' },
+        { name: 'NarutoFan99', initial: 'N', avatar: '../assets/images/avatars/avatar-2.jpg' },
+        { name: 'SaiyanArtist', initial: 'S', avatar: '../assets/images/avatars/avatar-3.jpg' },
+        { name: 'LuffyLover', initial: 'L', avatar: '../assets/images/avatars/avatar-4.jpg' },
+        { name: 'IchigoInk', initial: 'I', avatar: '../assets/images/avatars/avatar-5.jpg' },
+        { name: 'ZoroDraws', initial: 'Z', avatar: '../assets/images/avatars/avatar-6.jpg' },
+        { name: 'Gear5Creator', initial: 'G', avatar: '../assets/images/avatars/avatar-7.jpg' },
+        { name: 'AkatsukiArt', initial: 'A', avatar: '../assets/images/avatars/avatar-8.jpg' }
       ];
       var randomDates = ['2h ago', '5h ago', '1d ago', '3d ago', '5d ago', '1w ago', '2w ago', '1mo ago'];
 
@@ -512,12 +514,12 @@
         var user = randomUsers[i % randomUsers.length];
         var card = document.createElement('div');
         card.className = 'creation-card';
-        card.onclick = function(u, n, t) { return function() { openCreatorPopup(c.cover_image_url, c.title, c.points, u, n, t); }; }(user.name, user.initial, randomDates[i % randomDates.length]);
+        card.onclick = function(u, a, t) { return function() { openCreatorPopup(c.cover_image_url, c.title, c.points, u, a, t); }; }(user.name, user.avatar, randomDates[i % randomDates.length]);
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
             '<div class="creation-card-user">' +
-              '<div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;">' + user.initial + '</div>' +
+              '<img src="' + user.avatar + '" alt="' + user.name + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">' +
               '<span>' + user.name + '</span>' +
             '</div>' +
             '<div class="creation-card-meta"><span>' + randomDates[i % randomDates.length] + '</span></div>' +

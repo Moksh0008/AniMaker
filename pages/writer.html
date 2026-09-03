@@ -498,14 +498,14 @@
       loading.style.display = 'none';
 
       var randomUsers = [
-        { name: 'StoryWeaver', initial: 'S' },
-        { name: 'AnimeScribe', initial: 'A' },
-        { name: 'MangaWriter', initial: 'M' },
-        { name: 'NinjaNarrator', initial: 'N' },
-        { name: 'PiratePoet', initial: 'P' },
-        { name: 'SaiyanStories', initial: 'S' },
-        { name: 'ShonenAuthor', initial: 'S' },
-        { name: 'AnimeWriter', initial: 'A' }
+        { name: 'StoryWeaver', initial: 'S', avatar: '../assets/images/avatars/avatar-9.jpg' },
+        { name: 'AnimeScribe', initial: 'A', avatar: '../assets/images/avatars/avatar-10.jpg' },
+        { name: 'MangaWriter', initial: 'M', avatar: '../assets/images/avatars/avatar-11.jpg' },
+        { name: 'NinjaNarrator', initial: 'N', avatar: '../assets/images/avatars/avatar-12.jpg' },
+        { name: 'PiratePoet', initial: 'P', avatar: '../assets/images/avatars/avatar-13.jpg' },
+        { name: 'SaiyanStories', initial: 'S', avatar: '../assets/images/avatars/avatar-14.jpg' },
+        { name: 'ShonenAuthor', initial: 'S', avatar: '../assets/images/avatars/avatar-15.jpg' },
+        { name: 'AnimeWriter', initial: 'A', avatar: '../assets/images/avatars/avatar-16.jpg' }
       ];
       var randomDates = ['3h ago', '8h ago', '1d ago', '2d ago', '4d ago', '1w ago', '2w ago', '1mo ago'];
 
@@ -518,7 +518,7 @@
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
             '<div class="creation-card-user">' +
-              '<div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;">' + user.initial + '</div>' +
+              '<img src="' + user.avatar + '" alt="' + user.name + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">' +
               '<span>' + user.name + '</span>' +
             '</div>' +
             '<div class="creation-card-meta"><span>' + randomDates[i % randomDates.length] + '</span></div>' +
