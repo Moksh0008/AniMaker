@@ -395,6 +395,9 @@ function openSettings() {
     return;
   }
 
+  var isOnRoot = window.location.pathname === '/' || window.location.pathname.endsWith('index.html');
+  var settingsPrefix = isOnRoot ? 'pages/' : '';
+
   const overlay = document.createElement('div');
   overlay.id = 'settingsModal';
   overlay.className = 'settings-overlay show';
@@ -408,7 +411,7 @@ function openSettings() {
       '<div class="settings-body" id="settingsBody">' +
         '<div class="settings-group">' +
           '<div class="settings-group-label">Account</div>' +
-          '<div class="settings-item" onclick="closeSettings();window.location.href=\'' + prefix + 'profile.html\'"><i class="fas fa-user"></i><span class="settings-item-text">Edit Profile</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
+          '<div class="settings-item" onclick="closeSettings();window.location.href=\'' + settingsPrefix + 'profile.html\'"><i class="fas fa-user"></i><span class="settings-item-text">Edit Profile</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
           '<div class="settings-item" onclick="closeSettings();showChangePasswordModal()"><i class="fas fa-lock"></i><span class="settings-item-text">Change Password</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
           '<div class="settings-item" onclick="closeSettings();showToast(\'Email preferences coming soon!\', \"info\")"><i class="fas fa-envelope"></i><span class="settings-item-text">Email Preferences</span><i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);"></i></div>' +
         '</div>' +
