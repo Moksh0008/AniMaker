@@ -4000,8 +4000,10 @@ textarea.form-input {
   width: 95%;
   max-height: 90vh;
   background: var(--bg-card);
+  border: 2px solid rgba(124, 92, 252, 0.4);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: 0 0 24px rgba(124, 92, 252, 0.15);
 }
 
 .creator-detail-image {
