@@ -183,12 +183,12 @@ async function deleteCreation(id) {
 
   // Delete media files from storage
   if (creation.cover_image_url) {
-    var imgPath = extractStoragePath(creation.cover_image_url, 'post-media');
-    if (imgPath) await deleteCreationFile('post-media', imgPath);
+    var imgPath = extractStoragePath(creation.cover_image_url, 'uploads');
+    if (imgPath) await deleteCreationFile('uploads', imgPath);
   }
   if (creation.media_url) {
-    var vidPath = extractStoragePath(creation.media_url, 'post-media');
-    if (vidPath) await deleteCreationFile('post-media', vidPath);
+    var vidPath = extractStoragePath(creation.media_url, 'uploads');
+    if (vidPath) await deleteCreationFile('uploads', vidPath);
   }
 
   var { error } = await supabaseClient

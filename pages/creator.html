@@ -336,7 +336,7 @@
       document.getElementById('uploadProgress').classList.add('active');
 
       try {
-        var result = await uploadCreationFile(_uploadFile, 'post-media', function(pct) {
+        var result = await uploadCreationFile(_uploadFile, 'uploads', function(pct) {
           document.getElementById('uploadProgressBar').style.width = pct + '%';
           document.getElementById('uploadProgressText').textContent = pct < 100 ? 'Uploading... ' + pct + '%' : 'Processing...';
         });

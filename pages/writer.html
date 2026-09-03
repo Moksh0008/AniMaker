@@ -338,7 +338,7 @@
         };
 
         if (_uploadCoverFile) {
-          var result = await uploadCreationFile(_uploadCoverFile, 'post-media', function(pct) {
+          var result = await uploadCreationFile(_uploadCoverFile, 'uploads', function(pct) {
             document.getElementById('uploadProgressBar').style.width = pct + '%';
             document.getElementById('uploadProgressText').textContent = pct < 100 ? 'Uploading cover... ' + pct + '%' : 'Processing...';
           });
