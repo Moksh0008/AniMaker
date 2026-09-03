@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  </style>
 </head>
 <body>
   <div class="auth-loading-overlay" id="authLoading"><div class="auth-spinner"></div><p>Verifying your session...</p></div>
@@ -28,7 +32,6 @@
         <a href="creator.html" class="sidebar-link" data-tooltip="Creator"><i class="fas fa-film"></i><span>Creator</span></a>
         <a href="writer.html" class="sidebar-link" data-tooltip="Writer"><i class="fas fa-pen-nib"></i><span>Writer</span></a>
         <a href="maker.html" class="sidebar-link active" data-tooltip="Maker"><i class="fas fa-cube"></i><span>Maker</span></a>
-
       </nav>
       <div class="sidebar-bottom">
         <a href="javascript:void(0)" class="sidebar-link" data-tooltip="Settings" onclick="openSettings()"><i class="fas fa-gear"></i><span>Settings</span></a>
@@ -37,20 +40,37 @@
     <main class="main-content">
       <div class="page-container">
         <div class="gallery-header">
-          <h1>Maker Gallery</h1>
+          <div class="gallery-header-left">
+            <h1>Maker Gallery</h1>
+            <button class="btn-create" onclick="openCreateModal()"><i class="fas fa-plus"></i> Upload Animation</button>
+          </div>
           <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search animations..." id="searchInput"></div>
         </div>
+
+        <div class="gallery-empty" id="galleryEmpty">
+          <div class="gallery-empty-icon"><i class="fas fa-video"></i></div>
+          <h3>No animations yet</h3>
+          <p>Bring your imagination to life.</p>
+          <button class="btn-create" onclick="openCreateModal()"><i class="fas fa-plus"></i> Upload Animation</button>
+        </div>
+
         <div class="gallery gallery-masonry" id="makerGallery"></div>
         <div id="galleryLoading" style="text-align:center;padding:60px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
       </div>
     </main>
   </div>
+
+  <!-- Video Modal for default videos -->
   <div class="video-modal-overlay" id="videoModal" style="display:none;" onclick="closeVideoModal(event)">
     <button class="video-modal-close" onclick="closeVideoModal(event)"><i class="fas fa-xmark"></i></button>
     <video id="modalVideo" controls></video>
   </div>
+
+  <div id="uploadModal" style="display:none;"></div>
+  <div id="editModal" style="display:none;"></div>
   <div id="confirmDialog" style="display:none;"></div>
   <div class="toast-container" id="toastContainer"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
@@ -58,26 +78,46 @@
   <script src="../js/posts.js"></script>
   <script>
     var defaultVideos = [
-      { id: 'default-m1', title: 'Animation 1', cover_image_url: '../assets/images/maker/maker-pic-1.jpg', video_url: '../assets/videos/animation-1.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m2', title: 'Animation 2', cover_image_url: '../assets/images/maker/maker-pic-2.jpg', video_url: '../assets/videos/animation-2.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m3', title: 'Animation 3', cover_image_url: '../assets/images/maker/maker-pic-3.jpg', video_url: '../assets/videos/animation-3.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m4', title: 'Animation 4', cover_image_url: '../assets/images/maker/maker-pic-4.jpg', video_url: '../assets/videos/animation-4.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m5', title: 'Animation 5', cover_image_url: '../assets/images/maker/maker-pic-5.jpg', video_url: '../assets/videos/animation-5.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m6', title: 'Animation 6', cover_image_url: '../assets/images/maker/maker-pic-6.jpg', video_url: '../assets/videos/animation-6.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m7', title: 'Animation 7', cover_image_url: '../assets/images/maker/maker-pic-7.jpg', video_url: '../assets/videos/animation-7.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m8', title: 'Animation 8', cover_image_url: '../assets/images/maker/maker-pic-8.jpg', video_url: '../assets/videos/animation-8.mp4', type: 'maker', profiles: {} },
-      { id: 'default-m9', title: 'Animation 9', cover_image_url: '../assets/images/maker/maker-pic-9.jpg', video_url: '../assets/videos/animation-9.mp4', type: 'maker', profiles: {} }
+      { id: 'default-m1', title: 'Animation 1', cover_image_url: '../assets/images/maker/maker-pic-1.jpg', video_url: '../assets/videos/animation-1.mp4' },
+      { id: 'default-m2', title: 'Animation 2', cover_image_url: '../assets/images/maker/maker-pic-2.jpg', video_url: '../assets/videos/animation-2.mp4' },
+      { id: 'default-m3', title: 'Animation 3', cover_image_url: '../assets/images/maker/maker-pic-3.jpg', video_url: '../assets/videos/animation-3.mp4' },
+      { id: 'default-m4', title: 'Animation 4', cover_image_url: '../assets/images/maker/maker-pic-4.jpg', video_url: '../assets/videos/animation-4.mp4' },
+      { id: 'default-m5', title: 'Animation 5', cover_image_url: '../assets/images/maker/maker-pic-5.jpg', video_url: '../assets/videos/animation-5.mp4' },
+      { id: 'default-m6', title: 'Animation 6', cover_image_url: '../assets/images/maker/maker-pic-6.jpg', video_url: '../assets/videos/animation-6.mp4' },
+      { id: 'default-m7', title: 'Animation 7', cover_image_url: '../assets/images/maker/maker-pic-7.jpg', video_url: '../assets/videos/animation-7.mp4' },
+      { id: 'default-m8', title: 'Animation 8', cover_image_url: '../assets/images/maker/maker-pic-8.jpg', video_url: '../assets/videos/animation-8.mp4' },
+      { id: 'default-m9', title: 'Animation 9', cover_image_url: '../assets/images/maker/maker-pic-9.jpg', video_url: '../assets/videos/animation-9.mp4' }
     ];
 
-    requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
+    var currentUserId = null;
 
-    document.getElementById('searchInput').addEventListener('input', function() {
-      var q = this.value.toLowerCase();
-      document.querySelectorAll('#makerGallery .creation-card').forEach(function(card) {
-        card.style.display = card.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
-      });
+    requireAuth().then(async function(user) {
+      await updateNavbarAuth();
+      if (user) currentUserId = user.id;
+      loadGallery();
     });
 
+    function showToast(msg, type) {
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'toast ' + (type || 'info');
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(function() { toast.remove(); }, 3000);
+    }
+
+    function showConfirm(title, message) {
+      return new Promise(function(resolve) {
+        var dialog = document.getElementById('confirmDialog');
+        dialog.style.display = 'block';
+        dialog.innerHTML = '<div class="confirm-overlay" onclick="event.target===this && document.getElementById(\'confirmDialog\').style.display=\'none\'">' +
+          '<div class="confirm-box"><h4>' + title + '</h4><p>' + message + '</p>' +
+          '<div class="confirm-actions"><button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'confirmDialog\').style.display=\'none\'">Cancel</button><button class="btn btn-primary btn-sm" id="confirmYesBtn">Delete</button></div></div></div>';
+        document.getElementById('confirmYesBtn').onclick = function() { dialog.style.display = 'none'; resolve(true); };
+      });
+    }
+
+    /* ---- Video Modal ---- */
     function openVideoModal(src) {
       var m = document.getElementById('videoModal');
       var v = document.getElementById('modalVideo');
@@ -85,54 +125,261 @@
       m.style.display = 'flex';
       v.play();
     }
-
     function closeVideoModal(e) {
       if (e.target === document.getElementById('videoModal') || e.currentTarget.classList.contains('video-modal-close')) {
-        var m = document.getElementById('videoModal');
         var v = document.getElementById('modalVideo');
-        v.pause();
-        v.src = '';
-        m.style.display = 'none';
+        v.pause(); v.src = '';
+        document.getElementById('videoModal').style.display = 'none';
       }
     }
 
+    /* ---- Upload Modal ---- */
+    var _uploadVideoFile = null;
+    var _uploadThumbFile = null;
+
+    function openCreateModal() {
+      _uploadVideoFile = null;
+      _uploadThumbFile = null;
+      var modal = document.getElementById('uploadModal');
+      modal.style.display = 'block';
+      modal.innerHTML = '<div class="upload-modal-overlay" onclick="if(event.target===this)closeCreateModal()">' +
+        '<div class="upload-modal" onclick="event.stopPropagation()">' +
+          '<div class="upload-modal-header"><h3>Upload Animation</h3><button class="upload-modal-close" onclick="closeCreateModal()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="upload-modal-body">' +
+            '<div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar-bg"><div class="upload-progress-bar" id="uploadProgressBar"></div></div><div class="upload-progress-text" id="uploadProgressText">Uploading...</div></div>' +
+            '<div class="upload-dropzone" id="videoDropzone">' +
+              '<div class="upload-dropzone-icon"><i class="fas fa-cloud-arrow-up"></i></div>' +
+              '<h4>Upload your video</h4>' +
+              '<p>MP4, WEBM — Max 100MB</p>' +
+            '</div>' +
+            '<div class="upload-preview" id="videoPreview"></div>' +
+            '<input type="file" id="videoFileInput" style="display:none" accept="video/mp4,video/webm">' +
+            '<div class="form-group"><label>Video Title *</label><input type="text" id="uploadTitle" placeholder="Name your video" maxlength="150"></div>' +
+            '<div class="form-group"><label>Description</label><textarea id="uploadDesc" placeholder="Describe your animation..." maxlength="2000" rows="3"></textarea></div>' +
+            '<div class="form-group"><label>Tags (comma separated)</label><input type="text" id="uploadTags" placeholder="animation, anime, short film" maxlength="200"></div>' +
+            '<div class="upload-dropzone" id="thumbDropzone" style="padding:16px;">' +
+              '<p style="margin:0;font-size:13px;color:var(--text-muted);"><i class="fas fa-image" style="margin-right:6px;"></i> Upload thumbnail (optional)</p>' +
+            '</div>' +
+            '<div class="upload-preview" id="thumbPreview"></div>' +
+            '<input type="file" id="thumbFileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">' +
+          '</div>' +
+          '<div class="upload-modal-footer">' +
+            '<button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>' +
+            '<button class="btn btn-primary" id="publishBtn" onclick="handlePublish()" disabled><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+      setupVideoDropzone('videoDropzone', 'videoFileInput', 'videoPreview', function(f) { _uploadVideoFile = f; document.getElementById('publishBtn').disabled = false; });
+      setupVideoDropzone('thumbDropzone', 'thumbFileInput', 'thumbPreview', function(f) { _uploadThumbFile = f; });
+    }
+
+    function closeCreateModal() {
+      document.getElementById('uploadModal').style.display = 'none';
+      _uploadVideoFile = null;
+      _uploadThumbFile = null;
+    }
+
+    function setupVideoDropzone(dzId, fiId, previewId, onFile) {
+      var dz = document.getElementById(dzId);
+      var fi = document.getElementById(fiId);
+      if (!dz || !fi) return;
+      dz.addEventListener('click', function() { fi.click(); });
+      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0], previewId, dzId, onFile); });
+      fi.addEventListener('change', function(e) { if (e.target.files[0]) handleFileSelect(e.target.files[0], previewId, dzId, onFile); });
+    }
+
+    function handleFileSelect(file, previewId, dzId, onFile) {
+      var isVideo = VALID_VIDEO_TYPES.includes(file.type);
+      var isImage = VALID_IMAGE_TYPES.includes(file.type);
+      if (!isVideo && !isImage) { showToast('Unsupported file type.', 'error'); return; }
+      if (isVideo && file.size > MAX_VIDEO_SIZE) { showToast('Video must be less than 100MB.', 'error'); return; }
+      if (isImage && file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
+      onFile(file);
+      var preview = document.getElementById(previewId);
+      var dz = document.getElementById(dzId);
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var html = isVideo
+          ? '<video src="' + e.target.result + '" controls preload="metadata" style="width:100%;max-height:250px;border-radius:8px;"></video>'
+          : '<img src="' + e.target.result + '" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;">';
+        preview.innerHTML = html + '<button class="upload-preview-remove" onclick="removeFile(\'' + previewId + '\',\'' + dzId + '\')"><i class="fas fa-xmark"></i></button>';
+        preview.classList.add('active');
+        if (dz) dz.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeFile(previewId, dzId) {
+      var preview = document.getElementById(previewId);
+      preview.classList.remove('active'); preview.innerHTML = '';
+      var dz = document.getElementById(dzId);
+      if (dz) dz.style.display = '';
+    }
+
+    async function handlePublish() {
+      var btn = document.getElementById('publishBtn');
+      if (!btn || btn.disabled || !_uploadVideoFile) return;
+      var title = (document.getElementById('uploadTitle') || {}).value || '';
+      var desc = (document.getElementById('uploadDesc') || {}).value || '';
+      var tagsStr = (document.getElementById('uploadTags') || {}).value || '';
+      if (!title.trim()) { showToast('Please enter a title.', 'error'); return; }
+
+      var tags = tagsStr.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
+      document.getElementById('uploadProgress').classList.add('active');
+
+      try {
+        var vidResult = await uploadCreationFile(_uploadVideoFile, 'maker-videos', function(pct) {
+          document.getElementById('uploadProgressBar').style.width = pct + '%';
+          document.getElementById('uploadProgressText').textContent = pct < 100 ? 'Uploading video... ' + pct + '%' : 'Processing...';
+        });
+
+        var data = {
+          type: 'maker',
+          title: title.trim(),
+          description: desc.trim(),
+          tags: tags,
+          media_url: vidResult.url
+        };
+
+        if (_uploadThumbFile) {
+          var thumbResult = await uploadCreationFile(_uploadThumbFile, 'maker-thumbnails', function() {});
+          data.cover_image_url = thumbResult.url;
+        }
+
+        await createCreation(data);
+        closeCreateModal();
+        showToast('Animation published!', 'success');
+        loadGallery();
+      } catch (err) {
+        showToast(err.message || 'Failed to publish.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
+        document.getElementById('uploadProgress').classList.remove('active');
+      }
+    }
+
+    /* ---- Edit Modal ---- */
+    function openEditModal(id) {
+      fetchCreation(id).then(function(c) {
+        if (!c) return;
+        var tagsStr = (c.tags || []).join(', ');
+        var modal = document.getElementById('editModal');
+        modal.style.display = 'block';
+        modal.innerHTML = '<div class="upload-modal-overlay" onclick="if(event.target===this)closeEditModal()">' +
+          '<div class="upload-modal" onclick="event.stopPropagation()">' +
+            '<div class="upload-modal-header"><h3>Edit Animation</h3><button class="upload-modal-close" onclick="closeEditModal()"><i class="fas fa-xmark"></i></button></div>' +
+            '<div class="upload-modal-body">' +
+              '<div class="form-group"><label>Title *</label><input type="text" id="editTitle" value="' + postEscapeHtml(c.title) + '" maxlength="150"></div>' +
+              '<div class="form-group"><label>Description</label><textarea id="editDesc" rows="3" maxlength="2000">' + postEscapeHtml(c.description || '') + '</textarea></div>' +
+              '<div class="form-group"><label>Tags</label><input type="text" id="editTags" value="' + postEscapeHtml(tagsStr) + '" maxlength="200"></div>' +
+            '</div>' +
+            '<div class="upload-modal-footer">' +
+              '<button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>' +
+              '<button class="btn btn-primary" id="saveEditBtn" onclick="handleSaveEdit(\'' + c.id + '\')"><i class="fas fa-check" style="margin-right:6px;"></i>Save</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+    }
+
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    async function handleSaveEdit(id) {
+      var btn = document.getElementById('saveEditBtn');
+      btn.disabled = true;
+      var title = (document.getElementById('editTitle') || {}).value || '';
+      var desc = (document.getElementById('editDesc') || {}).value || '';
+      var tagsStr = (document.getElementById('editTags') || {}).value || '';
+      if (!title.trim()) { showToast('Title is required.', 'error'); btn.disabled = false; return; }
+      var tags = tagsStr.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+      try {
+        await updateCreation(id, { title: title.trim(), description: desc.trim(), tags: tags });
+        closeEditModal();
+        showToast('Updated!', 'success');
+        loadGallery();
+      } catch (err) {
+        showToast(err.message || 'Failed to update.', 'error');
+        btn.disabled = false;
+      }
+    }
+
+    /* ---- Delete ---- */
+    async function handleDelete(id) {
+      var confirmed = await showConfirm('Delete Animation', 'Are you sure you want to delete this? This action cannot be undone.');
+      if (!confirmed) return;
+      try { await deleteCreation(id); showToast('Deleted.', 'success'); var card = document.querySelector('[data-creation-id="' + id + '"]'); if (card) card.remove(); checkEmpty(); }
+      catch (err) { showToast(err.message || 'Failed to delete.', 'error'); }
+    }
+
+    function checkEmpty() {
+      var gallery = document.getElementById('makerGallery');
+      var empty = document.getElementById('galleryEmpty');
+      var cards = gallery.querySelectorAll('.creation-card');
+      if (cards.length === 0) empty.classList.add('active'); else empty.classList.remove('active');
+    }
+
+    /* ---- Search ---- */
+    var searchTimeout = null;
+    document.getElementById('searchInput').addEventListener('input', function() {
+      var q = this.value;
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(async function() {
+        var gallery = document.getElementById('makerGallery');
+        gallery.querySelectorAll('[data-creation-id]').forEach(function(c) { c.remove(); });
+        var results = q.trim() ? await searchCreations(q, 'maker') : await fetchCreations({ limit: 50, type: 'maker' });
+        results.forEach(function(c) { gallery.appendChild(renderSupabaseCard(c)); });
+        checkEmpty();
+      }, 300);
+    });
+
+    function renderSupabaseCard(c) {
+      var profile = c.profiles || {};
+      var isOwner = currentUserId && c.user_id === currentUserId;
+      var card = document.createElement('div');
+      card.className = 'creation-card';
+      card.setAttribute('data-creation-id', c.id);
+      card.onclick = function(e) { if (e.target.closest('.creation-card-action-btn')) return; openMakerDetail(c.id); };
+      var actionsHtml = isOwner ? '<div class="creation-card-actions">' +
+        '<button class="creation-card-action-btn" onclick="event.stopPropagation();openEditModal(\'' + c.id + '\')"><i class="fas fa-pen"></i></button>' +
+        '<button class="creation-card-action-btn delete" onclick="event.stopPropagation();handleDelete(\'' + c.id + '\')"><i class="fas fa-trash"></i></button>' +
+      '</div>' : '';
+      var thumb = c.cover_image_url || c.media_url;
+      card.innerHTML = '<div class="creation-card-image"><img src="' + thumb + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div>' + actionsHtml + '</div>' +
+        '<div class="creation-card-body">' +
+          '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
+          '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span></div>' +
+          '<div class="creation-card-meta"><span>' + timeAgo(c.created_at) + '</span></div>' +
+        '</div>';
+      return card;
+    }
+
+    /* ---- Load Gallery ---- */
     async function loadGallery() {
       var container = document.getElementById('makerGallery');
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
+      container.innerHTML = '';
 
       var creations = await fetchCreations({ limit: 50, type: 'maker' });
       loading.style.display = 'none';
 
-      // Render default videos first
       defaultVideos.forEach(function(c) {
         var card = document.createElement('div');
         card.className = 'creation-card';
         card.onclick = function() { openVideoModal(c.video_url); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div></div>' +
-          '<div class="creation-card-body">' +
-            '<div class="creation-card-title">' + c.title + '</div>' +
-          '</div>';
+          '<div class="creation-card-body"><div class="creation-card-title">' + c.title + '</div></div>';
         container.appendChild(card);
       });
 
-      // Render Supabase creations
-      creations.forEach(function(c) {
-        var profile = c.profiles || {};
-        var card = document.createElement('div');
-        card.className = 'creation-card';
-        card.setAttribute('data-creation-id', c.id);
-        card.onclick = function() { openMakerDetail(c.id); };
-
-        var thumb = c.cover_image_url || c.media_url;
-        card.innerHTML = '<div class="creation-card-image"><img src="' + thumb + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div></div>' +
-          '<div class="creation-card-body">' +
-            '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
-            '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span></div>' +
-            '<div class="creation-card-meta"><span>' + timeAgo(c.created_at) + '</span></div>' +
-          '</div>';
-        container.appendChild(card);
-      });
+      creations.forEach(function(c) { container.appendChild(renderSupabaseCard(c)); });
+      checkEmpty();
     }
   </script>
 </body>

@@ -8,83 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    .story-popup-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 5000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background-size: cover;
-      background-position: center;
-      background-color: #0a0a0f;
-      animation: fadeIn 0.2s ease;
-    }
-    .story-popup-overlay::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(10, 10, 15, 0.5);
-      z-index: 0;
-    }
-    .story-popup-close {
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: transform 0.25s ease;
-      z-index: 5001;
-    }
-    .story-popup-close:hover { transform: scale(1.1); }
-    .story-popup-content {
-      position: relative;
-      z-index: 1;
-      max-width: 750px;
-      width: 90%;
-      text-align: center;
-    }
-    .story-popup-content h2 {
-      color: #fff;
-      font-family: var(--font-display);
-      font-size: 1.6rem;
-      margin-bottom: 16px;
-      text-shadow: 0 2px 16px rgba(0,0,0,0.9);
-    }
-    .story-popup-box {
-      text-align: justify;
-      line-height: 1.7;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 24px;
-      border-radius: 12px;
-      max-height: 60vh;
-      overflow-y: auto;
-    }
-    .story-popup-box p {
-      font-size: 14px;
-      color: rgba(255,255,255,0.85);
-      margin-bottom: 14px;
-    }
-    .story-popup-box p:last-child { margin-bottom: 0; }
-    .story-popup-author {
-      margin-top: 16px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.5);
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
 <body>
@@ -107,7 +32,6 @@
         <a href="creator.html" class="sidebar-link" data-tooltip="Creator"><i class="fas fa-film"></i><span>Creator</span></a>
         <a href="writer.html" class="sidebar-link active" data-tooltip="Writer"><i class="fas fa-pen-nib"></i><span>Writer</span></a>
         <a href="maker.html" class="sidebar-link" data-tooltip="Maker"><i class="fas fa-cube"></i><span>Maker</span></a>
-
       </nav>
       <div class="sidebar-bottom">
         <a href="javascript:void(0)" class="sidebar-link" data-tooltip="Settings" onclick="openSettings()"><i class="fas fa-gear"></i><span>Settings</span></a>
@@ -116,16 +40,31 @@
     <main class="main-content">
       <div class="page-container">
         <div class="gallery-header">
-          <h1>Writer Gallery</h1>
+          <div class="gallery-header-left">
+            <h1>Writer Gallery</h1>
+            <button class="btn-create" onclick="openCreateModal()"><i class="fas fa-plus"></i> Write Story</button>
+          </div>
           <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search stories..." id="searchInput"></div>
         </div>
+
+        <div class="gallery-empty" id="galleryEmpty">
+          <div class="gallery-empty-icon"><i class="fas fa-pen-nib"></i></div>
+          <h3>No stories yet</h3>
+          <p>Every great universe starts with a story.</p>
+          <button class="btn-create" onclick="openCreateModal()"><i class="fas fa-plus"></i> Write Story</button>
+        </div>
+
         <div class="gallery gallery-masonry" id="writerGallery"></div>
         <div id="galleryLoading" style="text-align:center;padding:60px;"><div class="loading-spinner" style="width:32px;height:32px;border-width:2px;margin:0 auto;"></div></div>
       </div>
     </main>
   </div>
+
+  <div id="uploadModal" style="display:none;"></div>
+  <div id="editModal" style="display:none;"></div>
   <div id="confirmDialog" style="display:none;"></div>
   <div class="toast-container" id="toastContainer"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase.js"></script>
   <script src="../js/api.js"></script>
@@ -134,57 +73,342 @@
   <script>
     var defaultStories = [
       { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg',
-        story: '<p>In a small, peaceful village on Earth, Goku\'s younger brother, Luffy, was born. Unlike Goku, Luffy\'s personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.</p><p>Luffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn\'t mind; every loss made him stronger, and every challenge gave him more fire. "One day, I\'ll be as strong as you!" he\'d shout with a grin, despite his bruises.</p><p>As they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world\'s greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.</p><p>Goku would often send Luffy letters with encouragement, but Luffy\'s only reply would be a laughing message: "I\'m already on my way to being the King of the Sea, big bro!"</p><p>Years later, Luffy\'s name became known across the seas, just as Goku\'s became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected. Luffy may not have had the same calm nature as Goku, but his heart was just as pure, his dreams just as big.</p>'
-      },
+        story: 'In a small, peaceful village on Earth, Goku\'s younger brother, Luffy, was born. Unlike Goku, Luffy\'s personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.\n\nLuffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn\'t mind; every loss made him stronger, and every challenge gave him more fire. "One day, I\'ll be as strong as you!" he\'d shout with a grin, despite his bruises.\n\nAs they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world\'s greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.\n\nGoku would often send Luffy letters with encouragement, but Luffy\'s only reply would be a laughing message: "I\'m already on my way to being the King of the Sea, big bro!"\n\nYears later, Luffy\'s name became known across the seas, just as Goku\'s became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected.' },
       { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg',
-        story: '<p>Naruto, Luffy, and Goku were three young adventurers brought together by fate in a world where ninjas, pirates, and martial artists lived side by side. Though their personalities were completely different, they quickly became inseparable. Goku was calm and fearless, Luffy was wild and cheerful, while Naruto was determined and never willing to give up.</p><p>They would often train together, turning every practice session into a friendly competition. Goku challenged them to test their strength, Luffy rushed into every fight with a huge grin, and Naruto refused to let either of them get ahead. Even when they lost, they would laugh, learn, and promise to become stronger together.</p><p>As they grew older, each of them began chasing their own dream. Goku wanted to become the greatest martial artist, Luffy dreamed of becoming the Pirate King, and Naruto wanted to become Hokage and earn the respect of everyone around him. Their paths were different, but their determination was the same.</p><p>Years later, their names became legends across the world. Goku was known throughout the universe, Luffy became a feared and respected pirate, and Naruto became one of the greatest shinobi. No matter how far their journeys took them, the three friends always found their way back to each other.</p>'
-      },
+        story: 'Naruto, Luffy, and Goku were three young adventurers brought together by fate in a world where ninjas, pirates, and martial artists lived side by side. Though their personalities were completely different, they quickly became inseparable. Goku was calm and fearless, Luffy was wild and cheerful, while Naruto was determined and never willing to give up.\n\nThey would often train together, turning every practice session into a friendly competition. Goku challenged them to test their strength, Luffy rushed into every fight with a huge grin, and Naruto refused to let either of them get ahead. Even when they lost, they would laugh, learn, and promise to become stronger together.\n\nAs they grew older, each of them began chasing their own dream. Goku wanted to become the greatest martial artist, Luffy dreamed of becoming the Pirate King, and Naruto wanted to become Hokage and earn the respect of everyone around him.\n\nYears later, their names became legends across the world. No matter how far their journeys took them, the three friends always found their way back to each other.' },
       { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg',
-        story: '<p>There was something magical about a warm bowl of ramen that brought even the greatest warriors together. Every Sunday evening, Naruto, Goku, and Luffy would gather at Ichiraku Ramen, the only place in the world where a Hokage, a Saiyan, and a Pirate King could sit side by side and simply enjoy a meal.</p><p>Naruto always ordered the same thing — miso ramen with extra pork. Goku, being Goku, ordered ten bowls of everything. Luffy would吃 (eat) until the entire shop ran out of ingredients, laughing the whole time. The shop owner, Old Man Teuchi, never complained. He was proud to serve heroes.</p><p>"You know," Naruto said between slurps, "this is the best part of my day." Goku nodded, his mouth full of noodles. Luffy grinned, sauce on his face. "Better than treasure!" he declared.</p><p>They talked about their adventures, their dreams, and their friends. They laughed at each other\'s stories and cheered each other on. In those quiet moments over steaming bowls of ramen, they weren\'t legends or heroes — they were just three friends, sharing a meal and a bond that would last forever.</p>'
-      },
+        story: 'There was something magical about a warm bowl of ramen that brought even the greatest warriors together. Every Sunday evening, Naruto, Goku, and Luffy would gather at Ichiraku Ramen, the only place in the world where a Hokage, a Saiyan, and a Pirate King could sit side by side and simply enjoy a meal.\n\nNaruto always ordered the same thing — miso ramen with extra pork. Goku, being Goku, ordered ten bowls of everything. Luffy would eat until the entire shop ran out of ingredients, laughing the whole time.\n\n"You know," Naruto said between slurps, "this is the best part of my day." Goku nodded, his mouth full of noodles. Luffy grinned, sauce on his face. "Better than treasure!" he declared.\n\nThey talked about their adventures, their dreams, and their friends. In those quiet moments over steaming bowls of ramen, they weren\'t legends or heroes — they were just three friends, sharing a meal and a bond that would last forever.' },
       { id: 'default-w4', title: 'The Last Battle', cover_image_url: '../assets/images/writer/writer-pic-4.jpg',
-        story: '<p>The sky turned dark as the ultimate threat emerged — a villain so powerful that even the gods trembled. Naruto, Goku, and Luffy stood side by side, facing the enemy that threatened to destroy everything they had ever loved.</p><p>"Ready?" Goku asked, his voice calm despite the chaos around them. Naruto grinned, his eyes blazing with determination. "Always." Luffy cracked his knuckles, his hat pulled low. "Let\'s do this."</p><p>The battle was unlike anything the world had ever seen. Goku transformed through his forms, his power reaching new heights with every blow. Naruto unleashed the full force of the Nine-Tails, his chakra painting the sky in golden light. Luffy activated Gear 5, his body bending reality itself as he struck with impossible force.</p><p>Together, they were unstoppable. Each attack was perfectly timed, each movement synchronized as if they had fought together their entire lives. When the final blow landed, the darkness shattered like glass, and the sun broke through the clouds.</p><p>Breathing heavily, the three warriors looked at each other and smiled. They had won — not alone, but together. That was the power of friendship, the power of three legends who refused to give up.</p>'
-      },
+        story: 'The sky turned dark as the ultimate threat emerged — a villain so powerful that even the gods trembled. Naruto, Goku, and Luffy stood side by side, facing the enemy that threatened to destroy everything they had ever loved.\n\n"Ready?" Goku asked, his voice calm despite the chaos around them. Naruto grinned, his eyes blazing with determination. "Always." Luffy cracked his knuckles, his hat pulled low. "Let\'s do this."\n\nThe battle was unlike anything the world had ever seen. Goku transformed through his forms, his power reaching new heights with every blow. Naruto unleashed the full force of the Nine-Tails, his chakra painting the sky in golden light. Luffy activated Gear 5, his body bending reality itself.\n\nTogether, they were unstoppable. When the final blow landed, the darkness shattered like glass, and the sun broke through the clouds.\n\nBreathing heavily, the three warriors looked at each other and smiled. They had won — not alone, but together. That was the power of friendship, the power of three legends who refused to give up.' },
       { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg',
-        story: '<p>In a world where power meant everything, three names echoed across every land, every sea, every universe — Goku, Naruto, and Luffy. They were known as the GOATs, the Greatest Of All Time, and their reputation preceded them wherever they went.</p><p>But fame never changed them. Goku still trained every morning with a smile, always seeking a stronger opponent. Naruto still visited his friends in the Hidden Leaf Village, helping with whatever needed to be done. Luffy still gathered his crew, laughing and dreaming of new adventures on the Grand Line.</p><p>They met once a year at a secret location — a small island in the middle of the ocean that only they knew about. There, they would train, fight, eat, and share stories of their journeys. No cameras, no fans, no titles. Just three friends being themselves.</p><p>"You know what I love most?" Luffy said one evening, watching the sunset. "This. Just us." Goku nodded, stretching his arms behind his head. Naruto smiled. "Me too. This is what it\'s all about."</p><p>And so the GOATs continued their journeys, knowing that no matter how far apart they traveled, their bond would always bring them back together.</p>'
-      },
+        story: 'In a world where power meant everything, three names echoed across every land, every sea, every universe — Goku, Naruto, and Luffy. They were known as the GOATs, the Greatest Of All Time.\n\nBut fame never changed them. Goku still trained every morning with a smile. Naruto still visited his friends in the Hidden Leaf Village. Luffy still gathered his crew, laughing and dreaming of new adventures on the Grand Line.\n\nThey met once a year at a secret location — a small island in the middle of the ocean. There, they would train, fight, eat, and share stories. No cameras, no fans, no titles. Just three friends being themselves.\n\n"You know what I love most?" Luffy said one evening, watching the sunset. "This. Just us." Goku nodded, stretching his arms behind his head. Naruto smiled. "Me too. This is what it\'s all about."' },
       { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg',
-        story: '<p>Monkey D. Luffy had always been fearless, but when he discovered the legendary treasure of Gol D. Roger, everything changed. The treasure wasn\'t gold or jewels — it was a map to a hidden island where the greatest pirates in history had left their legacy.</p><p>Luffy gathered his crew and set sail immediately. "We\'re going to find this treasure!" he declared, his eyes shining with excitement. Zoro drew his swords, Sanji lit a cigarette, and Nami studied the map with a grin.</p><p>The journey was filled with challenges — treacherous storms, powerful enemies, and impossible obstacles. But Luffy faced every challenge with his signature grin and unwavering determination. "I\'m going to be the Pirate King!" he shouted at every storm, every enemy, every challenge.</p><p>When they finally reached the island, Luffy found something unexpected — a letter from Gol D. Roger himself. "The real treasure isn\'t on this island," it read. "It\'s the journey you took to get here, and the friends who traveled with you."</p><p>Luffy laughed, holding the letter to his chest. "He\'s right!" he said, looking at his crew. "You guys are my treasure!" And with that, the Straw Hat Pirates sailed home, their hearts full and their spirits high.</p>'
-      },
+        story: 'Monkey D. Luffy had always been fearless, but when he discovered the legendary treasure of Gol D. Roger, everything changed. The treasure wasn\'t gold or jewels — it was a map to a hidden island where the greatest pirates in history had left their legacy.\n\nLuffy gathered his crew and set sail immediately. "We\'re going to find this treasure!" he declared. The journey was filled with challenges — treacherous storms, powerful enemies, and impossible obstacles.\n\nWhen they finally reached the island, Luffy found something unexpected — a letter from Gol D. Roger himself. "The real treasure isn\'t on this island," it read. "It\'s the journey you took to get here, and the friends who traveled with you."\n\nLuffy laughed, holding the letter to his chest. "He\'s right!" he said, looking at his crew. "You guys are my treasure!"' },
       { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg',
-        story: '<p>They called him the Pirate Slayer, but that wasn\'t quite right. Roronoa Zoro didn\'t slay pirates for money or fame — he did it because it was the right thing to do. With his three swords and an unbreakable will, he had earned a reputation as the most feared swordsman in the world.</p><p>His journey began in a small village where he trained under a master swordsman. "To become truly strong," his master told him, "you must fight for something more than yourself." Those words stayed with Zoro as he grew from a young boy with a wooden sword into a legend with three blades.</p><p>Along the way, he met friends who changed his life. He joined Luffy\'s crew, finding brothers in the Straw Hat Pirates. He trained with Mihawk, his rival and inspiration. He faced death more times than he could count, but each time he rose stronger.</p><p>"The world will know my name," Zoro once said, "as the greatest swordsman who ever lived." And he was right. But what made him truly great wasn\'t his skill with a blade — it was his loyalty, his honor, and his unbreakable spirit. The Pirate Slayer had become a legend, not just for how he fought, but for why he fought.</p>'
-      },
+        story: 'They called him the Pirate Slayer, but that wasn\'t quite right. Roronoa Zoro didn\'t slay pirates for money or fame — he did it because it was the right thing to do. With his three swords and an unbreakable will, he had earned a reputation as the most feared swordsman in the world.\n\nHis journey began in a small village where he trained under a master swordsman. "To become truly strong," his master told him, "you must fight for something more than yourself."\n\nAlong the way, he met friends who changed his life. He joined Luffy\'s crew, finding brothers in the Straw Hat Pirates. He trained with Mihawk, his rival and inspiration. He faced death more times than he could count, but each time he rose stronger.\n\n"The world will know my name," Zoro once said, "as the greatest swordsman who ever lived."' },
       { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg',
-        story: '<p>In the entire multiverse, there was one combination that no enemy could defeat — the Unbeatable Combo of Goku, Naruto, and Luffy. Together, they had faced gods, aliens, demons, and pirates, and they had never lost.</p><p>The secret to their power wasn\'t just their individual strength — it was how they worked together. Goku\'s raw power, Naruto\'s strategic mind, and Luffy\'s unpredictable fighting style created a combination that was impossible to counter.</p><p>When Goku attacked with a Kamehameha, Naruto would follow with a Rasenshuriken, and Luffy would finish with a Gear 5 punch that bent reality itself. No enemy could withstand all three attacks at once.</p><p>"We\'re unstoppable!" Luffy would shout after every victory. Goku would laugh, rubbing the back of his head. Naruto would grin, crossing his arms. "Believe it!"</p><p>Their legend grew with every battle. Villains whispered their names in fear. Heroes looked up to them with admiration. And the three friends continued their journey, knowing that as long as they had each other, they could face anything the universe threw at them.</p><p>The Unbeatable Combo wasn\'t just a fighting team — it was a family, bound by friendship, loyalty, and the shared dream of protecting the world they loved.</p>'
-      }
+        story: 'In the entire multiverse, there was one combination that no enemy could defeat — the Unbeatable Combo of Goku, Naruto, and Luffy. Together, they had faced gods, aliens, demons, and pirates, and they had never lost.\n\nThe secret to their power wasn\'t just their individual strength — it was how they worked together. Goku\'s raw power, Naruto\'s strategic mind, and Luffy\'s unpredictable fighting style created a combination that was impossible to counter.\n\nWhen Goku attacked with a Kamehameha, Naruto would follow with a Rasenshuriken, and Luffy would finish with a Gear 5 punch that bent reality itself.\n\n"We\'re unstoppable!" Luffy would shout after every victory. Goku would laugh, rubbing the back of his head. Naruto would grin, crossing his arms. "Believe it!"\n\nThe Unbeatable Combo wasn\'t just a fighting team — it was a family, bound by friendship, loyalty, and the shared dream of protecting the world they loved.' }
     ];
 
-    requireAuth().then(async function() { await updateNavbarAuth(); loadGallery(); });
+    var currentUserId = null;
 
-    function openStoryPopup(bgImage, title, storyHtml) {
+    requireAuth().then(async function(user) {
+      await updateNavbarAuth();
+      if (user) currentUserId = user.id;
+      loadGallery();
+    });
+
+    function showToast(msg, type) {
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'toast ' + (type || 'info');
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(function() { toast.remove(); }, 3000);
+    }
+
+    function showConfirm(title, message) {
+      return new Promise(function(resolve) {
+        var dialog = document.getElementById('confirmDialog');
+        dialog.style.display = 'block';
+        dialog.innerHTML = '<div class="confirm-overlay" onclick="event.target===this && document.getElementById(\'confirmDialog\').style.display=\'none\'">' +
+          '<div class="confirm-box"><h4>' + title + '</h4><p>' + message + '</p>' +
+          '<div class="confirm-actions"><button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'confirmDialog\').style.display=\'none\'">Cancel</button><button class="btn btn-primary btn-sm" id="confirmYesBtn">Delete</button></div></div></div>';
+        document.getElementById('confirmYesBtn').onclick = function() { dialog.style.display = 'none'; resolve(true); };
+      });
+    }
+
+    /* ---- Story popup for default stories ---- */
+    function openStoryPopup(bgImage, title, storyText) {
+      var paragraphs = storyText.split('\n\n').map(function(p) { return '<p>' + p + '</p>'; }).join('');
       var overlay = document.createElement('div');
       overlay.className = 'story-popup-overlay';
       overlay.style.backgroundImage = 'url(' + bgImage + ')';
       overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
       overlay.innerHTML = '<button class="story-popup-close" onclick="this.parentElement.remove()"><i class="fas fa-arrow-left"></i></button>' +
-        '<div class="story-popup-content">' +
-          '<h2>' + title + '</h2>' +
-          '<div class="story-popup-box">' + storyHtml + '</div>' +
-        '</div>';
+        '<div class="story-popup-content"><h2>' + title + '</h2><div class="story-popup-box">' + paragraphs + '</div></div>';
       document.body.appendChild(overlay);
     }
 
-    document.getElementById('searchInput').addEventListener('input', function() {
-      var q = this.value.toLowerCase();
-      document.querySelectorAll('#writerGallery .creation-card').forEach(function(card) {
-        card.style.display = card.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+    /* ---- Create Story Modal ---- */
+    var _uploadCoverFile = null;
+
+    function openCreateModal() {
+      _uploadCoverFile = null;
+      var modal = document.getElementById('uploadModal');
+      modal.style.display = 'block';
+      modal.innerHTML = '<div class="upload-modal-overlay" onclick="if(event.target===this)closeCreateModal()">' +
+        '<div class="upload-modal" onclick="event.stopPropagation()" style="max-width:700px;">' +
+          '<div class="upload-modal-header"><h3>Write a Story</h3><button class="upload-modal-close" onclick="closeCreateModal()"><i class="fas fa-xmark"></i></button></div>' +
+          '<div class="upload-modal-body">' +
+            '<div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar-bg"><div class="upload-progress-bar" id="uploadProgressBar"></div></div><div class="upload-progress-text" id="uploadProgressText">Uploading...</div></div>' +
+            '<div class="upload-dropzone" id="dropzone" style="padding:20px;">' +
+              '<div class="upload-dropzone-icon"><i class="fas fa-image"></i></div>' +
+              '<h4>Upload cover image (optional)</h4><p>JPG, PNG, WEBP, GIF — Max 10MB</p>' +
+            '</div>' +
+            '<div class="upload-preview" id="mediaPreview"></div>' +
+            '<input type="file" id="fileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">' +
+            '<div class="form-group"><label>Story Title *</label><input type="text" id="uploadTitle" placeholder="Give your story a title" maxlength="150"></div>' +
+            '<div class="form-group"><label>Short Summary</label><input type="text" id="uploadSummary" placeholder="A brief summary of your story" maxlength="300"></div>' +
+            '<div class="form-group"><label>Genre</label>' +
+              '<select id="uploadGenre">' +
+                '<option value="">Select genre...</option>' +
+                '<option value="Action">Action</option>' +
+                '<option value="Adventure">Adventure</option>' +
+                '<option value="Comedy">Comedy</option>' +
+                '<option value="Drama">Drama</option>' +
+                '<option value="Fantasy">Fantasy</option>' +
+                '<option value="Horror">Horror</option>' +
+                '<option value="Romance">Romance</option>' +
+                '<option value="Sci-Fi">Sci-Fi</option>' +
+                '<option value="Slice of Life">Slice of Life</option>' +
+                '<option value="Thriller">Thriller</option>' +
+                '<option value="Fan Fiction">Fan Fiction</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="form-group"><label>Tags (comma separated)</label><input type="text" id="uploadTags" placeholder="anime, crossover, adventure" maxlength="200"></div>' +
+            '<div class="form-group"><label>Story Content *</label>' +
+              '<textarea class="story-editor-area" id="uploadStoryContent" placeholder="Write your story here..." maxlength="50000"></textarea>' +
+              '<div class="story-editor-footer"><span id="wordCount">0 words · 0 characters</span><span id="readingTime">~0 min read</span></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="upload-modal-footer">' +
+            '<button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>' +
+            '<button class="btn btn-primary" id="publishBtn" onclick="handlePublish()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+      setupDropzone();
+      updateWordCount();
+      document.getElementById('uploadStoryContent').addEventListener('input', updateWordCount);
+    }
+
+    function closeCreateModal() {
+      document.getElementById('uploadModal').style.display = 'none';
+      _uploadCoverFile = null;
+    }
+
+    function setupDropzone() {
+      var dz = document.getElementById('dropzone');
+      var fi = document.getElementById('fileInput');
+      if (!dz || !fi) return;
+      dz.addEventListener('click', function() { fi.click(); });
+      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]); });
+      fi.addEventListener('change', function(e) { if (e.target.files[0]) handleFileSelect(e.target.files[0]); });
+    }
+
+    function handleFileSelect(file) {
+      if (!VALID_IMAGE_TYPES.includes(file.type)) { showToast('Please select an image file.', 'error'); return; }
+      if (file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
+      _uploadCoverFile = file;
+      var preview = document.getElementById('mediaPreview');
+      var dz = document.getElementById('dropzone');
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        preview.innerHTML = '<img src="' + e.target.result + '"><button class="upload-preview-remove" onclick="removeUploadFile()"><i class="fas fa-xmark"></i></button>';
+        preview.classList.add('active');
+        if (dz) dz.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeUploadFile() {
+      _uploadCoverFile = null;
+      var preview = document.getElementById('mediaPreview');
+      preview.classList.remove('active'); preview.innerHTML = '';
+      var dz = document.getElementById('dropzone');
+      if (dz) dz.style.display = '';
+      document.getElementById('fileInput').value = '';
+    }
+
+    function updateWordCount() {
+      var content = (document.getElementById('uploadStoryContent') || {}).value || '';
+      var words = content.trim() ? content.trim().split(/\s+/).length : 0;
+      var chars = content.length;
+      var minutes = Math.max(1, Math.round(words / 200));
+      var wc = document.getElementById('wordCount');
+      var rt = document.getElementById('readingTime');
+      if (wc) wc.textContent = words + ' words · ' + chars + ' characters';
+      if (rt) rt.textContent = '~' + minutes + ' min read';
+    }
+
+    async function handlePublish() {
+      var btn = document.getElementById('publishBtn');
+      if (!btn || btn.disabled) return;
+      var title = (document.getElementById('uploadTitle') || {}).value || '';
+      var summary = (document.getElementById('uploadSummary') || {}).value || '';
+      var genre = (document.getElementById('uploadGenre') || {}).value || '';
+      var tagsStr = (document.getElementById('uploadTags') || {}).value || '';
+      var storyContent = (document.getElementById('uploadStoryContent') || {}).value || '';
+      if (!title.trim()) { showToast('Please enter a title.', 'error'); return; }
+      if (!storyContent.trim()) { showToast('Please write your story.', 'error'); return; }
+
+      var tags = tagsStr.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
+      document.getElementById('uploadProgress').classList.add('active');
+
+      try {
+        var data = {
+          type: 'writer',
+          title: title.trim(),
+          description: summary.trim(),
+          genre: genre,
+          tags: tags,
+          story_content: storyContent
+        };
+
+        if (_uploadCoverFile) {
+          var result = await uploadCreationFile(_uploadCoverFile, 'creations', function(pct) {
+            document.getElementById('uploadProgressBar').style.width = pct + '%';
+            document.getElementById('uploadProgressText').textContent = pct < 100 ? 'Uploading cover... ' + pct + '%' : 'Processing...';
+          });
+          data.cover_image_url = result.url;
+        }
+
+        await createCreation(data);
+        closeCreateModal();
+        showToast('Story published!', 'success');
+        loadGallery();
+      } catch (err) {
+        showToast(err.message || 'Failed to publish.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
+        document.getElementById('uploadProgress').classList.remove('active');
+      }
+    }
+
+    /* ---- Edit Story Modal ---- */
+    function openEditModal(id) {
+      fetchCreation(id).then(function(c) {
+        if (!c) return;
+        var tagsStr = (c.tags || []).join(', ');
+        var modal = document.getElementById('editModal');
+        modal.style.display = 'block';
+        modal.innerHTML = '<div class="upload-modal-overlay" onclick="if(event.target===this)closeEditModal()">' +
+          '<div class="upload-modal" onclick="event.stopPropagation()" style="max-width:700px;">' +
+            '<div class="upload-modal-header"><h3>Edit Story</h3><button class="upload-modal-close" onclick="closeEditModal()"><i class="fas fa-xmark"></i></button></div>' +
+            '<div class="upload-modal-body">' +
+              '<div class="form-group"><label>Title *</label><input type="text" id="editTitle" value="' + postEscapeHtml(c.title) + '" maxlength="150"></div>' +
+              '<div class="form-group"><label>Summary</label><input type="text" id="editSummary" value="' + postEscapeHtml(c.description || '') + '" maxlength="300"></div>' +
+              '<div class="form-group"><label>Genre</label>' +
+                '<select id="editGenre">' +
+                  '<option value="">Select genre...</option>' +
+                  '<option value="Action"' + (c.genre === 'Action' ? ' selected' : '') + '>Action</option>' +
+                  '<option value="Adventure"' + (c.genre === 'Adventure' ? ' selected' : '') + '>Adventure</option>' +
+                  '<option value="Comedy"' + (c.genre === 'Comedy' ? ' selected' : '') + '>Comedy</option>' +
+                  '<option value="Drama"' + (c.genre === 'Drama' ? ' selected' : '') + '>Drama</option>' +
+                  '<option value="Fantasy"' + (c.genre === 'Fantasy' ? ' selected' : '') + '>Fantasy</option>' +
+                  '<option value="Horror"' + (c.genre === 'Horror' ? ' selected' : '') + '>Horror</option>' +
+                  '<option value="Romance"' + (c.genre === 'Romance' ? ' selected' : '') + '>Romance</option>' +
+                  '<option value="Sci-Fi"' + (c.genre === 'Sci-Fi' ? ' selected' : '') + '>Sci-Fi</option>' +
+                  '<option value="Slice of Life"' + (c.genre === 'Slice of Life' ? ' selected' : '') + '>Slice of Life</option>' +
+                  '<option value="Thriller"' + (c.genre === 'Thriller' ? ' selected' : '') + '>Thriller</option>' +
+                  '<option value="Fan Fiction"' + (c.genre === 'Fan Fiction' ? ' selected' : '') + '>Fan Fiction</option>' +
+                '</select>' +
+              '</div>' +
+              '<div class="form-group"><label>Tags</label><input type="text" id="editTags" value="' + postEscapeHtml(tagsStr) + '" maxlength="200"></div>' +
+              '<div class="form-group"><label>Story Content *</label>' +
+                '<textarea class="story-editor-area" id="editStoryContent" maxlength="50000">' + postEscapeHtml(c.story_content || '') + '</textarea>' +
+              '</div>' +
+            '</div>' +
+            '<div class="upload-modal-footer">' +
+              '<button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>' +
+              '<button class="btn btn-primary" id="saveEditBtn" onclick="handleSaveEdit(\'' + c.id + '\')"><i class="fas fa-check" style="margin-right:6px;"></i>Save</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
       });
+    }
+
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    async function handleSaveEdit(id) {
+      var btn = document.getElementById('saveEditBtn');
+      btn.disabled = true;
+      var title = (document.getElementById('editTitle') || {}).value || '';
+      var summary = (document.getElementById('editSummary') || {}).value || '';
+      var genre = (document.getElementById('editGenre') || {}).value || '';
+      var tagsStr = (document.getElementById('editTags') || {}).value || '';
+      var storyContent = (document.getElementById('editStoryContent') || {}).value || '';
+      if (!title.trim()) { showToast('Title is required.', 'error'); btn.disabled = false; return; }
+      var tags = tagsStr.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+      try {
+        await updateCreation(id, { title: title.trim(), description: summary.trim(), genre: genre, tags: tags, story_content: storyContent });
+        closeEditModal();
+        showToast('Story updated!', 'success');
+        loadGallery();
+      } catch (err) {
+        showToast(err.message || 'Failed to update.', 'error');
+        btn.disabled = false;
+      }
+    }
+
+    /* ---- Delete ---- */
+    async function handleDelete(id) {
+      var confirmed = await showConfirm('Delete Story', 'Are you sure you want to delete this story? This action cannot be undone.');
+      if (!confirmed) return;
+      try { await deleteCreation(id); showToast('Deleted.', 'success'); var card = document.querySelector('[data-creation-id="' + id + '"]'); if (card) card.remove(); checkEmpty(); }
+      catch (err) { showToast(err.message || 'Failed to delete.', 'error'); }
+    }
+
+    function checkEmpty() {
+      var gallery = document.getElementById('writerGallery');
+      var empty = document.getElementById('galleryEmpty');
+      var cards = gallery.querySelectorAll('.creation-card');
+      if (cards.length === 0) empty.classList.add('active'); else empty.classList.remove('active');
+    }
+
+    /* ---- Search ---- */
+    var searchTimeout = null;
+    document.getElementById('searchInput').addEventListener('input', function() {
+      var q = this.value;
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(async function() {
+        var gallery = document.getElementById('writerGallery');
+        gallery.querySelectorAll('[data-creation-id]').forEach(function(c) { c.remove(); });
+        var results = q.trim() ? await searchCreations(q, 'writer') : await fetchCreations({ limit: 50, type: 'writer' });
+        results.forEach(function(c) { gallery.appendChild(renderSupabaseCard(c)); });
+        checkEmpty();
+      }, 300);
     });
 
+    function renderSupabaseCard(c) {
+      var profile = c.profiles || {};
+      var isOwner = currentUserId && c.user_id === currentUserId;
+      var card = document.createElement('div');
+      card.className = 'creation-card';
+      card.setAttribute('data-creation-id', c.id);
+      card.onclick = function(e) { if (e.target.closest('.creation-card-action-btn')) return; openStoryDetail(c.id); };
+      var actionsHtml = isOwner ? '<div class="creation-card-actions">' +
+        '<button class="creation-card-action-btn" onclick="event.stopPropagation();openEditModal(\'' + c.id + '\')"><i class="fas fa-pen"></i></button>' +
+        '<button class="creation-card-action-btn delete" onclick="event.stopPropagation();handleDelete(\'' + c.id + '\')"><i class="fas fa-trash"></i></button>' +
+      '</div>' : '';
+      var coverHtml = c.cover_image_url
+        ? '<img src="' + c.cover_image_url + '" loading="lazy">'
+        : '<div style="display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);height:200px;"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--text-muted);"></i></div>';
+      var genreHtml = c.genre ? '<span style="font-size:11px;background:var(--accent-muted);color:var(--accent);padding:2px 8px;border-radius:20px;">' + postEscapeHtml(c.genre) + '</span>' : '';
+      var excerpt = c.story_content ? postEscapeHtml(c.story_content.substring(0, 100)) + '...' : '';
+      card.innerHTML = '<div class="creation-card-image">' + coverHtml + actionsHtml + '</div>' +
+        '<div class="creation-card-body">' +
+          '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
+          (excerpt ? '<div style="font-size:13px;color:var(--text-muted);margin:4px 0;line-height:1.4;">' + excerpt + '</div>' : '') +
+          '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span>' + genreHtml + '</div>' +
+          '<div class="creation-card-meta"><span>' + estimateReadingTime(c.story_content) + '</span><span>' + timeAgo(c.created_at) + '</span></div>' +
+        '</div>';
+      return card;
+    }
+
+    /* ---- Load Gallery ---- */
     async function loadGallery() {
       var container = document.getElementById('writerGallery');
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
+      container.innerHTML = '';
 
       var creations = await fetchCreations({ limit: 50, type: 'writer' });
       loading.style.display = 'none';
@@ -194,29 +418,12 @@
         card.className = 'creation-card';
         card.onclick = function() { openStoryPopup(c.cover_image_url, c.title, c.story); };
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
-          '<div class="creation-card-body">' +
-            '<div class="creation-card-title">' + c.title + '</div>' +
-          '</div>';
+          '<div class="creation-card-body"><div class="creation-card-title">' + c.title + '</div></div>';
         container.appendChild(card);
       });
 
-      creations.forEach(function(c) {
-        var profile = c.profiles || {};
-        var card = document.createElement('div');
-        card.className = 'creation-card';
-        card.setAttribute('data-creation-id', c.id);
-        card.onclick = function() { openStoryDetail(c.id); };
-        var coverHtml = c.cover_image_url
-          ? '<img src="' + c.cover_image_url + '" loading="lazy">'
-          : '<div style="display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);height:200px;"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--text-muted);"></i></div>';
-        card.innerHTML = '<div class="creation-card-image">' + coverHtml + '</div>' +
-          '<div class="creation-card-body">' +
-            '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
-            '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span></div>' +
-            '<div class="creation-card-meta"><span>' + timeAgo(c.created_at) + '</span></div>' +
-          '</div>';
-        container.appendChild(card);
-      });
+      creations.forEach(function(c) { container.appendChild(renderSupabaseCard(c)); });
+      checkEmpty();
     }
   </script>
 </body>

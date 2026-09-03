@@ -1,18 +1,17 @@
 -- =====================================================
--- AniMaker Creations System — Supabase SQL Setup
+-- AniMaker Creations System — Supabase SQL Setup (v2)
 -- Run this in: Supabase Dashboard → SQL Editor → New Query → Run
 -- =====================================================
 
--- 1. Drop old posts table if it exists (or keep for reference)
--- DROP TABLE IF EXISTS posts;
-
--- 2. Create creations table
+-- 1. Create creations table (with genre + tags)
 CREATE TABLE IF NOT EXISTS creations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   type TEXT NOT NULL CHECK (type IN ('creator', 'writer', 'maker')),
   title TEXT NOT NULL DEFAULT '',
   description TEXT DEFAULT '',
+  genre TEXT DEFAULT '',
+  tags TEXT[] DEFAULT '{}',
   cover_image_url TEXT DEFAULT '',
   media_url TEXT DEFAULT '',
   story_content TEXT DEFAULT '',
@@ -20,10 +19,22 @@ CREATE TABLE IF NOT EXISTS creations (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 2. Add columns if table already exists (safe migration)
+DO $$ BEGIN
+  ALTER TABLE creations ADD COLUMN IF NOT EXISTS genre TEXT DEFAULT '';
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE creations ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+
 -- 3. Indexes
 CREATE INDEX IF NOT EXISTS idx_creations_user_id ON creations(user_id);
 CREATE INDEX IF NOT EXISTS idx_creations_type ON creations(type);
 CREATE INDEX IF NOT EXISTS idx_creations_created_at ON creations(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_creations_genre ON creations(genre);
 
 -- 4. Enable Row Level Security
 ALTER TABLE creations ENABLE ROW LEVEL SECURITY;
@@ -31,7 +42,12 @@ ALTER TABLE creations ENABLE ROW LEVEL SECURITY;
 -- 5. Grant permissions
 GRANT SELECT, INSERT, UPDATE, DELETE ON creations TO authenticated;
 
--- 6. RLS Policies
+-- 6. Drop old policies if they exist, then recreate
+DROP POLICY IF EXISTS "Creations are publicly viewable" ON creations;
+DROP POLICY IF EXISTS "Users can create their own creations" ON creations;
+DROP POLICY IF EXISTS "Users can update their own creations" ON creations;
+DROP POLICY IF EXISTS "Users can delete their own creations" ON creations;
+
 CREATE POLICY "Creations are publicly viewable"
   ON creations FOR SELECT USING (true);
 
@@ -40,13 +56,6 @@ CREATE POLICY "Users can create their own creations"
 
 CREATE POLICY "Users can update their own creations"
   ON creations FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE OR REPLACE FUNCTION handle_creation_deleted()
-RETURNS TRIGGER AS $$
-BEGIN
-  RETURN OLD;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE POLICY "Users can delete their own creations"
   ON creations FOR DELETE USING (auth.uid() = user_id);
@@ -70,7 +79,6 @@ CREATE TRIGGER on_creation_updated
 -- Storage Buckets
 -- =====================================================
 
--- Create storage buckets
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('creations', 'creations', true)
 ON CONFLICT (id) DO NOTHING;
@@ -88,6 +96,14 @@ ON CONFLICT (id) DO NOTHING;
 -- =====================================================
 
 -- Creations bucket (images)
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Creations images are publicly accessible" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can upload creations images" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can update their own creations images" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can delete their own creations images" ON storage.objects;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
 CREATE POLICY "Creations images are publicly accessible"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'creations');
@@ -114,6 +130,14 @@ CREATE POLICY "Users can delete their own creations images"
   );
 
 -- Maker videos bucket
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Maker videos are publicly accessible" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can upload maker videos" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can update their own maker videos" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can delete their own maker videos" ON storage.objects;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
 CREATE POLICY "Maker videos are publicly accessible"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'maker-videos');
@@ -140,6 +164,14 @@ CREATE POLICY "Users can delete their own maker videos"
   );
 
 -- Maker thumbnails bucket
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Maker thumbnails are publicly accessible" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can upload maker thumbnails" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can update their own maker thumbnails" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can delete their own maker thumbnails" ON storage.objects;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
 CREATE POLICY "Maker thumbnails are publicly accessible"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'maker-thumbnails');
@@ -170,18 +202,3 @@ CREATE POLICY "Users can delete their own maker thumbnails"
 -- =====================================================
 GRANT SELECT, INSERT, UPDATE, DELETE ON storage.objects TO authenticated;
 GRANT SELECT ON storage.buckets TO authenticated;
-
--- =====================================================
--- Optional: Migrate existing posts to creations
--- =====================================================
--- INSERT INTO creations (id, user_id, type, title, description, cover_image_url, media_url, created_at)
--- SELECT id, user_id, 'creator', title, caption, '',
---   CASE WHEN media_type = 'image' THEN media_url ELSE '' END,
---   created_at
--- FROM posts
--- WHERE media_type = 'image';
-
--- INSERT INTO creations (id, user_id, type, title, description, cover_image_url, media_url, created_at)
--- SELECT id, user_id, 'maker', title, caption, '', media_url, created_at
--- FROM posts
--- WHERE media_type = 'video';

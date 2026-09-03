@@ -112,6 +112,8 @@ async function createCreation(data) {
     type: data.type,
     title: data.title || '',
     description: data.description || '',
+    genre: data.genre || '',
+    tags: data.tags || [],
     cover_image_url: data.cover_image_url || '',
     media_url: data.media_url || '',
     story_content: data.story_content || ''
@@ -179,14 +181,17 @@ async function updateCreation(id, updates) {
   var session = await getSession();
   if (!session || !session.user) throw new Error('Not authenticated');
 
+  var updateData = {};
+  if (updates.title !== undefined) updateData.title = updates.title;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.cover_image_url !== undefined) updateData.cover_image_url = updates.cover_image_url;
+  if (updates.story_content !== undefined) updateData.story_content = updates.story_content;
+  if (updates.genre !== undefined) updateData.genre = updates.genre;
+  if (updates.tags !== undefined) updateData.tags = updates.tags;
+
   var { data, error } = await supabaseClient
     .from('creations')
-    .update({
-      title: updates.title,
-      description: updates.description,
-      cover_image_url: updates.cover_image_url,
-      story_content: updates.story_content
-    })
+    .update(updateData)
     .eq('id', id)
     .eq('user_id', session.user.id)
     .select()
@@ -316,6 +321,33 @@ function getCreationUserAvatar(profile, size) {
 function getCreationUserName(profile) {
   if (!profile) return 'Unknown';
   return profile.full_name || profile.username || 'Unknown';
+}
+
+/* ---- Search creations ---- */
+async function searchCreations(query, type) {
+  if (!supabaseClient || !query || !query.trim()) return await fetchCreations({ limit: 50, type: type });
+
+  var q = query.trim();
+
+  var queryBuilder = supabaseClient
+    .from('creations')
+    .select('*, profiles:user_id(username, full_name, avatar_url, role)')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (type) queryBuilder = queryBuilder.eq('type', type);
+
+  // Search across title, description, genre, and tags
+  queryBuilder = queryBuilder.or(
+    'title.ilike.%' + q + '%,description.ilike.%' + q + '%,genre.ilike.%' + q + '%,story_content.ilike.%' + q + '%'
+  );
+
+  var { data, error } = await queryBuilder;
+  if (error) {
+    console.error('[AniMaker] searchCreations error:', error.message);
+    return [];
+  }
+  return data || [];
 }
 
 /* ---- Detail View Functions ---- */

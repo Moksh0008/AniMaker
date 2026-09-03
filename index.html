@@ -400,7 +400,8 @@
           '<input type="file" id="createFileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">' +
           '<div class="form-group"><label>Title *</label><input type="text" id="createTitle" placeholder="Give your creation a name" maxlength="100"></div>' +
           '<div class="form-group"><label>Short description</label><input type="text" id="createShortDesc" placeholder="One line about this creation" maxlength="200"></div>' +
-          '<div class="form-group"><label>Full description *</label><textarea id="createDesc" placeholder="Describe your creation in detail..." maxlength="2000" rows="5"></textarea></div>';
+          '<div class="form-group"><label>Full description *</label><textarea id="createDesc" placeholder="Describe your creation in detail..." maxlength="2000" rows="5"></textarea></div>' +
+          '<div class="form-group"><label>Tags (comma separated)</label><input type="text" id="createTags" placeholder="anime, fusion, dragon ball" maxlength="200"></div>';
       } else if (type === 'writer') {
         formHtml =
           '<div class="create-upload-zone" id="createDropzone" style="margin-bottom:16px;">' +
@@ -412,7 +413,11 @@
           '<input type="file" id="createFileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">' +
           '<div class="form-group"><label>Story title *</label><input type="text" id="createTitle" placeholder="Give your story a title" maxlength="150"></div>' +
           '<div class="form-group"><label>Short summary</label><input type="text" id="createShortDesc" placeholder="A brief summary of your story" maxlength="300"></div>' +
-          '<div class="form-group"><label>Story content *</label><textarea id="createStoryContent" class="story-editor" placeholder="Write your story here..." maxlength="50000"></textarea></div>';
+          '<div class="form-group"><label>Genre</label>' +
+            '<select id="createGenre" style="width:100%;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px;"><option value="">Select genre...</option><option value="Action">Action</option><option value="Adventure">Adventure</option><option value="Comedy">Comedy</option><option value="Drama">Drama</option><option value="Fantasy">Fantasy</option><option value="Sci-Fi">Sci-Fi</option><option value="Fan Fiction">Fan Fiction</option></select>' +
+          '</div>' +
+          '<div class="form-group"><label>Tags (comma separated)</label><input type="text" id="createTags" placeholder="anime, crossover, adventure" maxlength="200"></div>' +
+          '<div class="form-group"><label>Story content *</label><textarea id="createStoryContent" class="story-editor" placeholder="Write your story here..." maxlength="50000" style="min-height:200px;font-family:Georgia,serif;line-height:1.8;"></textarea></div>';
       } else if (type === 'maker') {
         formHtml =
           '<div class="create-upload-zone" id="createDropzone" style="margin-bottom:16px;">' +
@@ -424,6 +429,7 @@
           '<input type="file" id="createFileInput" style="display:none" accept="video/mp4,video/webm">' +
           '<div class="form-group"><label>Video title *</label><input type="text" id="createTitle" placeholder="Name your video" maxlength="150"></div>' +
           '<div class="form-group"><label>Description</label><textarea id="createDesc" placeholder="Describe your video..." maxlength="2000" rows="3"></textarea></div>' +
+          '<div class="form-group"><label>Tags (comma separated)</label><input type="text" id="createTags" placeholder="animation, anime, short film" maxlength="200"></div>' +
           '<div class="create-upload-zone" id="createThumbDropzone" style="margin-bottom:16px;padding:16px;">' +
             '<p style="margin:0;font-size:13px;color:var(--text-muted);"><i class="fas fa-image" style="margin-right:6px;"></i> Upload thumbnail (optional)</p>' +
           '</div>' +
@@ -508,7 +514,9 @@
       if (progressEl) progressEl.classList.add('active');
 
       try {
-        var data = { type: _createType, title: title };
+        var tagsStr = (document.getElementById('createTags') || {}).value || '';
+        var tags = tagsStr.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+        var data = { type: _createType, title: title, tags: tags };
 
         if (_createType === 'creator') {
           var shortDesc = (document.getElementById('createShortDesc') || {}).value || '';
@@ -524,8 +532,10 @@
           var shortDesc = (document.getElementById('createShortDesc') || {}).value || '';
           var storyContent = (document.getElementById('createStoryContent') || {}).value || '';
           if (!storyContent.trim()) { showToast('Please write your story.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
+          var genre = (document.getElementById('createGenre') || {}).value || '';
           data.description = shortDesc.trim();
           data.story_content = storyContent;
+          data.genre = genre;
           if (_createFile) {
             var coverResult = await uploadCreationFile(_createFile, 'creations', function(pct) {
               if (barEl) barEl.style.width = pct + '%';

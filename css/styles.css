@@ -4271,3 +4271,381 @@ textarea.form-input {
   display: inline-block;
   width: 100%;
 }
+
+/* ============================================
+   Upload Modals & Create Buttons
+   ============================================ */
+
+/* --- Gallery Header Actions --- */
+.gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gallery-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--accent), #9b7eff);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 14px;  
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.3);
+  white-space: nowrap;
+}
+.btn-create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(124, 92, 252, 0.4);
+}
+.btn-create:active {
+  transform: translateY(0);
+}
+.btn-create i {
+  font-size: 16px;
+}
+
+/* --- Upload Modal Overlay --- */
+.upload-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 6000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+
+.upload-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  animation: scaleIn 0.2s ease;
+}
+
+.upload-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.upload-modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.upload-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.upload-modal-close:hover {
+  background: var(--bg-card-hover);
+  color: #fff;
+}
+
+.upload-modal-body {
+  padding: 24px;
+}
+
+.upload-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+
+/* --- Upload Dropzone --- */
+.upload-dropzone {
+  border: 2px dashed var(--border-hover);
+  border-radius: var(--radius-md);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: var(--bg-tertiary);
+  margin-bottom: 16px;
+}
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+.upload-dropzone-icon {
+  font-size: 40px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.upload-dropzone h4 {
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+.upload-dropzone p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* --- Upload Preview --- */
+.upload-preview {
+  position: relative;
+  margin-bottom: 16px;
+  display: none;
+}
+.upload-preview.active {
+  display: block;
+}
+.upload-preview img,
+.upload-preview video {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+.upload-preview-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+.upload-preview-remove:hover { background: var(--error); }
+
+/* --- Form Groups in Modal --- */
+.upload-modal-body .form-group {
+  margin-bottom: 16px;
+}
+.upload-modal-body .form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.upload-modal-body input[type="text"],
+.upload-modal-body textarea,
+.upload-modal-body select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-fast);
+}
+.upload-modal-body input[type="text"]:focus,
+.upload-modal-body textarea:focus,
+.upload-modal-body select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.upload-modal-body textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+.upload-modal-body select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6980' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+.upload-modal-body select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* --- Story Editor --- */
+.story-editor-area {
+  width: 100%;
+  min-height: 300px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: Georgia, 'Times New Roman', serif;
+  line-height: 1.8;
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+.story-editor-area:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.story-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* --- Upload Progress --- */
+.upload-progress {
+  display: none;
+  margin-bottom: 16px;
+}
+.upload-progress.active { display: block; }
+.upload-progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.upload-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--pink));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+.upload-progress-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* --- Empty State --- */
+.gallery-empty {
+  text-align: center;
+  padding: 60px 20px;
+  display: none;
+}
+.gallery-empty.active {
+  display: block;
+}
+.gallery-empty-icon {
+  font-size: 48px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+.gallery-empty h3 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.gallery-empty p {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* --- Skeleton Loading --- */
+.skeleton-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  animation: pulse 1.5s infinite;
+}
+.skeleton-image {
+  width: 100%;
+  height: 200px;
+  background: var(--bg-tertiary);
+}
+.skeleton-text {
+  height: 14px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  margin: 12px 16px;
+  width: 70%;
+}
+.skeleton-text-short {
+  width: 40%;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* --- Edit/Delete Buttons on Cards --- */
+.creation-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+.creation-card:hover .creation-card-actions {
+  opacity: 1;
+}
+.creation-card-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  border: none;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+.creation-card-action-btn:hover {
+  background: var(--accent);
+}
+.creation-card-action-btn.delete:hover {
+  background: var(--error);
+}
+.creation-card {
+  position: relative;
+}
