@@ -1067,20 +1067,20 @@
           var desc = ((document.getElementById('pDesc') || {}).value || '').trim();
           if (!desc) { showToast('Please add a description.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
           data.description = shortD + '\n\n' + desc;
-          var r = await uploadCreationFile(_pCreateFile, 'creations', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading... ' + p + '%' : 'Processing...'; });
+          var r = await uploadCreationFile(_pCreateFile, 'uploads', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading... ' + p + '%' : 'Processing...'; });
           data.cover_image_url = r.url;
         } else if (_pCreateType === 'writer') {
           var shortD = ((document.getElementById('pShortDesc') || {}).value || '').trim();
           var story = ((document.getElementById('pStoryContent') || {}).value || '').trim();
           if (!story) { showToast('Please write your story.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish'; return; }
           data.description = shortD; data.story_content = story;
-          if (_pCreateFile) { var r = await uploadCreationFile(_pCreateFile, 'creations', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading cover... ' + p + '%' : 'Processing...'; }); data.cover_image_url = r.url; }
+          if (_pCreateFile) { var r = await uploadCreationFile(_pCreateFile, 'uploads', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading cover... ' + p + '%' : 'Processing...'; }); data.cover_image_url = r.url; }
         } else {
           var desc = ((document.getElementById('pDesc') || {}).value || '').trim();
           data.description = desc;
-          var r = await uploadCreationFile(_pCreateFile, 'maker-videos', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading video... ' + p + '%' : 'Processing...'; });
+          var r = await uploadCreationFile(_pCreateFile, 'uploads', function(p) { if (barEl) barEl.style.width = p + '%'; if (textEl) textEl.textContent = p < 100 ? 'Uploading video... ' + p + '%' : 'Processing...'; });
           data.media_url = r.url;
-          if (_pCreateCover) { var tr = await uploadCreationFile(_pCreateCover, 'maker-thumbnails', function() {}); data.cover_image_url = tr.url; }
+          if (_pCreateCover) { var tr = await uploadCreationFile(_pCreateCover, 'uploads', function() {}); data.cover_image_url = tr.url; }
         }
         await createCreation(data);
         closeCreatePostProfile();
