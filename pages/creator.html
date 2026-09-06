@@ -577,8 +577,8 @@
         var card = document.createElement('div');
         card.className = 'creation-card';
         if (realId) {
-          // Use real database ID — full social features
-          card.onclick = function() { openCreatorDetail(realId); };
+          // Use real database ID — full social features, but override user info for defaults
+          card.onclick = (function(rid, u) { return function() { openCreatorDetail(rid, { username: u.name, full_name: u.name, avatar_url: u.avatar }); }; })(realId, user);
         } else {
           // Fallback to popup if database insert failed
           card.onclick = function(u, a, t) { return function() { openCreatorPopup(c.cover_image_url, c.title, c.points, u, a, t); }; }(user.name, user.avatar, randomDates[i % randomDates.length]);

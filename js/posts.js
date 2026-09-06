@@ -324,10 +324,10 @@ async function searchCreations(query, type) {
 
 /* ---- Detail View Functions ---- */
 
-function openCreatorDetail(id) {
+function openCreatorDetail(id, userOverride) {
   fetchCreation(id).then(async function(c) {
     if (!c) return;
-    var profile = c.profiles || {};
+    var profile = userOverride || c.profiles || {};
     var userName = getCreationUserName(profile);
     var desc = postEscapeHtml(c.description || '').replace(/\n/g, '<br>');
     var session = await getSession();
@@ -380,10 +380,10 @@ function openCreatorDetail(id) {
   });
 }
 
-function openStoryDetail(id) {
+function openStoryDetail(id, userOverride) {
   fetchCreation(id).then(async function(c) {
     if (!c) return;
-    var profile = c.profiles || {};
+    var profile = userOverride || c.profiles || {};
     var session = await getSession();
     var isOwn = session && session.user && c.user_id === session.user.id;
 
@@ -435,10 +435,10 @@ function openStoryDetail(id) {
   });
 }
 
-function openMakerDetail(id) {
+function openMakerDetail(id, userOverride) {
   fetchCreation(id).then(async function(c) {
     if (!c) return;
-    var profile = c.profiles || {};
+    var profile = userOverride || c.profiles || {};
     var session = await getSession();
     var isOwn = session && session.user && c.user_id === session.user.id;
 

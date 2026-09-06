@@ -448,7 +448,7 @@
         var card = document.createElement('div');
         card.className = 'creation-card';
         if (realId) {
-          card.onclick = function() { openMakerDetail(realId); };
+          card.onclick = (function(rid, u) { return function() { openMakerDetail(rid, { username: u.name, full_name: u.name, avatar_url: u.avatar }); }; })(realId, user);
         } else {
           card.onclick = function() { openVideoModal(c.video_url); };
         }
