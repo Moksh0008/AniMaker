@@ -624,14 +624,27 @@ document.addEventListener('click', function(e) {
 function showFollowersModal(userId, type) {
   var overlay = document.createElement('div');
   overlay.className = 'edit-modal-overlay';
+  overlay.style.zIndex = '4000';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-  overlay.innerHTML = '<div class="edit-modal" onclick="event.stopPropagation()" style="max-width:420px;max-height:80vh;">' +
-    '<div class="edit-modal-header"><h3>' + (type === 'followers' ? 'Followers' : 'Following') + '</h3><button class="upload-modal-close" onclick="this.closest(\'.edit-modal-overlay\').remove()"><i class="fas fa-xmark"></i></button></div>' +
-    '<div class="edit-modal-body" id="followListBody" style="padding:0;max-height:60vh;overflow-y:auto;"><div style="padding:20px;text-align:center;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i></div></div>' +
+  overlay.innerHTML = '<div class="follow-modal" onclick="event.stopPropagation()">' +
+    '<div class="follow-modal-header"><h3>' + (type === 'followers' ? 'Followers' : 'Following') + '</h3><button class="follow-modal-close" onclick="this.closest(\'.edit-modal-overlay\').remove()"><i class="fas fa-xmark"></i></button></div>' +
+    '<div class="follow-modal-search"><i class="fas fa-search"></i><input type="text" id="followSearchInput" placeholder="Search"></div>' +
+    '<div class="follow-modal-list" id="followListBody"><div style="padding:20px;text-align:center;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i></div></div>' +
   '</div>';
   document.body.appendChild(overlay);
 
+  window._followListUserId = userId;
+  window._followListType = type;
   loadFollowList(userId, type);
+
+  document.getElementById('followSearchInput').addEventListener('input', function() {
+    var q = this.value.toLowerCase();
+    var items = document.querySelectorAll('.follow-modal-item');
+    items.forEach(function(item) {
+      var text = item.textContent.toLowerCase();
+      item.style.display = text.indexOf(q) > -1 ? 'flex' : 'none';
+    });
+  });
 }
 
 async function loadFollowList(userId, type) {
@@ -639,26 +652,108 @@ async function loadFollowList(userId, type) {
   if (!body) return;
   try {
     var list = type === 'followers' ? await getFollowers(userId) : await getFollowing(userId);
+    var session = await getSession();
+    var myId = session && session.user ? session.user.id : null;
+    var isOwnProfile = myId === userId;
+
     if (list.length === 0) {
       body.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">' + (type === 'followers' ? 'No followers yet' : 'Not following anyone yet') + '</div>';
       return;
     }
+
+    // Batch check which users I follow
+    var userIds = list.map(function(item) {
+      var pid = type === 'followers' ? item.follower_id : item.following_id;
+      return pid;
+    }).filter(Boolean);
+
+    var myFollowing = {};
+    if (myId && userIds.length) {
+      var { data: myFollows } = await supabaseClient
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', myId)
+        .in('following_id', userIds);
+      if (myFollows) myFollows.forEach(function(f) { myFollowing[f.following_id] = true; });
+    }
+
     var html = '';
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
       var p = item.profiles || {};
+      var pid = type === 'followers' ? item.follower_id : item.following_id;
       var uname = p.username || '';
       var displayName = p.full_name || uname || 'User';
+      var bio = p.role || '';
       var avatar = p.avatar_url
-        ? '<img src="' + p.avatar_url + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
-        : '<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0;">' + displayName.charAt(0).toUpperCase() + '</div>';
-      html += '<a href="profile.html?user=' + uname + '" style="display:flex;align-items:center;gap:12px;padding:12px 16px;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);" onmouseenter="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseleave="this.style.background=\'transparent\'">' +
-        avatar +
-        '<div><div style="font-size:14px;font-weight:600;color:#fff;">' + displayName + '</div><div style="font-size:12px;color:var(--text-muted);@' + uname + '</div></div>' +
-      '</a>';
+        ? '<img src="' + p.avatar_url + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+        : '<div style="width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0;">' + displayName.charAt(0).toUpperCase() + '</div>';
+
+      var actionHtml = '';
+      if (pid === myId) {
+        // Don't show follow/remove for yourself
+        actionHtml = '';
+      } else if (isOwnProfile && type === 'followers') {
+        // Own followers list: show Remove button
+        actionHtml = '<button class="follow-modal-remove-btn" onclick="removeFollower(\'' + pid + '\', this)">Remove</button>';
+      } else if (myFollowing[pid]) {
+        actionHtml = '<button class="follow-modal-follow-btn following" onclick="toggleFollowFromList(\'' + pid + '\', this)">Following</button>';
+      } else {
+        actionHtml = '<button class="follow-modal-follow-btn" onclick="toggleFollowFromList(\'' + pid + '\', this)">Follow</button>';
+      }
+
+      html += '<div class="follow-modal-item" data-user-id="' + pid + '">' +
+        '<a href="profile.html?user=' + uname + '" class="follow-modal-item-left">' +
+          avatar +
+          '<div><div class="follow-modal-username">' + displayName + '</div>' + (bio ? '<div class="follow-modal-bio">' + bio + '</div>' : '') + '</div>' +
+        '</a>' +
+        actionHtml +
+      '</div>';
     }
     body.innerHTML = html;
   } catch(e) {
     body.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);">Couldn\'t load list</div>';
   }
 }
+
+window.toggleFollowFromList = async function(userId, btn) {
+  if (!btn) return;
+  var prevFollowing = btn.classList.contains('following');
+  btn.disabled = true;
+  try {
+    var nowFollowing = await toggleFollow(userId);
+    if (nowFollowing) {
+      btn.className = 'follow-modal-follow-btn following';
+      btn.textContent = 'Following';
+      try {
+        if (typeof createNotification === 'function') {
+          var me = await getCurrentProfile();
+          var name = me ? (me.full_name || me.username) : 'Someone';
+          await createNotification(userId, 'follow', null, null, name + ' started following you');
+        }
+      } catch(e2) {}
+    } else {
+      btn.className = 'follow-modal-follow-btn';
+      btn.textContent = 'Follow';
+    }
+  } catch(e) {
+    btn.className = prevFollowing ? 'follow-modal-follow-btn following' : 'follow-modal-follow-btn';
+    btn.textContent = prevFollowing ? 'Following' : 'Follow';
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+window.removeFollower = async function(userId, btn) {
+  if (!confirm('Remove this follower?')) return;
+  try {
+    await supabaseClient.from('follows').delete().eq('follower_id', userId).eq('following_id', window._followListUserId);
+    var item = btn.closest('.follow-modal-item');
+    if (item) item.remove();
+    // Update count
+    var countEl = document.getElementById('followersCount');
+    if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Could not remove follower', 'error');
+  }
+};
