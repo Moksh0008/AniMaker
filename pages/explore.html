@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .explore-page { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .explore-header { margin-bottom: 24px; }
+    .explore-header h1 { font-size: 28px; font-weight: 800; color: #fff; margin: 0 0 4px; font-family: var(--font-display); }
+    .explore-header p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+    /* Search */
+    .explore-search { position: relative; margin-bottom: 20px; }
+    .explore-search i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 16px; pointer-events: none; }
+    .explore-search input {
+      width: 100%; padding: 14px 48px 14px 44px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; color: #fff; font-size: 15px; outline: none; transition: border-color 0.15s;
+    }
+    .explore-search input:focus { border-color: var(--accent); }
+    .explore-search input::placeholder { color: var(--text-muted); }
+    .explore-search .search-clear {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; display: none;
+    }
+    .explore-search .search-clear.visible { display: block; }
+
+    /* Filters bar */
+    .explore-filters { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-group { display: flex; gap: 4px; }
+    .filter-btn {
+      padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary);
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .filter-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+    .sort-select {
+      padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary);
+      cursor: pointer; outline: none; margin-left: auto;
+    }
+    .sort-select:focus { border-color: var(--accent); }
+    .sort-select option { background: var(--bg-card); color: var(--text-primary); }
+
+    /* Section headers */
+    .explore-section { margin-bottom: 32px; }
+    .explore-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .explore-section-header h2 { font-size: 18px; font-weight: 700; color: #fff; margin: 0; }
+    .explore-section-header .section-icon { color: var(--accent); font-size: 16px; }
+
+    /* Grid */
+    .explore-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .explore-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .explore-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .explore-card-image { position: relative; aspect-ratio: 1; overflow: hidden; background: var(--bg-tertiary); }
+    .explore-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+    .explore-card:hover .explore-card-image img { transform: scale(1.05); }
+    .explore-card-image .play-icon {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;
+    }
+    .explore-card-image .type-badge {
+      position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .type-badge.creator { background: rgba(124,92,252,0.85); color: #fff; }
+    .type-badge.writer { background: rgba(59,130,246,0.85); color: #fff; }
+    .type-badge.maker { background: rgba(236,72,153,0.85); color: #fff; }
+    .explore-card-body { padding: 12px; }
+    .explore-card-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .explore-card-user { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .explore-card-user img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+    .explore-card-user span { font-size: 12px; color: var(--text-muted); }
+    .explore-card-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); }
+    .explore-card-stats i { margin-right: 3px; }
+
+    /* Creator card */
+    .creator-discovery-card {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .creator-discovery-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .creator-discovery-avatar { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--bg-tertiary); }
+    .creator-discovery-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-discovery-info { flex: 1; min-width: 0; }
+    .creator-discovery-name { font-size: 14px; font-weight: 600; color: #fff; }
+    .creator-discovery-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Creators row */
+    .creators-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+    .creators-scroll::-webkit-scrollbar { height: 4px; }
+    .creators-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .creators-scroll .creator-discovery-card { min-width: 260px; flex-shrink: 0; }
+
+    /* Skeleton */
+    .skeleton-card { border-radius: 12px; overflow: hidden; }
+    .skeleton-card .skel-img { aspect-ratio: 1; background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-elevated, #2a2a3a) 50%, var(--bg-tertiary) 75%); background-size: 200% 100%; animation: skel-shimmer 1.5s infinite; }
+    .skeleton-card .skel-body { padding: 12px; }
+    .skeleton-card .skel-line { height: 12px; border-radius: 4px; background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-elevated, #2a2a3a) 50%, var(--bg-tertiary) 75%); background-size: 200% 100%; animation: skel-shimmer 1.5s infinite; margin-bottom: 8px; }
+    .skeleton-card .skel-line.short { width: 60%; }
+    .skeleton-card .skel-line.tiny { width: 40%; height: 10px; }
+    @keyframes skel-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* Load more */
+    .load-more-wrap { text-align: center; padding: 24px 0; }
+    .load-more-wrap button {
+      padding: 12px 32px; border-radius: 10px; font-size: 14px; font-weight: 600;
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--accent);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .load-more-wrap button:hover { border-color: var(--accent); background: rgba(124,92,252,0.1); }
+    .load-more-wrap button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Empty & Error */
+    .explore-empty, .explore-error {
+      text-align: center; padding: 60px 24px; color: var(--text-muted);
+    }
+    .explore-empty i, .explore-error i { font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.3; }
+    .explore-empty h3, .explore-error h3 { font-size: 18px; color: var(--text-secondary); margin: 0 0 8px; }
+    .explore-empty p, .explore-error p { font-size: 14px; margin: 0; }
+    .explore-error .retry-btn {
+      margin-top: 16px; padding: 10px 24px; border-radius: 8px; background: var(--accent);
+      color: #fff; border: none; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+
+    @media (max-width: 1024px) { .explore-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) {
+      .explore-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .explore-filters { gap: 6px; }
+      .filter-btn { padding: 6px 12px; font-size: 12px; }
+      .sort-select { margin-left: 0; width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .explore-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .explore-page { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-loading-overlay" id="authLoading"><div class="auth-spinner"></div><p>Verifying your session...</p></div>
+  <nav class="navbar">
+    <a href="../index.html" class="logo"><img src="../assets/images/logo.png" alt="AniMaker"> AniMaker</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="explore.html" style="color:var(--accent);font-weight:600;">Explore</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" style="position:relative;"></div>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
+  </nav>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link" data-tooltip="Home"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="explore.html" class="sidebar-link active" data-tooltip="Explore"><i class="fas fa-compass"></i><span>Explore</span></a>
+        <a href="creator.html" class="sidebar-link" data-tooltip="Creator"><i class="fas fa-film"></i><span>Creator</span></a>
+        <a href="writer.html" class="sidebar-link" data-tooltip="Writer"><i class="fas fa-pen-nib"></i><span>Writer</span></a>
+        <a href="maker.html" class="sidebar-link" data-tooltip="Maker"><i class="fas fa-cube"></i><span>Maker</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a href="javascript:void(0)" class="sidebar-link" data-tooltip="Settings" onclick="openSettings()"><i class="fas fa-gear"></i><span>Settings</span></a>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="explore-page">
+        <!-- Header -->
+        <div class="explore-header">
+          <h1>Explore</h1>
+          <p>Discover creations, stories, and animations from the AniMaker community</p>
+        </div>
+
+        <!-- Search -->
+        <div class="explore-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="exploreSearch" placeholder="Search creations, stories, creators..." aria-label="Search">
+          <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <!-- Filters -->
+        <div class="explore-filters">
+          <div class="filter-group" id="typeFilters">
+            <button class="filter-btn active" data-type="all" onclick="setTypeFilter('all')">All</button>
+            <button class="filter-btn" data-type="creator" onclick="setTypeFilter('creator')"><i class="fas fa-image" style="margin-right:4px;"></i> Creator</button>
+            <button class="filter-btn" data-type="writer" onclick="setTypeFilter('writer')"><i class="fas fa-pen-nib" style="margin-right:4px;"></i> Writer</button>
+            <button class="filter-btn" data-type="maker" onclick="setTypeFilter('maker')"><i class="fas fa-video" style="margin-right:4px;"></i> Maker</button>
+          </div>
+          <div class="filter-divider"></div>
+          <select class="sort-select" id="sortSelect" onchange="setSort(this.value)" aria-label="Sort by">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="most_liked">Most Liked</option>
+            <option value="most_commented">Most Commented</option>
+          </select>
+        </div>
+
+        <!-- Creators Row (shown when no search) -->
+        <div class="explore-section" id="creatorsSection" style="display:none;">
+          <div class="explore-section-header">
+            <i class="fas fa-star section-icon"></i>
+            <h2>Featured Creators</h2>
+          </div>
+          <div class="creators-scroll" id="creatorsScroll"></div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="explore-section">
+          <div class="explore-section-header" id="resultsHeader" style="display:none;">
+            <i class="fas fa-fire section-icon"></i>
+            <h2 id="resultsTitle">All Creations</h2>
+          </div>
+
+          <!-- Skeletons -->
+          <div class="explore-grid" id="skeletonGrid">
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-body"><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line tiny"></div></div></div>
+          </div>
+
+          <!-- Results Grid -->
+          <div class="explore-grid" id="exploreGrid" style="display:none;"></div>
+
+          <!-- Empty State -->
+          <div class="explore-empty" id="exploreEmpty" style="display:none;">
+            <i class="fas fa-compass"></i>
+            <h3 id="emptyTitle">No creations found</h3>
+            <p id="emptyText">Be the first to share something amazing.</p>
+          </div>
+
+          <!-- Error State -->
+          <div class="explore-error" id="exploreError" style="display:none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Something went wrong</h3>
+            <p>Couldn't load creations. Please try again.</p>
+            <button class="retry-btn" onclick="loadResults()">Try Again</button>
+          </div>
+
+          <!-- Load More -->
+          <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+            <button id="loadMoreBtn" onclick="loadMore()">Load More</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/profile.js"></script>
+  <script src="../js/posts.js"></script>
+  <script src="../js/social.js"></script>
+  <script>
+    // Hide auth overlay
+    try { var ao = document.getElementById('authLoading'); if (ao) ao.style.display = 'none'; document.body.classList.add('auth-checked'); } catch(e) {}
+    try { updateNavbarAuth(); } catch(e) {}
+    try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
+
+    /* ---- STATE ---- */
+    var _currentType = 'all';
+    var _currentSort = 'newest';
+    var _currentOffset = 0;
+    var _pageSize = 12;
+    var _allLoaded = false;
+    var _isLoading = false;
+    var _searchQuery = '';
+    var _searchTimeout = null;
+
+    /* ---- INIT ---- */
+    (function() {
+      // Read URL params
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('q')) { _searchQuery = params.get('q'); document.getElementById('exploreSearch').value = _searchQuery; }
+      if (params.get('type')) { _currentType = params.get('type'); setTypeFilter(_currentType, true); }
+      if (params.get('sort')) { _currentSort = params.get('sort'); document.getElementById('sortSelect').value = _currentSort; }
+
+      // Search input
+      document.getElementById('exploreSearch').addEventListener('input', function() {
+        _searchQuery = this.value.trim();
+        var clearBtn = document.getElementById('searchClear');
+        clearBtn.classList.toggle('visible', _searchQuery.length > 0);
+        clearTimeout(_searchTimeout);
+        _searchTimeout = setTimeout(function() { _currentOffset = 0; _allLoaded = false; loadResults(); updateUrl(); }, 350);
+      });
+
+      // Load
+      loadFeaturedCreators();
+      loadResults();
+    })();
+
+    function clearSearch() {
+      document.getElementById('exploreSearch').value = '';
+      _searchQuery = '';
+      document.getElementById('searchClear').classList.remove('visible');
+      _currentOffset = 0; _allLoaded = false;
+      loadResults(); updateUrl();
+    }
+
+    function setTypeFilter(type, skipReload) {
+      _currentType = type;
+      document.querySelectorAll('#typeFilters .filter-btn').forEach(function(b) {
+        b.classList.toggle('active', b.getAttribute('data-type') === type);
+      });
+      if (!skipReload) { _currentOffset = 0; _allLoaded = false; loadResults(); updateUrl(); }
+    }
+
+    function setSort(sort) {
+      _currentSort = sort;
+      _currentOffset = 0; _allLoaded = false;
+      loadResults(); updateUrl();
+    }
+
+    function updateUrl() {
+      var params = new URLSearchParams();
+      if (_searchQuery) params.set('q', _searchQuery);
+      if (_currentType !== 'all') params.set('type', _currentType);
+      if (_currentSort !== 'newest') params.set('sort', _currentSort);
+      var qs = params.toString();
+      var url = 'explore.html' + (qs ? '?' + qs : '');
+      history.replaceState(null, '', url);
+    }
+
+    /* ---- LOAD RESULTS ---- */
+    async function loadResults() {
+      if (_isLoading) return;
+      _isLoading = true;
+
+      var grid = document.getElementById('exploreGrid');
+      var skeleton = document.getElementById('skeletonGrid');
+      var empty = document.getElementById('exploreEmpty');
+      var error = document.getElementById('exploreError');
+      var header = document.getElementById('resultsHeader');
+      var loadMore = document.getElementById('loadMoreWrap');
+
+      if (_currentOffset === 0) {
+        grid.innerHTML = '';
+        grid.style.display = 'none';
+        skeleton.style.display = 'grid';
+        empty.style.display = 'none';
+        error.style.display = 'none';
+      }
+
+      try {
+        // Build query
+        var query = supabaseClient
+          .from('creations')
+          .select('*, profiles:user_id(username, full_name, avatar_url, role)', { count: 'exact' })
+          .order('created_at', { ascending: _currentSort === 'oldest' });
+
+        // Type filter
+        if (_currentType !== 'all') {
+          query = query.eq('type', _currentType);
+        }
+
+        // Search
+        if (_searchQuery) {
+          query = query.or('title.ilike.%' + _searchQuery + '%,description.ilike.%' + _searchQuery + '%,genre.ilike.%' + _searchQuery + '%,story_content.ilike.%' + _searchQuery + '%');
+        }
+
+        // Pagination
+        query = query.range(_currentOffset, _currentOffset + _pageSize - 1);
+
+        var { data: creations, error: qError, count } = await query;
+
+        if (qError) throw qError;
+
+        skeleton.style.display = 'none';
+        error.style.display = 'none';
+
+        if (!creations || creations.length === 0) {
+          if (_currentOffset === 0) {
+            grid.style.display = 'none';
+            empty.style.display = 'block';
+            if (_searchQuery) {
+              document.getElementById('emptyTitle').textContent = 'No results found';
+              document.getElementById('emptyText').textContent = 'No results found for "' + _searchQuery + '"';
+            } else {
+              document.getElementById('emptyTitle').textContent = 'No creations yet';
+              document.getElementById('emptyText').textContent = 'Be the first to share something amazing.';
+            }
+          }
+          _allLoaded = true;
+          loadMore.style.display = 'none';
+          _isLoading = false;
+          return;
+        }
+
+        // Sort by engagement if needed
+        if (_currentSort === 'most_liked' || _currentSort === 'most_commented') {
+          // Get like/comment counts for sorting
+          var ids = creations.map(function(c) { return c.id; });
+          var socialData = {};
+          try { socialData = await getBatchSocialData(ids); } catch(e) {}
+
+          if (_currentSort === 'most_liked') {
+            creations.sort(function(a, b) { return (socialData[b.id]?.likes || 0) - (socialData[a.id]?.likes || 0); });
+          } else if (_currentSort === 'most_commented') {
+            creations.sort(function(a, b) { return (socialData[b.id]?.comments || 0) - (socialData[a.id]?.comments || 0); });
+          }
+        }
+
+        // Show header
+        header.style.display = 'flex';
+        var titleText = _searchQuery ? 'Results for "' + _searchQuery + '"' : 'All Creations';
+        if (_currentType !== 'all') titleText = _currentType.charAt(0).toUpperCase() + _currentType.slice(1) + ' Creations';
+        if (_searchQuery && _currentType !== 'all') titleText = _currentType.charAt(0).toUpperCase() + _currentType.slice(1) + ' — "' + _searchQuery + '"';
+        document.getElementById('resultsTitle').textContent = titleText;
+
+        // Get social counts
+        var ids2 = creations.map(function(c) { return c.id; });
+        var social = {};
+        try { social = await getBatchSocialData(ids2); } catch(e) {}
+
+        // Render cards
+        for (var i = 0; i < creations.length; i++) {
+          grid.appendChild(renderExploreCard(creations[i], social[creations[i].id]));
+        }
+
+        grid.style.display = 'grid';
+        empty.style.display = 'none';
+
+        // Load more
+        if (creations.length >= _pageSize) {
+          loadMore.style.display = 'block';
+          document.getElementById('loadMoreBtn').disabled = false;
+          document.getElementById('loadMoreBtn').textContent = 'Load More';
+        } else {
+          loadMore.style.display = 'none';
+          _allLoaded = true;
+        }
+
+        _currentOffset += creations.length;
+      } catch(e) {
+        console.error('[Explore] Error:', e);
+        skeleton.style.display = 'none';
+        grid.style.display = 'none';
+        error.style.display = 'block';
+      }
+      _isLoading = false;
+    }
+
+    async function loadMore() {
+      if (_allLoaded || _isLoading) return;
+      document.getElementById('loadMoreBtn').disabled = true;
+      document.getElementById('loadMoreBtn').textContent = 'Loading...';
+      await loadResults();
+    }
+
+    /* ---- RENDER CARD ---- */
+    function renderExploreCard(c, social) {
+      var profile = c.profiles || {};
+      var userName = getCreationUserName(profile);
+      var userInitial = userName.charAt(0).toUpperCase();
+      var social = social || { likes: 0, comments: 0 };
+
+      var card = document.createElement('div');
+      card.className = 'explore-card';
+      card.onclick = function() {
+        if (c.type === 'creator') openCreatorDetail(c.id);
+        else if (c.type === 'writer') openStoryDetail(c.id);
+        else openMakerDetail(c.id);
+      };
+
+      var typeBadge = '<div class="type-badge ' + c.type + '">' + c.type + '</div>';
+      var imageContent = '';
+
+      if (c.type === 'maker') {
+        var thumb = c.cover_image_url || '';
+        imageContent = '<img src="' + (thumb || '') + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '"><div class="play-icon"><i class="fas fa-play"></i></div>';
+      } else if (c.type === 'writer') {
+        if (c.cover_image_url) {
+          imageContent = '<img src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">';
+        } else {
+          imageContent = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(124,92,252,0.2));"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--accent);opacity:0.5;"></i></div>';
+        }
+      } else {
+        imageContent = '<img src="' + (c.cover_image_url || '') + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">';
+      }
+
+      var avatarHtml = profile.avatar_url
+        ? '<img src="' + profile.avatar_url + '" alt="' + userName + '">'
+        : '<div style="width:22px;height:22px;border-radius:50%;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;flex-shrink:0;">' + userInitial + '</div>';
+
+      card.innerHTML = '<div class="explore-card-image">' + imageContent + typeBadge + '</div>' +
+        '<div class="explore-card-body">' +
+          '<div class="explore-card-title">' + postEscapeHtml(c.title || 'Untitled') + '</div>' +
+          '<div class="explore-card-user">' + avatarHtml + '<span>' + userName + '</span></div>' +
+          '<div class="explore-card-stats">' +
+            '<span><i class="fas fa-heart"></i>' + social.likes + '</span>' +
+            '<span><i class="fas fa-comment"></i>' + social.comments + '</span>' +
+          '</div>' +
+        '</div>';
+
+      return card;
+    }
+
+    /* ---- FEATURED CREATORS ---- */
+    async function loadFeaturedCreators() {
+      try {
+        // Get profiles with most creations
+        var { data: profiles } = await supabaseClient
+          .from('profiles')
+          .select('id, username, full_name, avatar_url, role')
+          .limit(20);
+
+        if (!profiles || profiles.length === 0) return;
+
+        // Get creation counts for each
+        var creatorData = [];
+        for (var i = 0; i < Math.min(profiles.length, 10); i++) {
+          var p = profiles[i];
+          var { count } = await supabaseClient
+            .from('creations')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', p.id);
+          var followers = await getFollowerCount(p.id);
+          creatorData.push({ profile: p, creations: count || 0, followers: followers });
+        }
+
+        // Sort by creation count + followers
+        creatorData.sort(function(a, b) { return (b.creations + b.followers) - (a.creations + a.followers); });
+
+        // Only show if there are creators with content
+        var withCreations = creatorData.filter(function(c) { return c.creations > 0; });
+        if (withCreations.length === 0) return;
+
+        document.getElementById('creatorsSection').style.display = 'block';
+        var scroll = document.getElementById('creatorsScroll');
+        scroll.innerHTML = '';
+
+        for (var j = 0; j < Math.min(withCreations.length, 8); j++) {
+          var cd = withCreations[j];
+          var cp = cd.profile;
+          var avatar = cp.avatar_url
+            ? '<img src="' + cp.avatar_url + '" alt="' + (cp.full_name || cp.username) + '">'
+            : '<div style="width:52px;height:52px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;">' + ((cp.full_name || cp.username || 'U').charAt(0).toUpperCase()) + '</div>';
+
+          var card = document.createElement('a');
+          card.href = 'profile.html?user=' + cp.username;
+          card.className = 'creator-discovery-card';
+          card.innerHTML = '<div class="creator-discovery-avatar">' + avatar + '</div>' +
+            '<div class="creator-discovery-info">' +
+              '<div class="creator-discovery-name">' + postEscapeHtml(cp.full_name || cp.username || 'User') + '</div>' +
+              '<div class="creator-discovery-meta">' + cd.creations + ' creations · ' + cd.followers + ' followers</div>' +
+            '</div>';
+          scroll.appendChild(card);
+        }
+      } catch(e) { console.error('[Explore] Featured creators error:', e); }
+    }
+  </script>
+</body>
+</html>
