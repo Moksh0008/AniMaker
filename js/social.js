@@ -457,3 +457,208 @@ async function getCreationLikeCountForUser(userId) {
   }
   return total;
 }
+
+/* =========================================================
+   Notifications
+   ========================================================= */
+
+async function createNotification(targetUserId, type, creationId, commentId, message) {
+  if (!supabaseClient) return;
+  var session = await getSession();
+  if (!session || !session.user) return;
+  if (session.user.id === targetUserId) return; // Don't notify self
+
+  try {
+    await supabaseClient.rpc('create_notification', {
+      p_user_id: targetUserId,
+      p_from_user_id: session.user.id,
+      p_type: type,
+      p_creation_id: creationId || null,
+      p_comment_id: commentId || null,
+      p_message: message || ''
+    });
+  } catch(e) { console.error('[Notification] create error:', e); }
+}
+
+async function getNotifications(limit) {
+  if (!supabaseClient) return [];
+  limit = limit || 20;
+  var { data } = await supabaseClient
+    .from('notifications')
+    .select('*, from_user:from_user_id(username, avatar_url, full_name)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  return data || [];
+}
+
+async function getUnreadCount() {
+  if (!supabaseClient) return 0;
+  var { count } = await supabaseClient
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('is_read', false);
+  return count || 0;
+}
+
+async function markAllRead() {
+  if (!supabaseClient) return;
+  var session = await getSession();
+  if (!session || !session.user) return;
+  await supabaseClient
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', session.user.id)
+    .eq('is_read', false);
+}
+
+async function getFollowers(userId, limit, offset) {
+  if (!supabaseClient) return [];
+  limit = limit || 20;
+  offset = offset || 0;
+  var { data } = await supabaseClient
+    .from('follows')
+    .select('follower_id, created_at, profiles:follower_id(username, full_name, avatar_url)')
+    .eq('following_id', userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  return data || [];
+}
+
+async function getFollowing(userId, limit, offset) {
+  if (!supabaseClient) return [];
+  limit = limit || 20;
+  offset = offset || 0;
+  var { data } = await supabaseClient
+    .from('follows')
+    .select('following_id, created_at, profiles:following_id(username, full_name, avatar_url)')
+    .eq('follower_id', userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  return data || [];
+}
+
+/* =========================================================
+   UI: Notification Bell
+   ========================================================= */
+
+function renderNotificationBell() {
+  var container = document.querySelector('.nav-actions');
+  if (!container) return;
+  var existing = document.getElementById('notifBellWrap');
+  if (existing) return;
+
+  var wrap = document.createElement('div');
+  wrap.id = 'notifBellWrap';
+  wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;margin-left:12px;';
+  wrap.innerHTML = '<button id="notifBellBtn" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:6px;border-radius:8px;transition:color 0.15s;" onmouseenter="this.style.color=\'#fff\'" onmouseleave="this.style.color=\'var(--text-secondary)\'" aria-label="Notifications"><i class="fas fa-bell"></i><span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;width:16px;height:16px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:50%;display:none;align-items:center;justify-content:center;"></span></button><div id="notifDropdown" style="display:none;position:absolute;top:100%;right:0;width:360px;max-height:420px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:2000;margin-top:8px;"></div>';
+  container.appendChild(wrap);
+
+  document.getElementById('notifBellBtn').onclick = toggleNotifDropdown;
+  loadNotifBadge();
+}
+
+async function loadNotifBadge() {
+  var badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  try {
+    var count = await getUnreadCount();
+    if (count > 0) {
+      badge.style.display = 'flex';
+      badge.textContent = count > 9 ? '9+' : count;
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+async function toggleNotifDropdown() {
+  var dropdown = document.getElementById('notifDropdown');
+  if (!dropdown) return;
+  if (dropdown.style.display === 'block') {
+    dropdown.style.display = 'none';
+    return;
+  }
+  dropdown.style.display = 'block';
+  dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i></div>';
+
+  try {
+    var notifs = await getNotifications(20);
+    if (notifs.length === 0) {
+      dropdown.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">No notifications yet</div>';
+    } else {
+      var html = '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:600;color:#fff;font-size:14px;">Notifications</span><button onclick="markAllRead();loadNotifBadge();document.getElementById(\'notifDropdown\').innerHTML=\'\';toggleNotifDropdown();" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;">Mark all read</button></div>';
+      notifs.forEach(function(n) {
+        var from = n.from_user || {};
+        var avatar = from.avatar_url
+          ? '<img src="' + from.avatar_url + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+          : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">' + ((from.full_name || from.username || '?').charAt(0).toUpperCase()) + '</div>';
+        var icon = n.type === 'comment' ? 'fa-comment' : n.type === 'follow' ? 'fa-user-plus' : n.type === 'like' ? 'fa-heart' : 'fa-bell';
+        var bg = n.is_read ? 'transparent' : 'rgba(124,92,252,0.08)';
+        var clickAction = n.creation_id ? 'onclick="toggleNotifDropdown();openCreatorDetail(\'' + n.creation_id + '\')"' : '';
+        html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:' + bg + ';cursor:pointer;transition:background 0.15s;" ' + clickAction + ' onmouseenter="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseleave="this.style.background=\'' + bg + '\'">' +
+          avatar +
+          '<div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text-secondary);line-height:1.4;">' + (n.message || n.type) + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + timeAgo(n.created_at) + '</div></div>' +
+          '<i class="fas ' + icon + '" style="font-size:12px;color:var(--accent);flex-shrink:0;"></i>' +
+        '</div>';
+      });
+      dropdown.innerHTML = html;
+    }
+  } catch(e) {
+    dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">Couldn\'t load notifications</div>';
+  }
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('notifBellWrap');
+  var dropdown = document.getElementById('notifDropdown');
+  if (wrap && dropdown && !wrap.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
+
+/* =========================================================
+   UI: Followers/Following Modal
+   ========================================================= */
+
+function showFollowersModal(userId, type) {
+  var overlay = document.createElement('div');
+  overlay.className = 'edit-modal-overlay';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = '<div class="edit-modal" onclick="event.stopPropagation()" style="max-width:420px;max-height:80vh;">' +
+    '<div class="edit-modal-header"><h3>' + (type === 'followers' ? 'Followers' : 'Following') + '</h3><button class="upload-modal-close" onclick="this.closest(\'.edit-modal-overlay\').remove()"><i class="fas fa-xmark"></i></button></div>' +
+    '<div class="edit-modal-body" id="followListBody" style="padding:0;max-height:60vh;overflow-y:auto;"><div style="padding:20px;text-align:center;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i></div></div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+
+  loadFollowList(userId, type);
+}
+
+async function loadFollowList(userId, type) {
+  var body = document.getElementById('followListBody');
+  if (!body) return;
+  try {
+    var list = type === 'followers' ? await getFollowers(userId) : await getFollowing(userId);
+    if (list.length === 0) {
+      body.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">' + (type === 'followers' ? 'No followers yet' : 'Not following anyone yet') + '</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var item = list[i];
+      var p = item.profiles || {};
+      var uname = p.username || '';
+      var displayName = p.full_name || uname || 'User';
+      var avatar = p.avatar_url
+        ? '<img src="' + p.avatar_url + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+        : '<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0;">' + displayName.charAt(0).toUpperCase() + '</div>';
+      html += '<a href="profile.html?user=' + uname + '" style="display:flex;align-items:center;gap:12px;padding:12px 16px;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);" onmouseenter="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseleave="this.style.background=\'transparent\'">' +
+        avatar +
+        '<div><div style="font-size:14px;font-weight:600;color:#fff;">' + displayName + '</div><div style="font-size:12px;color:var(--text-muted);@' + uname + '</div></div>' +
+      '</a>';
+    }
+    body.innerHTML = html;
+  } catch(e) {
+    body.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);">Couldn\'t load list</div>';
+  }
+}

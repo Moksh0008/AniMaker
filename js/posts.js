@@ -555,6 +555,14 @@ async function handleFollow(userId, btn) {
     if (isNowFollowing) {
       btn.className = 'follow-btn following';
       btn.innerHTML = '<i class="fas fa-check"></i> Following';
+      // Send follow notification
+      try {
+        if (typeof createNotification === 'function') {
+          var me = await getCurrentProfile();
+          var name = me ? (me.full_name || me.username) : 'Someone';
+          await createNotification(userId, 'follow', null, null, name + ' started following you');
+        }
+      } catch(e2) {}
     } else {
       btn.className = 'follow-btn follow';
       btn.innerHTML = '<i class="fas fa-plus"></i> Follow';
@@ -697,10 +705,19 @@ async function postNewComment(creationId) {
 
   input.disabled = true;
   try {
-    await postComment(creationId, content);
+    var newComment = await postComment(creationId, content);
     input.value = '';
     var countEl = document.querySelector('#detail-overlay-' + creationId + ' .action-comment-count');
     if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+    // Send notification to creation owner
+    try {
+      var c = await fetchCreation(creationId);
+      if (c && c.user_id && typeof createNotification === 'function') {
+        var me = await getCurrentProfile();
+        var name = me ? (me.full_name || me.username) : 'Someone';
+        await createNotification(c.user_id, 'comment', creationId, newComment.id, name + ' commented on your creation');
+      }
+    } catch(e2) {}
     await loadComments(creationId, 0);
   } catch(e) {
     if (typeof showToast === 'function') showToast(e.message, 'error');
@@ -729,7 +746,15 @@ async function postReply(parentId, creationId) {
   if (!content) return;
 
   try {
-    await postComment(creationId, content, parentId);
+    var newComment = await postComment(creationId, content, parentId);
+    try {
+      var c = await fetchCreation(creationId);
+      if (c && c.user_id && typeof createNotification === 'function') {
+        var me = await getCurrentProfile();
+        var name = me ? (me.full_name || me.username) : 'Someone';
+        await createNotification(c.user_id, 'comment', creationId, newComment.id, name + ' replied to a comment on your creation');
+      }
+    } catch(e2) {}
     await loadComments(creationId, 0);
   } catch(e) {
     if (typeof showToast === 'function') showToast(e.message, 'error');

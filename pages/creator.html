@@ -199,6 +199,7 @@
 
     try { loadGallery(); } catch(e) { console.error('[Creator] loadGallery error:', e); }
     try { updateNavbarAuth(); } catch(e) {}
+    try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
     try {
       getSession().then(function(session) {
         if (session && session.user) currentUserId = session.user.id;

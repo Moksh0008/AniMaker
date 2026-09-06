@@ -544,8 +544,8 @@
               </div>
               <div class="profile-stats" id="profileStats">
                 <span class="profile-stat"><strong id="postsCount">0</strong> posts</span>
-                <span class="profile-stat"><strong id="followersCount">0</strong> followers</span>
-                <span class="profile-stat"><strong id="followingCount">0</strong> following</span>
+                <span class="profile-stat" style="cursor:pointer;" id="followersStat"><strong id="followersCount">0</strong> followers</span>
+                <span class="profile-stat" style="cursor:pointer;" id="followingStat"><strong id="followingCount">0</strong> following</span>
                 <span class="profile-stat"><strong id="likesCount">0</strong> likes</span>
               </div>
               <div class="profile-role-badge" id="profileRole" style="display:none;"></div>
@@ -596,6 +596,7 @@
   <script>
     (async function() {
       await updateNavbarAuth();
+      if (typeof renderNotificationBell === 'function') renderNotificationBell();
 
       // Get username from URL: profile.html?user=username or ?id=uuid
       var params = new URLSearchParams(window.location.search);
@@ -731,6 +732,13 @@
         if (nowFollowing) {
           btn.className = 'follow-btn following';
           btn.innerHTML = '<i class="fas fa-check"></i> Following';
+          try {
+            if (typeof createNotification === 'function') {
+              var me = await getCurrentProfile();
+              var name = me ? (me.full_name || me.username) : 'Someone';
+              await createNotification(userId, 'follow', null, null, name + ' started following you');
+            }
+          } catch(e2) {}
         } else {
           btn.className = 'follow-btn follow';
           btn.innerHTML = '<i class="fas fa-plus"></i> Follow';
@@ -759,6 +767,9 @@
         document.getElementById('followingCount').textContent = following;
         var likes = await getCreationLikeCountForUser(userId);
         document.getElementById('likesCount').textContent = likes;
+        // Make followers/following clickable
+        document.getElementById('followersStat').onclick = function() { showFollowersModal(userId, 'followers'); };
+        document.getElementById('followingStat').onclick = function() { showFollowersModal(userId, 'following'); };
       } catch(e) {}
     }
 

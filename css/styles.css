@@ -5593,6 +5593,15 @@ textarea.form-input {
   background: var(--bg-tertiary);
   color: var(--text-secondary);}
 
+/* --- Notification Bell --- */
+#notifBellBtn:hover { color: #fff; }
+#notifDropdown::-webkit-scrollbar { width: 6px; }
+#notifDropdown::-webkit-scrollbar-track { background: transparent; }
+#notifDropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* --- Follow list hover --- */
+.follow-list-item:hover { background: rgba(255,255,255,0.03); }
+
 /* Social responsive */
 @media (max-width: 768px) {
   .creation-action-bar {

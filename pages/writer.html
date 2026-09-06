@@ -175,6 +175,7 @@
     } catch(e) {}
     try { loadGallery(); } catch(e) {}
     try { updateNavbarAuth(); } catch(e) {}
+    try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
     try {
       getSession().then(function(session) {
         if (session && session.user) currentUserId = session.user.id;
