@@ -529,6 +529,28 @@
 
         <!-- Actual profile (hidden until loaded) -->
         <div id="profileContent" style="display:none;">
+          <!-- Dashboard (own profile only) -->
+          <div class="dashboard-section" id="dashboardSection" style="display:none;">
+            <div class="dashboard-welcome">
+              <div>
+                <h2 id="dashboardWelcome">Welcome back 👋</h2>
+                <p>Here's what's happening with your creations.</p>
+              </div>
+            </div>
+            <div class="dashboard-stats" id="dashboardStats">
+              <div class="dashboard-stat-card"><div class="stat-icon purple"><i class="fas fa-image"></i></div><div class="stat-value" id="dashCreatorCount">0</div><div class="stat-label">Creations</div></div>
+              <div class="dashboard-stat-card"><div class="stat-icon blue"><i class="fas fa-pen-nib"></i></div><div class="stat-value" id="dashWriterCount">0</div><div class="stat-label">Stories</div></div>
+              <div class="dashboard-stat-card"><div class="stat-icon pink"><i class="fas fa-video"></i></div><div class="stat-value" id="dashMakerCount">0</div><div class="stat-label">Animations</div></div>
+              <div class="dashboard-stat-card"><div class="stat-icon green"><i class="fas fa-heart"></i></div><div class="stat-value" id="dashLikeCount">0</div><div class="stat-label">Total Likes</div></div>
+            </div>
+            <div class="dashboard-actions">
+              <a href="creator.html" class="dashboard-action-btn"><i class="fas fa-plus"></i> Create</a>
+              <a href="writer.html" class="dashboard-action-btn"><i class="fas fa-pen-nib"></i> Write Story</a>
+              <a href="maker.html" class="dashboard-action-btn"><i class="fas fa-video"></i> Upload Animation</a>
+              <button class="dashboard-action-btn" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>
+            </div>
+          </div>
+
           <div class="profile-header">
             <div class="profile-avatar-wrap" id="avatarWrap">
               <div class="profile-avatar" id="profileAvatar"></div>
@@ -546,6 +568,7 @@
                 <span class="profile-stat"><strong id="postsCount">0</strong> posts</span>
                 <span class="profile-stat"><strong id="followersCount">0</strong> followers</span>
                 <span class="profile-stat"><strong id="followingCount">0</strong> following</span>
+                <span class="profile-stat"><strong id="likesCount">0</strong> likes</span>
               </div>
               <div class="profile-role-badge" id="profileRole" style="display:none;"></div>
               <div class="profile-fullname" id="profileFullName"></div>
@@ -558,6 +581,7 @@
             <div class="profile-creation-tab active" data-tab="creator" onclick="switchCreationTab('creator')"><i class="fas fa-image"></i> Creator <span class="tab-count" id="tabCreatorCount">0</span></div>
             <div class="profile-creation-tab" data-tab="writer" onclick="switchCreationTab('writer')"><i class="fas fa-pen-nib"></i> Writer <span class="tab-count" id="tabWriterCount">0</span></div>
             <div class="profile-creation-tab" data-tab="maker" onclick="switchCreationTab('maker')"><i class="fas fa-video"></i> Maker <span class="tab-count" id="tabMakerCount">0</span></div>
+            <div class="profile-creation-tab" data-tab="saved" onclick="switchCreationTab('saved')" id="savedTab" style="display:none;"><i class="fas fa-bookmark"></i> Saved <span class="tab-count" id="tabSavedCount">0</span></div>
           </div>
 
           <div class="profile-content">
@@ -590,6 +614,7 @@
   <script src="../js/api.js"></script>
   <script src="../js/profile.js"></script>
   <script src="../js/posts.js"></script>
+  <script src="../js/social.js"></script>
   <script>
     (async function() {
       await updateNavbarAuth();
@@ -656,10 +681,8 @@
       // Username
       document.getElementById('profileUsername').textContent = p.username;
 
-      // Stats
-      document.getElementById('postsCount').textContent = p.postsCount;
-      document.getElementById('followersCount').textContent = p.followersCount;
-      document.getElementById('followingCount').textContent = p.followingCount;
+      // Stats (loaded async)
+      loadProfileSocialStats(p.id, isOwn);
 
       // Role badge
       var roleEl = document.getElementById('profileRole');
@@ -694,17 +717,87 @@
         actionsEl.innerHTML =
           '<button class="btn btn-secondary" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>';
         document.getElementById('avatarUploadBtn').style.display = 'flex';
+        // Show saved tab
+        document.getElementById('savedTab').style.display = 'flex';
         // Add Instagram-style create button below actions
         var createBtn = document.createElement('div');
         createBtn.className = 'create-new-btn';
         createBtn.onclick = function() { openCreatePostFromProfile(); };
         createBtn.innerHTML = '<div class="create-new-circle"><i class="fas fa-plus"></i></div><span class="create-new-label">New</span>';
         actionsEl.parentElement.appendChild(createBtn);
+        // Show dashboard
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('dashboardWelcome').textContent = 'Welcome back, ' + (p.username || 'there') + ' \ud83d\udc4b';
+        loadDashboardStats(p.id);
       } else {
-        actionsEl.innerHTML =
-          '<button class="btn btn-primary btn-sm"><i class="fas fa-user-plus"></i> Follow</button>' +
-          '<button class="btn btn-secondary btn-sm"><i class="fas fa-envelope"></i> Message</button>';
+        // Follow button for other users
+        (async function() {
+          var session2 = await getSession();
+          if (session2 && session2.user) {
+            var alreadyFollowing = await isFollowing(p.id);
+            actionsEl.innerHTML =
+              '<button class="follow-btn ' + (alreadyFollowing ? 'following' : 'follow') + '" id="profileFollowBtn" onclick="handleProfileFollow(\'' + p.id + '\', this)">' +
+              (alreadyFollowing ? '<i class="fas fa-check"></i> Following' : '<i class="fas fa-plus"></i> Follow') +
+              '</button>' +
+              '<button class="btn btn-secondary btn-sm"><i class="fas fa-envelope"></i> Message</button>';
+          } else {
+            actionsEl.innerHTML =
+              '<a href="login.html" class="btn btn-primary btn-sm">Follow</a>';
+          }
+        })();
       }
+    }
+
+    // Handle follow from profile page
+    window.handleProfileFollow = async function(userId, btn) {
+      var prevFollowing = btn.classList.contains('following');
+      btn.disabled = true;
+      try {
+        var nowFollowing = await toggleFollow(userId);
+        if (nowFollowing) {
+          btn.className = 'follow-btn following';
+          btn.innerHTML = '<i class="fas fa-check"></i> Following';
+        } else {
+          btn.className = 'follow-btn follow';
+          btn.innerHTML = '<i class="fas fa-plus"></i> Follow';
+        }
+        loadProfileSocialStats(userId, false);
+      } catch(e) {
+        if (prevFollowing) {
+          btn.className = 'follow-btn following';
+          btn.innerHTML = '<i class="fas fa-check"></i> Following';
+        } else {
+          btn.className = 'follow-btn follow';
+          btn.innerHTML = '<i class="fas fa-plus"></i> Follow';
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    // Load social stats for profile
+    async function loadProfileSocialStats(userId, isOwn) {
+      try {
+        var followers = await getFollowerCount(userId);
+        var following = await getFollowingCount(userId);
+        document.getElementById('postsCount').textContent = _profileCreationCounts.total || 0;
+        document.getElementById('followersCount').textContent = followers;
+        document.getElementById('followingCount').textContent = following;
+        var likes = await getCreationLikeCountForUser(userId);
+        document.getElementById('likesCount').textContent = likes;
+      } catch(e) {}
+    }
+
+    // Load dashboard stats
+    async function loadDashboardStats(userId) {
+      try {
+        var counts = await countCreationsByType(userId);
+        document.getElementById('dashCreatorCount').textContent = counts.creator;
+        document.getElementById('dashWriterCount').textContent = counts.writer;
+        document.getElementById('dashMakerCount').textContent = counts.maker;
+        var likes = await getCreationLikeCountForUser(userId);
+        document.getElementById('dashLikeCount').textContent = likes;
+      } catch(e) {}
     }
 
     // Avatar upload
@@ -766,6 +859,12 @@
         el.classList.toggle('active', el.getAttribute('data-tab') === tab);
       });
 
+      // Handle saved tab
+      if (tab === 'saved') {
+        loadSavedTab();
+        return;
+      }
+
       var items = _profileCreations[tab] || [];
       if (items.length === 0) {
         grid.style.display = 'none';
@@ -781,6 +880,33 @@
       emptyEl.style.display = 'none';
       grid.style.display = 'grid';
 
+      renderProfileGridItems(items, grid);
+    }
+
+    async function loadSavedTab() {
+      var grid = document.getElementById('profileGrid');
+      var emptyEl = document.getElementById('postsEmpty');
+      grid.innerHTML = '';
+      grid.style.display = 'none';
+      emptyEl.style.display = 'block';
+      emptyEl.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--text-muted);"></i>';
+
+      var items = await getSavedCreations(_profileUserId, 50, 0);
+      document.getElementById('tabSavedCount').textContent = items.length;
+
+      if (items.length === 0) {
+        emptyEl.innerHTML = '<i class="fas fa-bookmark" style="font-size:48px;color:var(--text-muted);margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+          '<p style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;">No saved creations yet</p>' +
+          '<span style="font-size:14px;color:var(--text-muted);">Bookmark creations to see them here.</span>';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      grid.style.display = 'grid';
+      renderProfileGridItems(items, grid);
+    }
+
+    function renderProfileGridItems(items, grid) {
       items.forEach(function(c) {
         var item = document.createElement('div');
         item.className = 'post-grid-item';
