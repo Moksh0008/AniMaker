@@ -340,9 +340,56 @@
     }
 
     /* ---- LOAD RESULTS ---- */
+    /* ---- Creator Search Results ---- */
+    async function showCreatorSearchResults(query) {
+      var existing = document.getElementById('creatorSearchResults');
+      if (existing) existing.remove();
+
+      try {
+        var { data: profiles } = await supabaseClient
+          .from('profiles')
+          .select('id, username, full_name, avatar_url, role')
+          .or('username.ilike.%' + query + '%,full_name.ilike.%' + query + '%')
+          .limit(5);
+
+        if (!profiles || profiles.length === 0) return;
+
+        var section = document.createElement('div');
+        section.id = 'creatorSearchResults';
+        section.className = 'explore-section';
+        section.innerHTML = '<div class="explore-section-header"><i class="fas fa-user section-icon"></i><h2>Creators</h2></div><div class="creators-scroll" id="creatorSearchScroll"></div>';
+
+        var scroll = section.querySelector('#creatorSearchScroll');
+        for (var i = 0; i < profiles.length; i++) {
+          var p = profiles[i];
+          var avatar = p.avatar_url
+            ? '<img src="' + p.avatar_url + '" alt="' + (p.full_name || p.username) + '">'
+            : '<div style="width:52px;height:52px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;">' + ((p.full_name || p.username || 'U').charAt(0).toUpperCase()) + '</div>';
+          var followers = await getFollowerCount(p.id);
+          var card = document.createElement('a');
+          card.href = 'profile.html?user=' + p.username;
+          card.className = 'creator-discovery-card';
+          card.innerHTML = '<div class="creator-discovery-avatar">' + avatar + '</div>' +
+            '<div class="creator-discovery-info">' +
+              '<div class="creator-discovery-name">' + postEscapeHtml(p.full_name || p.username || 'User') + '</div>' +
+              '<div class="creator-discovery-meta">@' + postEscapeHtml(p.username || '') + ' · ' + followers + ' followers</div>' +
+            '</div>';
+          scroll.appendChild(card);
+        }
+
+        // Insert before the results grid
+        var resultsSection = document.querySelector('.explore-section:nth-child(3)');
+        if (resultsSection) resultsSection.parentNode.insertBefore(section, resultsSection);
+      } catch(e) {}
+    }
+
     async function loadResults() {
       if (_isLoading) return;
       _isLoading = true;
+
+      // Remove old creator search results
+      var oldCreatorResults = document.getElementById('creatorSearchResults');
+      if (oldCreatorResults) oldCreatorResults.remove();
 
       var grid = document.getElementById('exploreGrid');
       var skeleton = document.getElementById('skeletonGrid');
@@ -371,9 +418,10 @@
           query = query.eq('type', _currentType);
         }
 
-        // Search
+        // Search across title, description, genre, story content, tags, and creator name
         if (_searchQuery) {
-          query = query.or('title.ilike.%' + _searchQuery + '%,description.ilike.%' + _searchQuery + '%,genre.ilike.%' + _searchQuery + '%,story_content.ilike.%' + _searchQuery + '%');
+          var q = _searchQuery;
+          query = query.or('title.ilike.%' + q + '%,description.ilike.%' + q + '%,genre.ilike.%' + q + '%,story_content.ilike.%' + q + '%,tags.cs.{' + q + '}');
         }
 
         // Pagination
@@ -424,6 +472,11 @@
         if (_currentType !== 'all') titleText = _currentType.charAt(0).toUpperCase() + _currentType.slice(1) + ' Creations';
         if (_searchQuery && _currentType !== 'all') titleText = _currentType.charAt(0).toUpperCase() + _currentType.slice(1) + ' — "' + _searchQuery + '"';
         document.getElementById('resultsTitle').textContent = titleText;
+
+        // Search for matching creators when searching
+        if (_searchQuery && _currentOffset === 0) {
+          await showCreatorSearchResults(_searchQuery);
+        }
 
         // Get social counts
         var ids2 = creations.map(function(c) { return c.id; });
