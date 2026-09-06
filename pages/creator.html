@@ -144,9 +144,7 @@
         <div class="gallery-header">
           <div class="gallery-header-left">
             <h1>Creator Gallery</h1>
-            <button class="btn-create" onclick="openCreateModal()"><i class="fas fa-plus"></i> Create Creation</button>
           </div>
-          <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search creations..." id="searchInput"></div>
         </div>
 
         <!-- Empty State -->
@@ -462,20 +460,7 @@
       else empty.classList.remove('active');
     }
 
-    /* ---- Search ---- */
-    var searchTimeout = null;
-    document.getElementById('searchInput').addEventListener('input', function() {
-      var q = this.value;
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(async function() {
-        var gallery = document.getElementById('creatorGallery');
-        gallery.querySelectorAll('[data-creation-id]').forEach(function(c) { c.remove(); });
-        var results = [];
-        try { results = q.trim() ? await searchCreations(q, 'creator') : await fetchCreations({ limit: 50, type: 'creator' }); } catch(e) {}
-        results.forEach(function(c) { gallery.appendChild(renderSupabaseCard(c)); });
-        checkEmpty();
-      }, 300);
-    });
+
 
     function renderSupabaseCard(c) {
       var profile = c.profiles || {};

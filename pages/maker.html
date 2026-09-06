@@ -50,9 +50,7 @@
         <div class="gallery-header">
           <div class="gallery-header-left">
             <h1>Maker Gallery</h1>
-            <button class="btn-create" onclick="openCreateModal()"><i class="fas fa-plus"></i> Upload Animation</button>
           </div>
-          <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search animations..." id="searchInput"></div>
         </div>
 
         <div class="gallery-empty" id="galleryEmpty">
@@ -342,20 +340,7 @@
       if (cards.length === 0) empty.classList.add('active'); else empty.classList.remove('active');
     }
 
-    /* ---- Search ---- */
-    var searchTimeout = null;
-    document.getElementById('searchInput').addEventListener('input', function() {
-      var q = this.value;
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(async function() {
-        var gallery = document.getElementById('makerGallery');
-        gallery.querySelectorAll('[data-creation-id]').forEach(function(c) { c.remove(); });
-        var results = [];
-        try { results = q.trim() ? await searchCreations(q, 'maker') : await fetchCreations({ limit: 50, type: 'maker' }); } catch(e) {}
-        results.forEach(function(c) { gallery.appendChild(renderSupabaseCard(c)); });
-        checkEmpty();
-      }, 300);
-    });
+
 
     function renderSupabaseCard(c) {
       var profile = c.profiles || {};
