@@ -420,14 +420,16 @@
           query = query.eq('type', _currentType);
         }
 
-        // Search across title, description, genre
+        // Search across title, description, genre, and tags
+        var _searchServerApplied = false;
         if (_searchQuery) {
           var q = _searchQuery;
           try {
             query = query.or('title.ilike.%' + q + '%,description.ilike.%' + q + '%,genre.ilike.%' + q + '%');
+            _searchServerApplied = true;
           } catch(e) {
-            // Fallback: search title only
             query = query.ilike('title', '%' + q + '%');
+            _searchServerApplied = true;
           }
         }
 
@@ -438,11 +440,11 @@
 
         if (qError) {
           console.error('[Explore] Query error:', qError.message, qError.details, qError.hint);
-          // If or() filter fails, retry without it
           if (_searchQuery && qError.message && qError.message.includes('column')) {
             query = supabaseClient.from('creations').select('*, profiles:user_id(username, full_name, avatar_url, role)', { count: 'exact' }).order('created_at', { ascending: _currentSort === 'oldest' });
             if (_currentType !== 'all') query = query.eq('type', _currentType);
             query = query.ilike('title', '%' + _searchQuery + '%').range(_currentOffset, _currentOffset + _pageSize - 1);
+            _searchServerApplied = true;
             var retry = await query;
             creations = retry.data || [];
             qError = retry.error;
@@ -450,6 +452,18 @@
           } else {
             throw qError;
           }
+        }
+
+        // If server search found nothing but we have a query, try broader fetch + client-side tag filter
+        if (_searchQuery && _currentOffset === 0 && (!creations || creations.length === 0)) {
+          var broadQuery = supabaseClient
+            .from('creations')
+            .select('*, profiles:user_id(username, full_name, avatar_url, role)', { count: 'exact' })
+            .order('created_at', { ascending: _currentSort === 'oldest' });
+          if (_currentType !== 'all') broadQuery = broadQuery.eq('type', _currentType);
+          broadQuery = broadQuery.range(0, 100);
+          var broad = await broadQuery;
+          creations = broad.data || [];
         }
 
         skeleton.style.display = 'none';
@@ -513,14 +527,25 @@
           return true;
         });
 
-        // Client-side tag filtering for search
+        // Client-side filtering: tags, title fallback, and dedup
         if (_searchQuery) {
           var q = _searchQuery.toLowerCase();
           creations = creations.filter(function(c) {
+            // Match in title
+            if (c.title && c.title.toLowerCase().indexOf(q) > -1) return true;
+            // Match in description
+            if (c.description && c.description.toLowerCase().indexOf(q) > -1) return true;
+            // Match in genre
+            if (c.genre && c.genre.toLowerCase().indexOf(q) > -1) return true;
+            // Match in tags
             if (c.tags && c.tags.length) {
-              return c.tags.some(function(t) { return t.toLowerCase().indexOf(q) > -1; });
+              if (c.tags.some(function(t) { return t.toLowerCase().indexOf(q) > -1; })) return true;
             }
-            return true;
+            // Match in creator username
+            var p = c.profiles || {};
+            if (p.username && p.username.toLowerCase().indexOf(q) > -1) return true;
+            if (p.full_name && p.full_name.toLowerCase().indexOf(q) > -1) return true;
+            return false;
           });
         }
 
