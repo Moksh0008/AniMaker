@@ -420,11 +420,11 @@
           query = query.eq('type', _currentType);
         }
 
-        // Search across title, description, genre, story content
+        // Search across title, description, genre
         if (_searchQuery) {
           var q = _searchQuery;
           try {
-            query = query.or('title.ilike.%' + q + '%,description.ilike.%' + q + '%,genre.ilike.%' + q + '%,story_content.ilike.%' + q + '%');
+            query = query.or('title.ilike.%' + q + '%,description.ilike.%' + q + '%,genre.ilike.%' + q + '%');
           } catch(e) {
             // Fallback: search title only
             query = query.ilike('title', '%' + q + '%');

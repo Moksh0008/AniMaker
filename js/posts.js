@@ -497,7 +497,7 @@ function openMakerDetail(id) {
 async function handleLike(creationId, btn) {
   if (!btn) return;
   var session = await getSession();
-  if (!session) { window.location.href = 'pages/login.html'; return; }
+  if (!session) { var isSubdir = window.location.pathname.includes('/pages/'); window.location.href = (isSubdir ? '' : 'pages/') + 'login.html'; return; }
 
   var countEl = btn.querySelector('.action-like-count');
   var iconEl = btn.querySelector('i');
@@ -526,7 +526,7 @@ async function handleLike(creationId, btn) {
 async function handleSave(creationId, btn) {
   if (!btn) return;
   var session = await getSession();
-  if (!session) { window.location.href = 'pages/login.html'; return; }
+  if (!session) { var isSubdir = window.location.pathname.includes('/pages/'); window.location.href = (isSubdir ? '' : 'pages/') + 'login.html'; return; }
 
   var prevSaved = btn.classList.contains('saved');
   btn.classList.toggle('saved');
@@ -545,7 +545,7 @@ async function handleSave(creationId, btn) {
 async function handleFollow(userId, btn) {
   if (!btn) return;
   var session = await getSession();
-  if (!session) { window.location.href = 'pages/login.html'; return; }
+  if (!session) { var isSubdir = window.location.pathname.includes('/pages/'); window.location.href = (isSubdir ? '' : 'pages/') + 'login.html'; return; }
 
   var prevFollowing = btn.classList.contains('following');
   btn.disabled = true;
@@ -587,7 +587,7 @@ async function renderCommentsSection(creationId, container) {
   var isAuth = session && session.user;
 
   container.innerHTML = '<div class="comments-header"><h4>Comments</h4></div>' +
-    (isAuth ? '<div class="comment-input-row"><div class="comment-input-avatar" id="comment-avatar-' + creationId + '"></div><div class="comment-input-wrap"><input type="text" id="comment-input-' + creationId + '" placeholder="Share your thoughts..." maxlength="1000"><button class="comment-post-btn" onclick="postNewComment(\'' + creationId + '\')" aria-label="Post comment"><i class="fas fa-paper-plane"></i></button></div></div>' : '<div style="text-align:center;padding:8px 0;"><a href="pages/login.html" style="color:var(--accent);font-size:13px;">Log in to comment</a></div>') +
+    (isAuth ? '<div class="comment-input-row"><div class="comment-input-avatar" id="comment-avatar-' + creationId + '"></div><div class="comment-input-wrap"><input type="text" id="comment-input-' + creationId + '" placeholder="Share your thoughts..." maxlength="1000"><button class="comment-post-btn" onclick="postNewComment(\'' + creationId + '\')" aria-label="Post comment"><i class="fas fa-paper-plane"></i></button></div></div>' : '<div style="text-align:center;padding:8px 0;"><a href="' + (window.location.pathname.includes('/pages/') ? '' : 'pages/') + 'login.html" style="color:var(--accent);font-size:13px;">Log in to comment</a></div>') +
     '<div id="comments-list-' + creationId + '"><div class="comments-empty"><i class="far fa-comment-dots"></i>Be the first to comment</div></div>' +
     '<div id="comments-loadmore-' + creationId + '"></div>';
 
