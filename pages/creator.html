@@ -588,7 +588,11 @@
         container.appendChild(card);
       });
 
-      creations.forEach(function(c) { container.appendChild(renderSupabaseCard(c)); });
+      // Filter out defaults already rendered above
+      var defaultTitles = defaultCreations.map(function(d) { return d.title; });
+      creations.forEach(function(c) {
+        if (defaultTitles.indexOf(c.title) === -1) container.appendChild(renderSupabaseCard(c));
+      });
 
       checkEmpty();
     }
