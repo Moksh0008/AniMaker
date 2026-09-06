@@ -50,7 +50,7 @@
   --transition-slow: 400ms ease;
 
   --sidebar-width: 72px;
-  --sidebar-collapsed: 240px;
+  --sidebar-collapsed: 72px;
   --navbar-height: 64px;
 
   --font-sans: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -668,10 +668,10 @@ input, textarea, select {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 20px 12px;
+  align-items: center;
+  padding: 12px 0;
   z-index: 900;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .sidebar .sidebar-logo {
@@ -696,67 +696,97 @@ input, textarea, select {
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   width: 100%;
+  padding: 0 8px;
   flex: 1;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 14px;
-  border-radius: 10px;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   color: var(--text-secondary);
-  font-size: 16px;
-  font-weight: 400;
-  transition: all 0.15s ease;
+  font-size: 18px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
   white-space: nowrap;
+  overflow: visible;
   text-decoration: none;
   position: relative;
-  width: 100%;
 }
 
 .sidebar-link i {
-  font-size: 22px;
+  font-size: 18px;
   flex-shrink: 0;
-  width: 26px;
-  text-align: center;
 }
 
 .sidebar-link span {
-  display: inline;
+  display: none;
+}
+
+/* Pinterest-style tooltip */
+.sidebar-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 1100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.sidebar-link:hover::after {
+  opacity: 1;
 }
 
 .sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
 .sidebar-link.active {
-  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 
 .sidebar-link.active:hover {
+  background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
 
 .sidebar-divider {
-  width: 100%;
+  width: 28px;
   height: 1px;
   background: var(--border);
-  margin: 12px 0;
+  margin: 6px 0;
 }
 
 .sidebar-bottom {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   width: 100%;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  padding: 0 8px;
+}
+
+.sidebar:hover .sidebar-bottom {
+  align-items: stretch;
 }
 
 @media (max-width: 768px) {
@@ -781,9 +811,31 @@ input, textarea, select {
   min-height: calc(100vh - var(--navbar-height));
 }
 
-/* sidebar always expanded */
+/* sidebar expand on hover */
 .sidebar {
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   width: var(--sidebar-collapsed);
+}
+
+.sidebar:hover {
+  width: 200px;
+}
+
+.sidebar:hover .sidebar-link span {
+  display: inline;
+}
+
+.sidebar:hover .sidebar-link {
+  justify-content: flex-start;
+  padding-left: 14px;
+  gap: 12px;
+  width: auto;
+  border-radius: var(--radius-sm);
+  margin: 0 8px;
+}
+
+.sidebar:hover .sidebar-bottom .sidebar-link {
+  width: auto;
 }
 
 .sidebar:hover .sidebar-nav {
