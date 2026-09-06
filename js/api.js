@@ -6,7 +6,7 @@
    supabaseClient.auth.getSession() / onAuthStateChange().
    ========================================================= */
 
-const API_BASE = 'http://localhost:5000/api';
+
 
 /* ---- Session helpers (Supabase-backed) ---- */
 
@@ -112,62 +112,6 @@ function safeRedirect(targetPath) {
     const clean = targetPath.replace(/^(\.\.\/)+/, '');
     window.location.href = clean.startsWith('pages/') ? '../' + clean : clean;
   }
-}
-
-/* ---- API request with global 401 handling ---- */
-
-async function apiRequest(url, options = {}) {
-  const token = await getToken();
-
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    },
-    credentials: 'include',
-    ...options
-  };
-
-  if (token) {
-    config.headers['Authorization'] = 'Bearer ' + token;
-  }
-
-  let response;
-  try {
-    response = await fetch(API_BASE + url, config);
-  } catch (err) {
-    throw new Error('Unable to connect to server. Please check your connection.');
-  }
-
-  let data;
-  const text = await response.text();
-  if (text) {
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error('Unexpected server response (' + response.status + ')');
-    }
-  } else {
-    if (!response.ok) {
-      throw new Error('Server error (' + response.status + ')');
-    }
-    data = {};
-  }
-
-  // Global 401 handling — sign out from Supabase
-  if (response.status === 401) {
-    removeUser();
-    if (supabaseClient) {
-      await supabaseClient.auth.signOut().catch(() => {});
-    }
-    updateNavbarAuth && updateNavbarAuth();
-  }
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
-  }
-
-  return data;
 }
 
 /* ---- Session restoration via Supabase ---- */
@@ -466,6 +410,12 @@ document.addEventListener('keydown', function(e) {
     closeSettings();
     const dd = document.getElementById('userDropdown');
     if (dd) dd.classList.remove('show');
+    // Close any open detail overlays
+    var overlays = document.querySelectorAll('.creator-popup-overlay, .detail-overlay');
+    overlays.forEach(function(ov) { var v = ov.querySelector('video'); if (v) v.pause(); ov.remove(); });
+    // Close any open modals
+    var modals = document.querySelectorAll('.edit-profile-modal, .upload-modal, .creation-type-modal');
+    modals.forEach(function(m) { m.style.display = 'none'; });
   }
 });
 

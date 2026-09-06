@@ -41,14 +41,12 @@ async function uploadCreationFile(file, bucket, onProgress) {
   var random = Math.random().toString(36).substring(2, 8);
   var filePath = session.user.id + '/' + timestamp + '-' + random + '.' + ext;
 
-  // Use fetch with known anon key
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indkamlta2R0bnV6Z2VhYnJwZGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDg5MTAsImV4cCI6MjEwMzkyNDkxMH0.TUgdAOmmwhYs02Zqb0IpvA3f3WDboACjibswoT_91JY';
   var uploadUrl = supabaseClient.supabaseUrl + '/storage/v1/object/' + bucket + '/' + filePath;
 
   var response = await fetch(uploadUrl, {
     method: 'PUT',
     headers: {
-      'apikey': SUPABASE_ANON_KEY,
+      'apikey': supabaseClient.supabaseKey,
       'Authorization': 'Bearer ' + session.access_token,
       'Content-Type': file.type,
       'x-upsert': 'true'
@@ -283,7 +281,7 @@ function getCreationUserAvatar(profile, size) {
   size = size || 36;
   if (!profile) return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:' + (size * 0.4) + 'px;">?</div>';
   if (profile.avatar_url) {
-    return '<img src="' + profile.avatar_url + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;">';
+    return '<img src="' + profile.avatar_url + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;"><div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--accent);display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:' + (size * 0.4) + 'px;">' + (profile.full_name || profile.username || 'U').charAt(0).toUpperCase() + '</div>';
   }
   var initial = (profile.full_name || profile.username || 'U').charAt(0).toUpperCase();
   return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:' + (size * 0.4) + 'px;">' + initial + '</div>';
