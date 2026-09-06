@@ -238,9 +238,9 @@
     }
 
     /* ---- Default image popup ---- */
-    function openCreatorPopup(url, title, points, userName, userAvatar, timeAgo) {
+    function openCreatorPopup(url, title, points, userName, userAvatar, timeAgoStr) {
       userName = userName || 'Anonymous';
-      timeAgo = timeAgo || 'just now';
+      timeAgoStr = timeAgoStr || 'just now';
       var pointsHtml = points && points.length ? '<ul>' + points.map(function(p) { return '<li>' + p + '</li>'; }).join('') + '</ul>' : '';
       var avatarHtml = userAvatar
         ? '<img src="' + userAvatar + '" alt="' + userName + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
@@ -252,13 +252,18 @@
         '<div class="creator-popup">' +
           '<div class="creator-popup-image"><img src="' + url + '" alt="' + title + '"></div>' +
           '<div class="creator-popup-info">' +
-            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">' +
+            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">' +
               avatarHtml +
-              '<div><div style="color:#fff;font-weight:600;font-size:15px;">' + userName + '</div><div style="color:var(--accent);font-size:13px;">Creator</div></div>' +
+              '<div style="flex:1;"><div style="color:#fff;font-weight:600;font-size:15px;">' + userName + '</div><div style="color:var(--accent);font-size:13px;">Creator</div></div>' +
             '</div>' +
             '<h1>' + title + '</h1>' +
             pointsHtml +
-            '<div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted);">' + timeAgo + '</div>' +
+            '<div class="creation-action-bar">' +
+              '<button class="creation-action-btn" onclick="var ic=this.querySelector(\'i\');this.classList.toggle(\'liked\');ic.className=this.classList.contains(\'liked\')?\'fas fa-heart\':\'far fa-heart\';"><i class="far fa-heart"></i> Like</button>' +
+              '<button class="creation-action-btn"><i class="far fa-comment"></i> Comment</button>' +
+              '<button class="creation-action-btn" onclick="var ic=this.querySelector(\'i\');this.classList.toggle(\'saved\');ic.className=this.classList.contains(\'saved\')?\'fas fa-bookmark\':\'far fa-bookmark\';"><i class="far fa-bookmark"></i> Save</button>' +
+            '</div>' +
+            '<div style="padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted);">' + timeAgoStr + '</div>' +
           '</div>' +
         '</div>';
       document.body.appendChild(overlay);
