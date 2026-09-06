@@ -483,16 +483,23 @@
         var social = {};
         try { social = await getBatchSocialData(ids2); } catch(e) {}
 
+        // Deduplicate by title (defaults may have been upserted multiple times)
+        var seenTitles = {};
+        creations = creations.filter(function(c) {
+          var key = (c.title || '').toLowerCase().trim();
+          if (seenTitles[key]) return false;
+          seenTitles[key] = true;
+          return true;
+        });
+
         // Client-side tag filtering for search
         if (_searchQuery) {
           var q = _searchQuery.toLowerCase();
           creations = creations.filter(function(c) {
-            // Already matched title/description/genre/story_content via Supabase
-            // Also check tags array
             if (c.tags && c.tags.length) {
               return c.tags.some(function(t) { return t.toLowerCase().indexOf(q) > -1; });
             }
-            return true; // Keep if no tags (already matched other fields)
+            return true;
           });
         }
 
