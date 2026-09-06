@@ -421,7 +421,12 @@
         // Search across title, description, genre, story content
         if (_searchQuery) {
           var q = _searchQuery;
-          query = query.or('title.ilike.%' + q + '%,description.ilike.%' + q + '%,genre.ilike.%' + q + '%,story_content.ilike.%' + q + '%');
+          try {
+            query = query.or('title.ilike.%' + q + '%,description.ilike.%' + q + '%,genre.ilike.%' + q + '%,story_content.ilike.%' + q + '%');
+          } catch(e) {
+            // Fallback: search title only
+            query = query.ilike('title', '%' + q + '%');
+          }
         }
 
         // Pagination
@@ -429,7 +434,21 @@
 
         var { data: creations, error: qError, count } = await query;
 
-        if (qError) throw qError;
+        if (qError) {
+          console.error('[Explore] Query error:', qError.message, qError.details, qError.hint);
+          // If or() filter fails, retry without it
+          if (_searchQuery && qError.message && qError.message.includes('column')) {
+            query = supabaseClient.from('creations').select('*, profiles:user_id(username, full_name, avatar_url, role)', { count: 'exact' }).order('created_at', { ascending: _currentSort === 'oldest' });
+            if (_currentType !== 'all') query = query.eq('type', _currentType);
+            query = query.ilike('title', '%' + _searchQuery + '%').range(_currentOffset, _currentOffset + _pageSize - 1);
+            var retry = await query;
+            creations = retry.data || [];
+            qError = retry.error;
+            if (qError) throw qError;
+          } else {
+            throw qError;
+          }
+        }
 
         skeleton.style.display = 'none';
         error.style.display = 'none';
