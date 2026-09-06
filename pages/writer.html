@@ -488,11 +488,51 @@
     }
 
     /* ---- Load Gallery ---- */
+    async function ensureDefaultStories() {
+      if (!supabaseClient) return {};
+      var mapping = {};
+      try {
+        for (var i = 0; i < defaultStories.length; i++) {
+          var ds = defaultStories[i];
+          var { data: existing } = await supabaseClient
+            .from('creations')
+            .select('id')
+            .eq('title', ds.title)
+            .eq('type', 'writer')
+            .maybeSingle();
+          if (existing) {
+            mapping[ds.id] = existing.id;
+          } else {
+            var { data: profiles } = await supabaseClient.from('profiles').select('id').limit(1);
+            var userId = profiles && profiles.length ? profiles[0].id : null;
+            if (!userId) continue;
+            var { data: inserted } = await supabaseClient
+              .from('creations')
+              .insert({
+                user_id: userId,
+                type: 'writer',
+                title: ds.title,
+                description: ds.title,
+                cover_image_url: ds.cover_image_url,
+                story_content: ds.story
+              })
+              .select('id')
+              .single();
+            if (inserted) mapping[ds.id] = inserted.id;
+          }
+        }
+      } catch(e) { console.error('[Writer] ensureDefault error:', e); }
+      return mapping;
+    }
+
     async function loadGallery() {
       var container = document.getElementById('writerGallery');
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
       container.innerHTML = '';
+
+      var idMapping = {};
+      try { idMapping = await ensureDefaultStories(); } catch(e) {}
 
       var creations = [];
       try { creations = await fetchCreations({ limit: 50, type: 'writer' }); } catch(e) { console.error('[Writer] fetch error:', e); }
@@ -512,9 +552,14 @@
 
       defaultStories.forEach(function(c, i) {
         var user = randomUsers[i % randomUsers.length];
+        var realId = idMapping[c.id];
         var card = document.createElement('div');
         card.className = 'creation-card';
-        card.onclick = function() { openStoryPopup(c.cover_image_url, c.title, c.story); };
+        if (realId) {
+          card.onclick = function() { openStoryDetail(realId); };
+        } else {
+          card.onclick = function() { openStoryPopup(c.cover_image_url, c.title, c.story); };
+        }
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +

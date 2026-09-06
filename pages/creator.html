@@ -493,12 +493,59 @@
       return card;
     }
 
+    /* ---- Ensure default images exist in database ---- */
+    async function ensureDefaultCreations() {
+      if (!supabaseClient) return {};
+      var mapping = {};
+      try {
+        for (var i = 0; i < defaultCreations.length; i++) {
+          var dc = defaultCreations[i];
+          var desc = dc.points ? dc.points.map(function(p) { return '✦ ' + p.replace(/<[^>]*>/g, ''); }).join('\n') : '';
+          // Check if already exists by title
+          var { data: existing } = await supabaseClient
+            .from('creations')
+            .select('id')
+            .eq('title', dc.title)
+            .eq('type', 'creator')
+            .maybeSingle();
+          if (existing) {
+            mapping[dc.id] = existing.id;
+          } else {
+            // Get a random user_id from an existing profile to assign
+            var { data: profiles } = await supabaseClient
+              .from('profiles')
+              .select('id')
+              .limit(1);
+            var userId = profiles && profiles.length ? profiles[0].id : null;
+            if (!userId) continue;
+            var { data: inserted } = await supabaseClient
+              .from('creations')
+              .insert({
+                user_id: userId,
+                type: 'creator',
+                title: dc.title,
+                description: desc,
+                cover_image_url: dc.cover_image_url
+              })
+              .select('id')
+              .single();
+            if (inserted) mapping[dc.id] = inserted.id;
+          }
+        }
+      } catch(e) { console.error('[Creator] ensureDefault error:', e); }
+      return mapping;
+    }
+
     /* ---- Load Gallery ---- */
     async function loadGallery() {
       var container = document.getElementById('creatorGallery');
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
       container.innerHTML = '';
+
+      // Ensure defaults exist in database
+      var idMapping = {};
+      try { idMapping = await ensureDefaultCreations(); } catch(e) {}
 
       var creations = [];
       try { creations = await fetchCreations({ limit: 50, type: 'creator' }); } catch(e) { console.error('[Creator] fetch error:', e); }
@@ -516,11 +563,19 @@
       ];
       var randomDates = ['2h ago', '5h ago', '1d ago', '3d ago', '5d ago', '1w ago', '2w ago', '1mo ago'];
 
+      // Render default cards (with real IDs if available)
       defaultCreations.forEach(function(c, i) {
         var user = randomUsers[i % randomUsers.length];
+        var realId = idMapping[c.id];
         var card = document.createElement('div');
         card.className = 'creation-card';
-        card.onclick = function(u, a, t) { return function() { openCreatorPopup(c.cover_image_url, c.title, c.points, u, a, t); }; }(user.name, user.avatar, randomDates[i % randomDates.length]);
+        if (realId) {
+          // Use real database ID — full social features
+          card.onclick = function() { openCreatorDetail(realId); };
+        } else {
+          // Fallback to popup if database insert failed
+          card.onclick = function(u, a, t) { return function() { openCreatorPopup(c.cover_image_url, c.title, c.points, u, a, t); }; }(user.name, user.avatar, randomDates[i % randomDates.length]);
+        }
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +

@@ -372,11 +372,51 @@
     }
 
     /* ---- Load Gallery ---- */
+    async function ensureDefaultVideos() {
+      if (!supabaseClient) return {};
+      var mapping = {};
+      try {
+        for (var i = 0; i < defaultVideos.length; i++) {
+          var dv = defaultVideos[i];
+          var { data: existing } = await supabaseClient
+            .from('creations')
+            .select('id')
+            .eq('title', dv.title)
+            .eq('type', 'maker')
+            .maybeSingle();
+          if (existing) {
+            mapping[dv.id] = existing.id;
+          } else {
+            var { data: profiles } = await supabaseClient.from('profiles').select('id').limit(1);
+            var userId = profiles && profiles.length ? profiles[0].id : null;
+            if (!userId) continue;
+            var { data: inserted } = await supabaseClient
+              .from('creations')
+              .insert({
+                user_id: userId,
+                type: 'maker',
+                title: dv.title,
+                description: dv.title,
+                cover_image_url: dv.cover_image_url,
+                media_url: dv.video_url
+              })
+              .select('id')
+              .single();
+            if (inserted) mapping[dv.id] = inserted.id;
+          }
+        }
+      } catch(e) { console.error('[Maker] ensureDefault error:', e); }
+      return mapping;
+    }
+
     async function loadGallery() {
       var container = document.getElementById('makerGallery');
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
       container.innerHTML = '';
+
+      var idMapping = {};
+      try { idMapping = await ensureDefaultVideos(); } catch(e) {}
 
       var creations = [];
       try { creations = await fetchCreations({ limit: 50, type: 'maker' }); } catch(e) { console.error('[Maker] fetch error:', e); }
@@ -397,9 +437,14 @@
 
       defaultVideos.forEach(function(c, i) {
         var user = randomUsers[i % randomUsers.length];
+        var realId = idMapping[c.id];
         var card = document.createElement('div');
         card.className = 'creation-card';
-        card.onclick = function() { openVideoModal(c.video_url); };
+        if (realId) {
+          card.onclick = function() { openMakerDetail(realId); };
+        } else {
+          card.onclick = function() { openVideoModal(c.video_url); };
+        }
         card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"><div class="play-overlay"><i class="fas fa-play"></i></div></div>' +
           '<div class="creation-card-body">' +
             '<div class="creation-card-title">' + c.title + '</div>' +
