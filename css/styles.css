@@ -867,7 +867,7 @@ input, textarea, select {
 }
 
 .page-container {
-  max-width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 24px 20px;
 }
@@ -4488,7 +4488,7 @@ textarea.form-input {
 .gallery-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 12px;
@@ -4497,6 +4497,7 @@ textarea.form-input {
 .gallery-header-left {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
 }
 
