@@ -529,28 +529,6 @@
 
         <!-- Actual profile (hidden until loaded) -->
         <div id="profileContent" style="display:none;">
-          <!-- Dashboard (own profile only) -->
-          <div class="dashboard-section" id="dashboardSection" style="display:none;">
-            <div class="dashboard-welcome">
-              <div>
-                <h2 id="dashboardWelcome">Welcome back 👋</h2>
-                <p>Here's what's happening with your creations.</p>
-              </div>
-            </div>
-            <div class="dashboard-stats" id="dashboardStats">
-              <div class="dashboard-stat-card"><div class="stat-icon purple"><i class="fas fa-image"></i></div><div class="stat-value" id="dashCreatorCount">0</div><div class="stat-label">Creations</div></div>
-              <div class="dashboard-stat-card"><div class="stat-icon blue"><i class="fas fa-pen-nib"></i></div><div class="stat-value" id="dashWriterCount">0</div><div class="stat-label">Stories</div></div>
-              <div class="dashboard-stat-card"><div class="stat-icon pink"><i class="fas fa-video"></i></div><div class="stat-value" id="dashMakerCount">0</div><div class="stat-label">Animations</div></div>
-              <div class="dashboard-stat-card"><div class="stat-icon green"><i class="fas fa-heart"></i></div><div class="stat-value" id="dashLikeCount">0</div><div class="stat-label">Total Likes</div></div>
-            </div>
-            <div class="dashboard-actions">
-              <a href="creator.html" class="dashboard-action-btn"><i class="fas fa-plus"></i> Create</a>
-              <a href="writer.html" class="dashboard-action-btn"><i class="fas fa-pen-nib"></i> Write Story</a>
-              <a href="maker.html" class="dashboard-action-btn"><i class="fas fa-video"></i> Upload Animation</a>
-              <button class="dashboard-action-btn" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>
-            </div>
-          </div>
-
           <div class="profile-header">
             <div class="profile-avatar-wrap" id="avatarWrap">
               <div class="profile-avatar" id="profileAvatar"></div>
@@ -725,10 +703,6 @@
         createBtn.onclick = function() { openCreatePostFromProfile(); };
         createBtn.innerHTML = '<div class="create-new-circle"><i class="fas fa-plus"></i></div><span class="create-new-label">New</span>';
         actionsEl.parentElement.appendChild(createBtn);
-        // Show dashboard
-        document.getElementById('dashboardSection').style.display = 'block';
-        document.getElementById('dashboardWelcome').textContent = 'Welcome back, ' + (p.username || 'there') + ' \ud83d\udc4b';
-        loadDashboardStats(p.id);
       } else {
         // Follow button for other users
         (async function() {
@@ -788,17 +762,7 @@
       } catch(e) {}
     }
 
-    // Load dashboard stats
-    async function loadDashboardStats(userId) {
-      try {
-        var counts = await countCreationsByType(userId);
-        document.getElementById('dashCreatorCount').textContent = counts.creator;
-        document.getElementById('dashWriterCount').textContent = counts.writer;
-        document.getElementById('dashMakerCount').textContent = counts.maker;
-        var likes = await getCreationLikeCountForUser(userId);
-        document.getElementById('dashLikeCount').textContent = likes;
-      } catch(e) {}
-    }
+
 
     // Avatar upload
     document.getElementById('avatarFileInput').addEventListener('change', async function(e) {
