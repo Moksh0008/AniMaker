@@ -53,6 +53,50 @@ function getDefaultUser(creation) {
   return DEFAULT_USER_MAP[creation.title] || null;
 }
 
+/* ---- Predefined profiles for default users ---- */
+var DEFAULT_PROFILES = [
+  // Creator profiles
+  { id: 'default-p-akirasensei', username: 'AkiraSensei', full_name: 'Akira Sensei', avatar_url: '../assets/images/avatars/anime-avatar-1.jpg', bio: 'Anime artist & Dragon Ball enthusiast. Creating epic crossover art daily. 🐉⚡', created_at: '2025-11-15T08:00:00Z', role: 'Creator' },
+  { id: 'default-p-narutofan99', username: 'NarutoFan99', full_name: 'Naruto Fan 99', avatar_url: '../assets/images/avatars/anime-avatar-2.jpg', bio: 'Believe it! Naruto universe is my canvas. Shippuden forever. 🍥🦊', created_at: '2025-12-01T10:30:00Z', role: 'Creator' },
+  { id: 'default-p-saiyanartist', username: 'SaiyanArtist', full_name: 'Saiyan Artist', avatar_url: '../assets/images/avatars/anime-avatar-3.jpg', bio: 'Drawing Saiyans at full power. Super Saiyan transformations are my specialty. 💪🔥', created_at: '2025-10-20T14:15:00Z', role: 'Creator' },
+  { id: 'default-p-luffylover', username: 'LuffyLover', full_name: 'Luffy Lover', avatar_url: '../assets/images/avatars/anime-avatar-4.jpg', bio: 'One Piece fan art & pirate vibes. Waiting for the One Piece. 🏴‍☠️👒', created_at: '2026-01-05T09:45:00Z', role: 'Creator' },
+  { id: 'default-p-ichigoink', username: 'IchigoInk', full_name: 'Ichigo Ink', avatar_url: '../assets/images/avatars/anime-avatar-5.jpg', bio: 'Bleach-inspired illustrations. Zangetsu never dulls. ⚔️🍊', created_at: '2025-09-18T16:20:00Z', role: 'Creator' },
+  { id: 'default-p-zorodraws', username: 'ZoroDraws', full_name: 'Zoro Draws', avatar_url: '../assets/images/avatars/anime-avatar-6.jpg', bio: 'Three-sword style art. Lost my way to art school but found my path. 🗡️🟢', created_at: '2025-08-22T11:10:00Z', role: 'Creator' },
+  { id: 'default-p-gear5creator', username: 'Gear5Creator', full_name: 'Gear 5 Creator', avatar_url: '../assets/images/avatars/avatar-1.jpg', bio: 'Pushing the limits of anime creation. Gear 5 era. ☀️ rubber powers', created_at: '2026-02-14T07:30:00Z', role: 'Creator' },
+  { id: 'default-p-akatsukiart', username: 'AkatsukiArt', full_name: 'Akatsuki Art', avatar_url: '../assets/images/avatars/avatar-2.jpg', bio: 'Embracing the darkness. Akatsuki-themed art & shonen vibes. 🌙☁️', created_at: '2025-07-30T13:00:00Z', role: 'Creator' },
+  // Writer profiles
+  { id: 'default-p-storyweaver', username: 'StoryWeaver', full_name: 'Story Weaver', avatar_url: '../assets/images/avatars/anime-avatar-9.png', bio: 'Weaving tales across dimensions. Where imagination meets ink. ✍️📖', created_at: '2025-11-10T08:00:00Z', role: 'Writer' },
+  { id: 'default-p-animescribe', username: 'AnimeScribe', full_name: 'Anime Scribe', avatar_url: '../assets/images/avatars/anime-avatar-10.png', bio: 'Recording the legends of anime. Every story deserves to be told. 📝🎌', created_at: '2025-12-05T10:00:00Z', role: 'Writer' },
+  { id: 'default-p-mangawriter', username: 'MangaWriter', full_name: 'Manga Writer', avatar_url: '../assets/images/avatars/anime-avatar-11.png', bio: 'Manga-inspired storytelling. From panel to prose. 📚✨', created_at: '2026-01-12T14:30:00Z', role: 'Writer' },
+  { id: 'default-p-ninjanarrator', username: 'NinjaNarrator', full_name: 'Ninja Narrator', avatar_url: '../assets/images/avatars/anime-avatar-12.png', bio: 'Shadows and stories. Narrating the ninja way. 🥷🌙', created_at: '2025-09-25T09:15:00Z', role: 'Writer' },
+  { id: 'default-p-piratepoet', username: 'PiratePoet', full_name: 'Pirate Poet', avatar_url: '../assets/images/avatars/anime-avatar-13.png', bio: 'Poetry from the Grand Line. Every adventure is a verse. ⛵🌊', created_at: '2025-10-18T12:45:00Z', role: 'Writer' },
+  { id: 'default-p-saiyanstories', username: 'SaiyanStories', full_name: 'Saiyan Stories', avatar_url: '../assets/images/avatars/anime-avatar-14.png', bio: 'Tales of Saiyan warriors across the universe. Power levels rising. 📖💥', created_at: '2026-02-01T08:20:00Z', role: 'Writer' },
+  { id: 'default-p-shonenauthor', username: 'ShonenAuthor', full_name: 'Shonen Author', avatar_url: '../assets/images/avatars/anime-avatar-15.png', bio: 'Weekly shonen storytelling. Friendship, effort, victory! 🔥👊', created_at: '2025-08-15T15:00:00Z', role: 'Writer' },
+  { id: 'default-p-animewriter', username: 'AnimeWriter', full_name: 'Anime Writer', avatar_url: '../assets/images/avatars/anime-avatar-16.png', bio: 'Bringing anime worlds to life through words. Chapter by chapter. ✏️🌸', created_at: '2025-12-20T11:30:00Z', role: 'Writer' },
+  // Maker profiles
+  { id: 'default-p-animevfx', username: 'AnimeVFX', full_name: 'Anime VFX', avatar_url: '../assets/images/avatars/anime-avatar-17.png', bio: 'Visual effects artist. Making anime fights feel real. 🎬✨', created_at: '2025-11-25T07:00:00Z', role: 'Maker' },
+  { id: 'default-p-shonenstudio', username: 'ShonenStudio', full_name: 'Shonen Studio', avatar_url: '../assets/images/avatars/avatar-3.jpg', bio: 'Studio-grade animations inspired by shonen anime. Frame by frame. 🎞️🔥', created_at: '2026-01-08T13:15:00Z', role: 'Maker' },
+  { id: 'default-p-ninjaanimate', username: 'NinjaAnimate', full_name: 'Ninja Animate', avatar_url: '../assets/images/avatars/avatar-4.jpg', bio: 'Ninja-speed animations. From concept to screen in record time. 🥷🎥', created_at: '2025-10-02T10:00:00Z', role: 'Maker' },
+  { id: 'default-p-pirateframes', username: 'PirateFrames', full_name: 'Pirate Frames', avatar_url: '../assets/images/avatars/avatar-5.jpg', bio: 'Frame-by-frame pirate adventures. Sailing the seas of animation. ⚓🎬', created_at: '2025-12-15T09:30:00Z', role: 'Maker' },
+  { id: 'default-p-saiyanmotion', username: 'SaiyanMotion', full_name: 'Saiyan Motion', avatar_url: '../assets/images/avatars/avatar-6.jpg', bio: 'Motion graphics meets Saiyan power. Every frame is a battle. 💫⚡', created_at: '2026-02-10T14:00:00Z', role: 'Maker' },
+  { id: 'default-p-hollowanime', username: 'HollowAnime', full_name: 'Hollow Anime', avatar_url: '../assets/images/avatars/avatar-7.jpg', bio: 'Hollow-fied animations. Bleach-inspired motion art. ☠️🌀', created_at: '2025-09-08T16:45:00Z', role: 'Maker' },
+  { id: 'default-p-demonslayerfx', username: 'DemonSlayerFX', full_name: 'Demon Slayer FX', avatar_url: '../assets/images/avatars/avatar-8.jpg', bio: 'Breathing techniques brought to life. Demon Slayer VFX studio. 🗡️🔥', created_at: '2025-11-01T11:00:00Z', role: 'Maker' },
+  { id: 'default-p-jujutsustudio', username: 'JujutsuStudio', full_name: 'Jujutsu Studio', avatar_url: '../assets/images/avatars/avatar-9.jpg', bio: 'Cursed energy animations. Jujutsu Kaisen-inspired motion work. 👁️⚡', created_at: '2026-01-20T08:00:00Z', role: 'Maker' },
+  { id: 'default-p-finalcutanime', username: 'FinalCutAnime', full_name: 'Final Cut Anime', avatar_url: '../assets/images/avatars/avatar-10.jpg', bio: 'Final cuts, final forms. Anime edits & compilations. 🎬🎞️', created_at: '2025-08-05T12:30:00Z', role: 'Maker' }
+];
+
+function getDefaultProfile(username) {
+  if (!username) return null;
+  for (var i = 0; i < DEFAULT_PROFILES.length; i++) {
+    if (DEFAULT_PROFILES[i].username === username) return DEFAULT_PROFILES[i];
+  }
+  return null;
+}
+
+function isDefaultUser(username) {
+  return getDefaultProfile(username) !== null;
+}
+
 /* ---- Upload file to Supabase Storage ---- */
 async function uploadCreationFile(file, bucket, onProgress) {
   if (!supabaseClient) throw new Error('Supabase not available');

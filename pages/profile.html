@@ -614,9 +614,17 @@
 
       var profile = null;
       var isOwnProfile = false;
+      var isDefaultProfile = false;
 
       if (viewUsername) {
-        profile = await loadUserProfile(viewUsername);
+        // Check if this is a predefined default profile first
+        var defaultProf = getDefaultProfile(viewUsername);
+        if (defaultProf) {
+          profile = defaultProf;
+          isDefaultProfile = true;
+        } else {
+          profile = await loadUserProfile(viewUsername);
+        }
       } else if (viewId) {
         profile = await loadUserProfile(viewId);
       } else if (session && session.user) {
@@ -647,12 +655,17 @@
       document.getElementById('profileSkeleton').style.display = 'none';
       document.getElementById('profileContent').style.display = 'block';
 
-      // Load user's posts
-      loadProfilePosts(profile.id);
+      // Load user's posts — for default profiles, load their creations from DEFAULT_USER_MAP
+      if (isDefaultProfile) {
+        loadDefaultProfilePosts(profile.username);
+      } else {
+        loadProfilePosts(profile.id);
+      }
     })();
 
     function renderProfile(profile, isOwn) {
       var p = formatProfile(profile);
+      var isDefault = profile.id && profile.id.indexOf('default-p-') === 0;
 
       // Avatar
       var avatarEl = document.getElementById('profileAvatar');
@@ -666,8 +679,15 @@
       // Username
       document.getElementById('profileUsername').textContent = p.username;
 
-      // Stats (loaded async)
-      loadProfileSocialStats(p.id, isOwn);
+      // Stats: for default profiles use fake counts, otherwise load from DB
+      if (isDefault) {
+        document.getElementById('postsCount').textContent = _profileCreationCounts.total || 0;
+        document.getElementById('followersCount').textContent = Math.floor(Math.random() * 800) + 200;
+        document.getElementById('followingCount').textContent = Math.floor(Math.random() * 300) + 50;
+        document.getElementById('likesCount').textContent = Math.floor(Math.random() * 2000) + 500;
+      } else {
+        loadProfileSocialStats(p.id, isOwn);
+      }
 
       // Role badge
       var roleEl = document.getElementById('profileRole');
@@ -698,7 +718,10 @@
 
       // Actions
       var actionsEl = document.getElementById('profileActions');
-      if (isOwn) {
+      if (isDefault) {
+        // Default profiles: no actions
+        actionsEl.innerHTML = '';
+      } else if (isOwn) {
         actionsEl.innerHTML =
           '<button class="btn btn-secondary" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profile</button>';
         document.getElementById('avatarUploadBtn').style.display = 'flex';
@@ -795,6 +818,101 @@
         showToast(err.message, 'error');
       }
     });
+
+    /* ---- Load profile creations ---- */
+    var _profileCreationCounts = { creator: 0, writer: 0, maker: 0 };
+    var _profileCreations = { creator: [], writer: [], maker: [] };
+    var _currentProfileTab = 'creator';
+    var _profileUserId = null;
+
+    /* ---- Load default profile creations (predefined users) ---- */
+    async function loadDefaultProfilePosts(username) {
+      _profileUserId = null;
+      var grid = document.getElementById('profileGrid');
+      var emptyEl = document.getElementById('postsEmpty');
+      grid.innerHTML = '';
+      emptyEl.style.display = 'none';
+
+      // Find all creations in DEFAULT_USER_MAP that belong to this username
+      var creatorTitles = [];
+      var writerTitles = [];
+      var makerTitles = [];
+      for (var title in DEFAULT_USER_MAP) {
+        var u = DEFAULT_USER_MAP[title];
+        if (u.username === username) {
+          // Determine type from title lookup
+          var defaultList = [
+            { title: 'A Fusion of Naruto and Goku', type: 'creator' },
+            { title: 'Super Saiyan Nine Tails', type: 'creator' },
+            { title: 'Gear 5 Goku', type: 'creator' },
+            { title: 'Ichigo Naruto', type: 'creator' },
+            { title: 'Creation 5', type: 'creator' },
+            { title: 'Vegetto', type: 'creator' },
+            { title: 'Gear 5 Baryon', type: 'creator' },
+            { title: 'Lugoto', type: 'creator' },
+            { title: 'Luffy as Lil Bro of Goku', type: 'writer' },
+            { title: 'Goats as a Trio', type: 'writer' },
+            { title: 'Ramen Lovers Together', type: 'writer' },
+            { title: 'The Last Battle', type: 'writer' },
+            { title: 'Team Goats', type: 'writer' },
+            { title: 'Jack Luffy', type: 'writer' },
+            { title: 'Pirate Slayer', type: 'writer' },
+            { title: 'Unbeatable Combo', type: 'writer' },
+            { title: 'Nine Tails VS Gear 5', type: 'maker' },
+            { title: 'Battle of G.OA.Ts', type: 'maker' },
+            { title: 'Battle of G.O.A.T.s', type: 'maker' },
+            { title: 'Dominance of Aizen', type: 'maker' },
+            { title: 'Battle of Instant', type: 'maker' },
+            { title: 'Clash of Legends', type: 'maker' },
+            { title: 'The New Member of Akatsuki', type: 'maker' },
+            { title: 'The End of Muzan', type: 'maker' },
+            { title: 'Fight of Senseis', type: 'maker' },
+            { title: 'The END', type: 'maker' }
+          ];
+          for (var j = 0; j < defaultList.length; j++) {
+            if (defaultList[j].title === title) {
+              if (defaultList[j].type === 'creator') creatorTitles.push(title);
+              else if (defaultList[j].type === 'writer') writerTitles.push(title);
+              else makerTitles.push(title);
+            }
+          }
+        }
+      }
+
+      // Fetch from Supabase by title matching
+      var allCreations = [];
+      for (var i = 0; i < CREATION_TYPES.length; i++) {
+        var type = CREATION_TYPES[i];
+        var { data: creations } = await supabaseClient
+          .from('creations')
+          .select('*')
+          .eq('type', type)
+          .limit(50);
+        if (creations) {
+          // Filter to only titles belonging to this user
+          var userTitles = type === 'creator' ? creatorTitles : type === 'writer' ? writerTitles : makerTitles;
+          var filtered = creations.filter(function(c) { return userTitles.indexOf(c.title) !== -1; });
+          allCreations = allCreations.concat(filtered.map(function(c) { c._displayProfile = getDefaultUser(c) || {}; return c; }));
+        }
+      }
+
+      // Separate by type
+      _profileCreations.creator = allCreations.filter(function(c) { return c.type === 'creator'; });
+      _profileCreations.writer = allCreations.filter(function(c) { return c.type === 'writer'; });
+      _profileCreations.maker = allCreations.filter(function(c) { return c.type === 'maker'; });
+      _profileCreationCounts.creator = _profileCreations.creator.length;
+      _profileCreationCounts.writer = _profileCreations.writer.length;
+      _profileCreationCounts.maker = _profileCreations.maker.length;
+      _profileCreationCounts.total = allCreations.length;
+
+      document.getElementById('postsCount').textContent = _profileCreationCounts.total;
+      document.getElementById('tabCreatorCount').textContent = _profileCreationCounts.creator;
+      document.getElementById('tabWriterCount').textContent = _profileCreationCounts.writer;
+      document.getElementById('tabMakerCount').textContent = _profileCreationCounts.maker;
+
+      // Default to creator tab
+      showProfileTab('creator');
+    }
 
     /* ---- Load profile creations ---- */
     var _profileCreationCounts = { creator: 0, writer: 0, maker: 0 };
