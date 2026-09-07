@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Messages — AniMaker</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/chat.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { overflow: hidden; }
+    .chat-page { padding-top: var(--navbar-height); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideInRight { from { transform: translateX(20px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+    @keyframes hideOverlay { from { opacity: 1; } to { opacity: 0; pointer-events: none; } }
+    .auth-loading-overlay { animation: hideOverlay 2s forwards; position:fixed; inset:0; z-index:9999; background:var(--bg-primary); display:flex; align-items:center; justify-content:center; }
+    .auth-loading-overlay .auth-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .auth-loading-overlay p { color:var(--text-muted); margin-top:12px; font-size:14px; }
+  </style>
+</head>
+<body>
+  <!-- Auth Loading -->
+  <div class="auth-loading-overlay" id="authLoading">
+    <div style="text-align:center;">
+      <div class="auth-spinner"></div>
+      <p>Loading messages...</p>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="../index.html" class="logo"><img src="../assets/images/logo.png" alt="AniMaker" style="height:32px;"> AniMaker</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="explore.html">Explore</a></li>
+      <li><a href="creator.html">Creator</a></li>
+      <li><a href="writer.html">Writer</a></li>
+      <li><a href="maker.html">Maker</a></li>
+    </ul>
+    <div class="nav-actions" style="position:relative;"></div>
+    <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('active')"><span></span><span></span><span></span></div>
+  </nav>
+
+  <!-- Chat Page -->
+  <div class="chat-page">
+
+    <!-- Left Sidebar: Conversation List -->
+    <div class="chat-sidebar" id="chatSidebar">
+      <div class="chat-sidebar-header">
+        <div class="chat-sidebar-top">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div id="chatCurrentUserAvatar"></div>
+            <span class="chat-sidebar-title">Messages</span>
+          </div>
+          <div class="chat-sidebar-actions">
+            <button class="chat-sidebar-btn" onclick="chatOpenNewMessageModal()" title="New message" aria-label="New message">
+              <i class="fas fa-pen-to-square"></i>
+            </button>
+          </div>
+        </div>
+        <div class="chat-search-wrap">
+          <i class="fas fa-search chat-search-icon"></i>
+          <input type="text" class="chat-search-input" id="chatSearchInput" placeholder="Search conversations..." oninput="chatFilterConversations(this.value)">
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="chat-tabs">
+        <button class="chat-tab active" data-tab="messages" onclick="chatSwitchTab('messages', this)">
+          Messages
+        </button>
+        <button class="chat-tab" data-tab="requests" onclick="chatSwitchTab('requests', this)">
+          Requests
+          <span class="unread-badge" id="chatRequestBadge" style="display:none;"></span>
+        </button>
+      </div>
+
+      <!-- Conversation List -->
+      <div class="chat-conversations" id="chatConvList">
+        <div class="chat-empty-state" style="padding:40px 20px;">
+          <i class="far fa-paper-plane" style="font-size:48px;"></i>
+          <h3 style="font-size:18px;">No messages yet</h3>
+          <p style="font-size:13px;">Start a conversation with someone from AniMaker.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main" id="chatMain">
+      <!-- Empty state (no conversation selected) -->
+      <div class="chat-empty-state" id="chatEmptyMain">
+        <i class="far fa-paper-plane"></i>
+        <h2>Your Messages</h2>
+        <p>Send private messages to a friend or group.</p>
+        <button class="btn btn-primary" onclick="chatOpenNewMessageModal()" style="margin-top:12px;">
+          <i class="fas fa-pen-to-square" style="margin-right:6px;"></i>Send Message
+        </button>
+      </div>
+
+      <!-- Chat conversation (hidden until conversation selected) -->
+      <div id="chatConversationView" style="display:none;flex-direction:column;height:100%;">
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <button class="chat-header-back" onclick="chatMobileShowList()" aria-label="Back to conversations">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <div class="chat-header-avatar" id="chatHeaderAvatar" onclick="chatOpenDetailsPanel()"></div>
+          <div class="chat-header-info" onclick="chatOpenDetailsPanel()">
+            <div class="chat-header-name" id="chatHeaderName">User</div>
+            <div class="chat-header-status" id="chatHeaderStatus">Active now</div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="chat-header-action" onclick="chatOpenDetailsPanel()" title="Info" aria-label="Chat details">
+              <i class="fas fa-circle-info"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <!-- Typing indicator -->
+        <div class="chat-typing-indicator" id="chatTypingIndicator" style="display:none;padding:0 20px 4px;"></div>
+
+        <!-- Scroll to bottom button -->
+        <button class="chat-scroll-bottom" id="chatScrollBtn" onclick="chatScrollToBottom(true)" aria-label="Scroll to bottom">
+          <i class="fas fa-chevron-down"></i>
+        </button>
+
+        <!-- Composer -->
+        <div class="chat-composer">
+          <!-- Reply preview -->
+          <div class="chat-composer-reply-preview" id="chatReplyPreview"></div>
+
+          <!-- Upload preview -->
+          <div class="chat-composer-upload-preview" id="chatUploadPreview"></div>
+
+          <div class="chat-composer-row">
+            <!-- Emoji button -->
+            <button class="chat-composer-btn" onclick="chatToggleEmojiPicker()" title="Emoji" aria-label="Emoji">
+              <i class="far fa-face-smile"></i>
+            </button>
+
+            <!-- Emoji picker dropdown -->
+            <div class="chat-emoji-picker" id="chatEmojiPicker">
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('😊')">😊</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('😂')">😂</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('🔥')">🔥</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('❤️')">❤️</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('😍')">😍</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('😢')">😢</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('😮')">😮</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('👍')">👍</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('🎉')">🎉</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('💯')">💯</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('✨')">✨</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('💪')">💪</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('🙌')">🙌</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('👀')">👀</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('🤝')">🤝</button>
+              <button class="chat-emoji-option" onclick="chatInsertEmoji('🥺')">🥺</button>
+            </div>
+
+            <!-- Attachment button -->
+            <button class="chat-composer-btn" onclick="document.getElementById('chatFileInput').click()" title="Attach file" aria-label="Attach file">
+              <i class="fas fa-paperclip"></i>
+            </button>
+            <input type="file" id="chatFileInput" style="display:none;" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onchange="chatHandleFileSelect(event)">
+
+            <!-- Text input -->
+            <div class="chat-composer-input-wrap">
+              <textarea class="chat-composer-input" id="chatInput" placeholder="Message..." rows="1"
+                oninput="chatHandleInput(event)"
+                onkeydown="chatHandleKeydown(event)"></textarea>
+            </div>
+
+            <!-- Send button -->
+            <button class="chat-composer-send" id="chatSendBtn" onclick="chatHandleSend()" disabled aria-label="Send message">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Panel (hidden by default) -->
+    <div class="chat-details-panel hidden" id="chatDetailsPanel">
+      <div class="chat-details-header">
+        <h3>Details</h3>
+        <button class="chat-header-action" onclick="chatCloseDetailsPanel()" aria-label="Close details">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Profile section -->
+      <div class="chat-details-profile" id="chatDetailsProfile"></div>
+
+      <!-- Theme section -->
+      <div class="chat-theme-section">
+        <h4>Theme</h4>
+        <div id="chatDetailsCurrentTheme" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);" id="chatDetailsThemeSwatch"></div>
+          <span style="font-size:13px;color:var(--text-secondary);" id="chatDetailsThemeName">Default</span>
+        </div>
+        <button onclick="chatOpenThemePicker()" style="width:100%;padding:8px;border-radius:var(--radius-full);background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;">
+          <i class="fas fa-palette" style="margin-right:6px;"></i>Change Theme
+        </button>
+      </div>
+
+      <!-- Actions -->
+      <div class="chat-details-action" onclick="chatSearchInConversation()">
+        <i class="fas fa-search"></i>
+        <span>Search in conversation</span>
+      </div>
+      <div class="chat-details-action" id="chatDetailsMuteBtn" onclick="chatToggleMuteConversation()">
+        <i class="fas fa-bell-slash"></i>
+        <span>Mute notifications</span>
+      </div>
+      <div class="chat-details-action" onclick="chatToggleArchiveConversation()">
+        <i class="fas fa-box-archive"></i>
+        <span id="chatArchiveLabel">Archive chat</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context Menu -->
+  <div class="chat-context-menu" id="chatContextMenu"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/profile.js"></script>
+  <script src="../js/posts.js"></script>
+  <script src="../js/social.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/chat-ui.js"></script>
+  <script src="../js/chat-realtime.js"></script>
+  <script src="../js/chat-themes.js"></script>
+  <script src="../js/chat-upload.js"></script>
+  <script>
+    /* =========================================================
+       Chat Page Controller
+       ========================================================= */
+
+    (async function() {
+      // Init
+      var ok = await chatInit();
+      if (!ok) return;
+
+      // Hide auth overlay
+      var overlay = document.getElementById('authLoading');
+      if (overlay) overlay.style.display = 'none';
+      document.body.classList.add('auth-checked');
+
+      // Update navbar
+      try { updateNavbarAuth(); } catch(e) {}
+      try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
+
+      // Show current user avatar
+      var avatarEl = document.getElementById('chatCurrentUserAvatar');
+      if (avatarEl && _chatCurrentProfile) {
+        avatarEl.innerHTML = chatAvatarHtml(_chatCurrentProfile, 32);
+      }
+
+      // Load conversations
+      await chatRefreshConversations();
+
+      // Check for direct conversation from URL
+      var params = new URLSearchParams(window.location.search);
+      var userId = params.get('user');
+      if (userId) {
+        var convId = await chatGetOrCreateConversation(userId);
+        if (convId) {
+          await chatOpenConversation(convId);
+        }
+      }
+
+      // Subscribe to presence
+      chatSubscribePresence();
+    })();
+
+    /* ---- Open a conversation ---- */
+    async function chatOpenConversation(convId) {
+      // Find conversation
+      var conv = _chatConversations.find(function(c) { return c.id === convId; });
+      if (!conv) return;
+
+      // Update state
+      _chatCurrentConv = conv;
+
+      // Show conversation view, hide empty state
+      document.getElementById('chatEmptyMain').style.display = 'none';
+      var convView = document.getElementById('chatConversationView');
+      convView.style.display = 'flex';
+
+      // Set header
+      document.getElementById('chatHeaderName').textContent = conv.otherUserName;
+      document.getElementById('chatHeaderAvatar').innerHTML = chatAvatarHtml(conv.otherUser, 40);
+
+      // Online status
+      var isOnline = isUserOnline(conv.otherUser.id);
+      var statusEl = document.getElementById('chatHeaderStatus');
+      statusEl.textContent = isOnline ? 'Online' : 'Active now';
+      statusEl.className = 'chat-header-status' + (isOnline ? ' online' : '');
+
+      // Active state in conversation list
+      var items = document.querySelectorAll('.chat-conv-item');
+      for (var i = 0; i < items.length; i++) {
+        items[i].classList.toggle('active', items[i].dataset.convId === convId);
+      }
+
+      // Mobile: show chat
+      chatMobileShowChat();
+
+      // Load theme
+      await chatLoadConversationTheme(convId);
+
+      // Load messages
+      document.getElementById('chatMessages').innerHTML =
+        '<div class="chat-skeleton"><div class="chat-skeleton-bubble"></div></div>' +
+        '<div class="chat-skeleton"><div class="chat-skeleton-bubble right"></div></div>' +
+        '<div class="chat-skeleton"><div class="chat-skeleton-bubble"></div></div>';
+
+      var msgs = await chatFetchMessages(convId, 0, CHAT_PAGE_SIZE);
+      _chatMessages = msgs;
+      _chatOffset = msgs.length;
+      _chatHasMore = msgs.length >= CHAT_PAGE_SIZE;
+
+      var container = document.getElementById('chatMessages');
+      renderChatMessages(msgs, container, false);
+      chatScrollToBottom(false);
+
+      // Mark as read
+      await chatMarkAsRead(convId);
+      await chatUpdateLastRead(convId);
+
+      // Unsubscribe old channel
+      chatUnsubscribeMessages();
+      chatUnsubscribeTyping();
+
+      // Subscribe to new messages
+      chatSubscribeMessages(convId);
+      chatSubscribeTyping(convId);
+
+      // Update details panel
+      chatUpdateDetailsPanel(conv);
+
+      // Refresh conversations to update unread count
+      setTimeout(function() { chatRefreshConversations(); }, 500);
+
+      // Reset composer
+      document.getElementById('chatInput').value = '';
+      document.getElementById('chatSendBtn').disabled = true;
+      chatCancelReply();
+      chatRemoveUpload();
+    }
+
+    /* ---- Load more messages (scroll up) ---- */
+    async function chatLoadOlderMessages() {
+      if (!_chatCurrentConv || !_chatHasMore || _chatLoading) return;
+
+      _chatLoading = true;
+      var container = document.getElementById('chatMessages');
+      var prevHeight = container.scrollHeight;
+
+      var msgs = await chatFetchMessages(_chatCurrentConv.id, _chatOffset, CHAT_PAGE_SIZE);
+      if (msgs.length === 0) {
+        _chatHasMore = false;
+        _chatLoading = false;
+        return;
+      }
+
+      // Prepend messages
+      _chatMessages = msgs.concat(_chatMessages);
+      _chatOffset += msgs.length;
+      _chatHasMore = msgs.length >= CHAT_PAGE_SIZE;
+
+      container.innerHTML = '';
+      renderChatMessages(_chatMessages, container, false);
+
+      // Maintain scroll position
+      var newHeight = container.scrollHeight;
+      container.scrollTop = newHeight - prevHeight;
+
+      _chatLoading = false;
+    }
+
+    /* ---- Handle input changes ---- */
+    function chatHandleInput(e) {
+      var input = e.target;
+      var sendBtn = document.getElementById('chatSendBtn');
+
+      // Auto-resize textarea
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+
+      // Enable/disable send button
+      sendBtn.disabled = !input.value.trim() && !_chatUploadFile;
+
+      // Send typing indicator
+      if (input.value.trim() && _chatCurrentConv) {
+        chatSendTypingBroadcast(_chatCurrentConv.id);
+      }
+    }
+
+    /* ---- Handle keydown ---- */
+    function chatHandleKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatHandleSend();
+      }
+    }
+
+    /* ---- Handle send ---- */
+    async function chatHandleSend() {
+      if (!_chatCurrentConv) return;
+
+      var input = document.getElementById('chatInput');
+      var sendBtn = document.getElementById('chatSendBtn');
+
+      // Check if editing
+      if (input.dataset.editingId) {
+        var newContent = input.value.trim();
+        if (!newContent) return;
+
+        try {
+          await chatEditMessage(input.dataset.editingId, newContent);
+          chatCancelEdit();
+          await chatRefreshMessages();
+        } catch (e) {
+          showToast(e.message, 'error');
+        }
+        return;
+      }
+
+      // Send attachment first if present
+      if (_chatUploadFile) {
+        try {
+          await chatSendAttachment(_chatCurrentConv.id, _chatReplyTo ? _chatReplyTo.id : null);
+          chatCancelReply();
+          await chatRefreshConversations();
+        } catch (e) {
+          // Error already shown
+        }
+        return;
+      }
+
+      // Send text message
+      var content = input.value.trim();
+      if (!content) return;
+
+      sendBtn.disabled = true;
+      input.value = '';
+      input.style.height = 'auto';
+
+      try {
+        var replyToId = _chatReplyTo ? _chatReplyTo.id : null;
+        await chatSendMessage(_chatCurrentConv.id, content, replyToId);
+        chatCancelReply();
+
+        // Refresh messages
+        await chatRefreshMessages();
+        await chatRefreshConversations();
+      } catch (e) {
+        input.value = content;
+        showToast(e.message || 'Failed to send', 'error');
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    /* ---- Handle file select ---- */
+    function chatHandleFileSelect(e) {
+      var file = e.target.files[0];
+      if (file) chatShowUploadPreview(file);
+      e.target.value = '';
+    }
+
+    /* ---- Emoji picker ---- */
+    function chatToggleEmojiPicker() {
+      var picker = document.getElementById('chatEmojiPicker');
+      picker.classList.toggle('show');
+
+      if (picker.classList.contains('show')) {
+        setTimeout(function() {
+          document.addEventListener('click', function closeEmoji(ev) {
+            if (!picker.contains(ev.target) && !ev.target.closest('.chat-composer-btn')) {
+              picker.classList.remove('show');
+              document.removeEventListener('click', closeEmoji);
+            }
+          });
+        }, 10);
+      }
+    }
+
+    function chatInsertEmoji(emoji) {
+      var input = document.getElementById('chatInput');
+      input.value += emoji;
+      input.focus();
+      document.getElementById('chatSendBtn').disabled = false;
+      document.getElementById('chatEmojiPicker').classList.remove('show');
+    }
+
+    /* ---- Search conversations ---- */
+    function chatFilterConversations(query) {
+      var items = document.querySelectorAll('.chat-conv-item');
+      var q = query.toLowerCase().trim();
+
+      for (var i = 0; i < items.length; i++) {
+        var name = items[i].querySelector('.chat-conv-name');
+        var preview = items[i].querySelector('.chat-conv-preview');
+        var text = ((name ? name.textContent : '') + ' ' + (preview ? preview.textContent : '')).toLowerCase();
+        items[i].style.display = !q || text.indexOf(q) !== -1 ? '' : 'none';
+      }
+    }
+
+    /* ---- Tab switching ---- */
+    function chatSwitchTab(tab, btn) {
+      var tabs = document.querySelectorAll('.chat-tab');
+      for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+      btn.classList.add('active');
+
+      // For now, messages and requests show the same list
+      // In production, requests would filter out non-followed users
+    }
+
+    /* ---- New Message Modal ---- */
+    function chatOpenNewMessageModal() {
+      var overlay = document.createElement('div');
+      overlay.className = 'chat-new-modal-overlay';
+      overlay.id = 'chatNewModal';
+      overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+
+      overlay.innerHTML =
+        '<div class="chat-new-modal">' +
+          '<div class="chat-new-modal-header">' +
+            '<h3>New Message</h3>' +
+            '<button class="chat-new-modal-close" onclick="document.getElementById(\'chatNewModal\').remove()"><i class="fas fa-xmark"></i></button>' +
+          '</div>' +
+          '<div class="chat-new-modal-search">' +
+            '<input type="text" id="chatNewSearchInput" placeholder="Search by username or name..." oninput="chatNewSearchUsers(this.value)">' +
+          '</div>' +
+          '<div class="chat-new-modal-list" id="chatNewUserList">' +
+            '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">Start typing to search for users...</div>' +
+          '</div>' +
+        '</div>';
+
+      document.body.appendChild(overlay);
+      setTimeout(function() {
+        var input = document.getElementById('chatNewSearchInput');
+        if (input) input.focus();
+      }, 100);
+    }
+
+    var _chatNewSearchTimeout = null;
+    async function chatNewSearchUsers(query) {
+      clearTimeout(_chatNewSearchTimeout);
+      if (!query || query.length < 2) {
+        document.getElementById('chatNewUserList').innerHTML =
+          '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">Start typing to search for users...</div>';
+        return;
+      }
+
+      _chatNewSearchTimeout = setTimeout(async function() {
+        var users = await chatSearchUsers(query);
+        var list = document.getElementById('chatNewUserList');
+        if (!list) return;
+
+        if (users.length === 0) {
+          list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">No users found</div>';
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < users.length; i++) {
+          var u = users[i];
+          var name = u.full_name || u.username || 'User';
+          html += '<div class="chat-new-modal-item" onclick="chatStartNewConversation(\'' + u.id + '\')">' +
+            chatAvatarHtml(u, 44) +
+            '<div class="chat-new-modal-item-info">' +
+              '<div class="chat-new-modal-item-name">' + chatEscapeHtml(name) + '</div>' +
+              '<div class="chat-new-modal-item-username">@' + chatEscapeHtml(u.username || '') + '</div>' +
+            '</div>' +
+          '</div>';
+        }
+        list.innerHTML = html;
+      }, 350);
+    }
+
+    async function chatStartNewConversation(userId) {
+      var modal = document.getElementById('chatNewModal');
+      if (modal) modal.remove();
+
+      var convId = await chatGetOrCreateConversation(userId);
+      if (convId) {
+        await chatRefreshConversations();
+        await chatOpenConversation(convId);
+      }
+    }
+
+    /* ---- Details Panel ---- */
+    function chatOpenDetailsPanel() {
+      var panel = document.getElementById('chatDetailsPanel');
+      panel.classList.remove('hidden');
+    }
+
+    function chatCloseDetailsPanel() {
+      var panel = document.getElementById('chatDetailsPanel');
+      panel.classList.add('hidden');
+    }
+
+    function chatUpdateDetailsPanel(conv) {
+      if (!conv) return;
+
+      var profileEl = document.getElementById('chatDetailsProfile');
+      profileEl.innerHTML =
+        '<div class="chat-details-avatar">' + chatAvatarHtml(conv.otherUser, 80) + '</div>' +
+        '<div class="chat-details-name">' + chatEscapeHtml(conv.otherUserName) + '</div>' +
+        '<div class="chat-details-username">@' + chatEscapeHtml(conv.otherUser.username || '') + '</div>' +
+        '<button class="chat-details-profile-btn" onclick="window.location.href=\'profile.html?user=' + (conv.otherUser.username || '') + '\'">View Profile</button>';
+
+      // Theme info
+      var themeName = (_chatCurrentTheme && _chatCurrentTheme.theme) || 'default';
+      var themeObj = CHAT_THEMES[themeName] || CHAT_THEMES['default'];
+      document.getElementById('chatDetailsThemeName').textContent = themeObj.name;
+      document.getElementById('chatDetailsThemeSwatch').style.background = _chatCurrentTheme ? _chatCurrentTheme.accent_color : themeObj.accent;
+
+      // Mute button
+      var muteBtn = document.getElementById('chatDetailsMuteBtn');
+      var muteLabel = muteBtn.querySelector('span');
+      var muteIcon = muteBtn.querySelector('i');
+      if (conv.muted) {
+        muteLabel.textContent = 'Unmute notifications';
+        muteIcon.className = 'fas fa-bell';
+      } else {
+        muteLabel.textContent = 'Mute notifications';
+        muteIcon.className = 'fas fa-bell-slash';
+      }
+
+      // Archive label
+      var archiveLabel = document.getElementById('chatArchiveLabel');
+      archiveLabel.textContent = conv.archived ? 'Unarchive chat' : 'Archive chat';
+    }
+
+    async function chatToggleMuteConversation() {
+      if (!_chatCurrentConv) return;
+      try {
+        await chatToggleMute(_chatCurrentConv.id, !_chatCurrentConv.muted);
+        _chatCurrentConv.muted = !_chatCurrentConv.muted;
+        chatUpdateDetailsPanel(_chatCurrentConv);
+        showToast(_chatCurrentConv.muted ? 'Chat muted' : 'Chat unmuted', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function chatToggleArchiveConversation() {
+      if (!_chatCurrentConv) return;
+      try {
+        await chatToggleArchive(_chatCurrentConv.id, !_chatCurrentConv.archived);
+        _chatCurrentConv.archived = !_chatCurrentConv.archived;
+        chatUpdateDetailsPanel(_chatCurrentConv);
+        showToast(_chatCurrentConv.archived ? 'Chat archived' : 'Chat unarchived', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function chatSearchInConversation() {
+      if (!_chatCurrentConv) return;
+      var query = prompt('Search in conversation:');
+      if (!query || !query.trim()) return;
+
+      var results = await chatSearchMessages(_chatCurrentConv.id, query);
+      if (results.length === 0) {
+        showToast('No messages found', 'info');
+        return;
+      }
+
+      // Scroll to first result
+      chatScrollToMessage(results[0].id);
+    }
+
+    /* ---- Scroll detection for older messages & scroll-to-bottom button ---- */
+    document.addEventListener('DOMContentLoaded', function() {
+      var chatMessages = document.getElementById('chatMessages');
+      if (!chatMessages) return;
+
+      chatMessages.addEventListener('scroll', function() {
+        // Load older messages when near top
+        if (chatMessages.scrollTop < 100 && _chatHasMore && !_chatLoading) {
+          chatLoadOlderMessages();
+        }
+
+        // Show/hide scroll-to-bottom button
+        var distFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+        chatShowScrollButton(distFromBottom > 200);
+      });
+    });
+
+    /* ---- Click outside to close emoji picker ---- */
+    document.addEventListener('click', function(e) {
+      var picker = document.getElementById('chatEmojiPicker');
+      if (picker && picker.classList.contains('show')) {
+        if (!picker.contains(e.target) && !e.target.closest('.chat-composer-btn')) {
+          picker.classList.remove('show');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
