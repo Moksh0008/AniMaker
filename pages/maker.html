@@ -344,7 +344,7 @@
 
 
     function renderSupabaseCard(c) {
-      var profile = c.profiles || {};
+      var profile = getDefaultUser(c) || c.profiles || {};
       var isOwner = currentUserId && c.user_id === currentUserId;
       var card = document.createElement('div');
       card.className = 'creation-card';

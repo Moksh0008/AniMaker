@@ -587,7 +587,7 @@
 
     /* ---- RENDER CARD ---- */
     function renderExploreCard(c, social) {
-      var profile = c.profiles || {};
+      var profile = getDefaultUser(c) || c.profiles || {};
       var userName = getCreationUserName(profile);
       var userInitial = userName.charAt(0).toUpperCase();
       var social = social || { likes: 0, comments: 0 };
