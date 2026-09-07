@@ -15,6 +15,44 @@ var VALID_VIDEO_TYPES = ['video/mp4', 'video/webm'];
 var MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 var MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 
+/* ---- Default creation → random user map ---- */
+var DEFAULT_USER_MAP = {
+  // Creator defaults
+  'A Fusion of Naruto and Goku': { username: 'AkiraSensei', full_name: 'AkiraSensei', avatar_url: '../assets/images/avatars/anime-avatar-1.jpg' },
+  'Super Saiyan Nine Tails': { username: 'NarutoFan99', full_name: 'NarutoFan99', avatar_url: '../assets/images/avatars/anime-avatar-2.jpg' },
+  'Gear 5 Goku': { username: 'SaiyanArtist', full_name: 'SaiyanArtist', avatar_url: '../assets/images/avatars/anime-avatar-3.jpg' },
+  'Ichigo Naruto': { username: 'LuffyLover', full_name: 'LuffyLover', avatar_url: '../assets/images/avatars/anime-avatar-4.jpg' },
+  'Creation 5': { username: 'IchigoInk', full_name: 'IchigoInk', avatar_url: '../assets/images/avatars/anime-avatar-5.jpg' },
+  'Vegetto': { username: 'ZoroDraws', full_name: 'ZoroDraws', avatar_url: '../assets/images/avatars/anime-avatar-6.jpg' },
+  'Gear 5 Baryon': { username: 'Gear5Creator', full_name: 'Gear5Creator', avatar_url: '../assets/images/avatars/avatar-1.jpg' },
+  'Lugoto': { username: 'AkatsukiArt', full_name: 'AkatsukiArt', avatar_url: '../assets/images/avatars/avatar-2.jpg' },
+  // Writer defaults
+  'Luffy as Lil Bro of Goku': { username: 'StoryWeaver', full_name: 'StoryWeaver', avatar_url: '../assets/images/avatars/anime-avatar-9.png' },
+  'Goats as a Trio': { username: 'AnimeScribe', full_name: 'AnimeScribe', avatar_url: '../assets/images/avatars/anime-avatar-10.png' },
+  'Ramen Lovers Together': { username: 'MangaWriter', full_name: 'MangaWriter', avatar_url: '../assets/images/avatars/anime-avatar-11.png' },
+  'The Last Battle': { username: 'NinjaNarrator', full_name: 'NinjaNarrator', avatar_url: '../assets/images/avatars/anime-avatar-12.png' },
+  'Team Goats': { username: 'PiratePoet', full_name: 'PiratePoet', avatar_url: '../assets/images/avatars/anime-avatar-13.png' },
+  'Jack Luffy': { username: 'SaiyanStories', full_name: 'SaiyanStories', avatar_url: '../assets/images/avatars/anime-avatar-14.png' },
+  'Pirate Slayer': { username: 'ShonenAuthor', full_name: 'ShonenAuthor', avatar_url: '../assets/images/avatars/anime-avatar-15.png' },
+  'Unbeatable Combo': { username: 'AnimeWriter', full_name: 'AnimeWriter', avatar_url: '../assets/images/avatars/anime-avatar-16.png' },
+  // Maker defaults
+  'Nine Tails VS Gear 5': { username: 'AnimeVFX', full_name: 'AnimeVFX', avatar_url: '../assets/images/avatars/anime-avatar-17.png' },
+  'Battle of G.OA.Ts': { username: 'ShonenStudio', full_name: 'ShonenStudio', avatar_url: '../assets/images/avatars/avatar-3.jpg' },
+  'Battle of G.O.A.T.s': { username: 'ShonenStudio', full_name: 'ShonenStudio', avatar_url: '../assets/images/avatars/avatar-3.jpg' },
+  'Dominance of Aizen': { username: 'NinjaAnimate', full_name: 'NinjaAnimate', avatar_url: '../assets/images/avatars/avatar-4.jpg' },
+  'Battle of Instant': { username: 'PirateFrames', full_name: 'PirateFrames', avatar_url: '../assets/images/avatars/avatar-5.jpg' },
+  'Clash of Legends': { username: 'SaiyanMotion', full_name: 'SaiyanMotion', avatar_url: '../assets/images/avatars/avatar-6.jpg' },
+  'The New Member of Akatsuki': { username: 'HollowAnime', full_name: 'HollowAnime', avatar_url: '../assets/images/avatars/avatar-7.jpg' },
+  'The End of Muzan': { username: 'DemonSlayerFX', full_name: 'DemonSlayerFX', avatar_url: '../assets/images/avatars/avatar-8.jpg' },
+  'Fight of Senseis': { username: 'JujutsuStudio', full_name: 'JujutsuStudio', avatar_url: '../assets/images/avatars/avatar-9.jpg' },
+  'The END': { username: 'FinalCutAnime', full_name: 'FinalCutAnime', avatar_url: '../assets/images/avatars/avatar-10.jpg' }
+};
+
+function getDefaultUser(creation) {
+  if (!creation || !creation.title) return null;
+  return DEFAULT_USER_MAP[creation.title] || null;
+}
+
 /* ---- Upload file to Supabase Storage ---- */
 async function uploadCreationFile(file, bucket, onProgress) {
   if (!supabaseClient) throw new Error('Supabase not available');
@@ -325,7 +363,7 @@ async function searchCreations(query, type) {
 function openCreatorDetail(id, userOverride) {
   fetchCreation(id).then(async function(c) {
     if (!c) return;
-    var profile = userOverride || c.profiles || {};
+    var profile = userOverride || getDefaultUser(c) || c.profiles || {};
     var userName = getCreationUserName(profile);
     var desc = postEscapeHtml(c.description || '').replace(/\n/g, '<br>');
     var session = await getSession();
@@ -381,7 +419,7 @@ function openCreatorDetail(id, userOverride) {
 function openStoryDetail(id, userOverride) {
   fetchCreation(id).then(async function(c) {
     if (!c) return;
-    var profile = userOverride || c.profiles || {};
+    var profile = userOverride || getDefaultUser(c) || c.profiles || {};
     var session = await getSession();
     var isOwn = session && session.user && c.user_id === session.user.id;
 
@@ -436,7 +474,7 @@ function openStoryDetail(id, userOverride) {
 function openMakerDetail(id, userOverride) {
   fetchCreation(id).then(async function(c) {
     if (!c) return;
-    var profile = userOverride || c.profiles || {};
+    var profile = userOverride || getDefaultUser(c) || c.profiles || {};
     var session = await getSession();
     var isOwn = session && session.user && c.user_id === session.user.id;
 
