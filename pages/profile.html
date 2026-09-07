@@ -679,15 +679,17 @@
       // Username
       document.getElementById('profileUsername').textContent = p.username;
 
-      // Stats: for default profiles use low realistic counts (new platform), otherwise load from DB
+      // Stats: default profiles show 0 for social stats (no real relationships), real data from DB for others
       if (isDefault) {
-        var hash = 0;
-        for (var h = 0; h < p.username.length; h++) hash = ((hash << 5) - hash) + p.username.charCodeAt(h);
-        var seed = Math.abs(hash);
         document.getElementById('postsCount').textContent = _profileCreationCounts.total || 0;
-        document.getElementById('followersCount').textContent = (seed % 12) + 1;
-        document.getElementById('followingCount').textContent = (seed % 8) + 2;
-        document.getElementById('likesCount').textContent = (seed % 25) + 3;
+        document.getElementById('followersCount').textContent = '0';
+        document.getElementById('followingCount').textContent = '0';
+        document.getElementById('likesCount').textContent = '0';
+        // Make followers/following non-clickable for default profiles
+        document.getElementById('followersStat').style.cursor = 'default';
+        document.getElementById('followingStat').style.cursor = 'default';
+        document.getElementById('followersStat').onclick = null;
+        document.getElementById('followingStat').onclick = null;
       } else {
         loadProfileSocialStats(p.id, isOwn);
       }
