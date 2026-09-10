@@ -448,7 +448,7 @@ function openCreatorDetail(id, userOverride) {
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
             '</button>' +
             '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" onclick="handleSave(\'' + id + '\', this)">' +
-              '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> Save' +
+              '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
             '</button>' +
           '</div>' +
           '<div class="comments-section" id="comments-section-' + id + '"></div>' +
@@ -503,7 +503,7 @@ function openStoryDetail(id, userOverride) {
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
             '</button>' +
             '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" onclick="handleSave(\'' + id + '\', this)">' +
-              '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> Save' +
+              '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
             '</button>' +
           '</div>' +
           '<div class="comments-section" id="comments-section-' + id + '"></div>' +
@@ -556,9 +556,8 @@ function openMakerDetail(id, userOverride) {
             '</button>' +
             '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
-            '</button>' +
-            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" onclick="handleSave(\'' + id + '\', this)">' +
-              '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> Save' +
+            '</button>' +            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" onclick="handleSave(\'' + id + '\', this)">' +
+              '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
             '</button>' +
           '</div>' +
           '<div class="comments-section" id="comments-section-' + id + '"></div>' +
@@ -571,7 +570,7 @@ function openMakerDetail(id, userOverride) {
 
 /* =========================================================
    Social Interaction Handlers
-   ========================================================= */
+  ========================================================= */
 
 /* ---- LIKE HANDLER ---- */
 async function handleLike(creationId, btn) {
