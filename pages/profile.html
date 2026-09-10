@@ -599,9 +599,16 @@
   <script src="../js/posts.js"></script>
   <script src="../js/social.js"></script>
   <script>
-    (async function() {
-      await updateNavbarAuth();
-      if (typeof renderNotificationBell === 'function') renderNotificationBell();
+    // Wait for Supabase to be ready before loading profile
+    function initProfile() {
+      if (!supabaseClient) {
+        console.log('[Profile] Waiting for Supabase...');
+        setTimeout(initProfile, 100);
+        return;
+      }
+      (async function() {
+        await updateNavbarAuth();
+        if (typeof renderNotificationBell === 'function') renderNotificationBell();
 
       // Get username from URL: profile.html?user=username or ?id=uuid
       var params = new URLSearchParams(window.location.search);
@@ -1374,6 +1381,8 @@
 
     function escapeAttr(str) {
       return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  })();
     }
   </script>
 </body>
