@@ -659,6 +659,8 @@
         loadDefaultProfilePosts(profile.username);
       } else {
         loadProfilePosts(profile.id);
+        // Load social stats (followers, following counts)
+        loadProfileSocialStats(profile.id, isOwnProfile);
       }
     })();
 
