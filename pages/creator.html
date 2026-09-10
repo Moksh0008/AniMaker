@@ -202,7 +202,16 @@
       document.body.classList.add('auth-checked');
     } catch(e) {}
 
-    try { loadGallery(); } catch(e) { console.error('[Creator] loadGallery error:', e); }
+    // Wait for Supabase to be ready before loading gallery
+    function tryLoadGallery() {
+      if (supabaseClient) {
+        loadGallery();
+      } else {
+        console.log('[Creator] Waiting for Supabase...');
+        setTimeout(tryLoadGallery, 100);
+      }
+    }
+    tryLoadGallery();
     try { updateNavbarAuth(); } catch(e) {}
     try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
     try {
@@ -538,11 +547,18 @@
 
       // Ensure defaults exist in database
       var idMapping = {};
-      try { idMapping = await ensureDefaultCreations(); } catch(e) {}
+      try { idMapping = await ensureDefaultCreations(); } catch(e) { console.error('[Creator] ensureDefault error:', e); }
 
       var creations = [];
       try { creations = await fetchCreations({ limit: 50, type: 'creator' }); } catch(e) { console.error('[Creator] fetch error:', e); }
+      
+      // Always hide loading
       loading.style.display = 'none';
+      
+      // If Supabase is not available or fetch failed, show defaults only
+      if (!supabaseClient || !creations || creations.length === 0) {
+        console.log('[Creator] Showing default cards only');
+      }
 
       var randomUsers = [
         { name: 'AkiraSensei', initial: 'A', avatar: '../assets/images/avatars/anime-avatar-1.jpg' },

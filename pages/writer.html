@@ -178,7 +178,16 @@
       if (authOverlay) authOverlay.style.display = 'none';
       document.body.classList.add('auth-checked');
     } catch(e) {}
-    try { loadGallery(); } catch(e) {}
+    // Wait for Supabase to be ready before loading gallery
+    function tryLoadGallery() {
+      if (supabaseClient) {
+        loadGallery();
+      } else {
+        console.log('[Writer] Waiting for Supabase...');
+        setTimeout(tryLoadGallery, 100);
+      }
+    }
+    tryLoadGallery();
     try { updateNavbarAuth(); } catch(e) {}
     try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
     try {
