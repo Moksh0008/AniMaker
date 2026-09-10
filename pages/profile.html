@@ -632,43 +632,49 @@
           profile = await loadUserProfile(viewUsername);
         }
       } else if (viewId) {
-        profile = await loadUserProfile(viewId);
-      } else if (session && session.user) {
+        profile = await loadUserProfile(viewId);      } else if (session && session.user) {
         // No param — show own profile
+        console.log('[Profile] Loading own profile for user:', session.user.id);
         profile = await getCurrentProfile();
+        console.log('[Profile] getCurrentProfile result:', profile);
         isOwnProfile = true;
       }
-      
+
+      console.log('[Profile] Final profile:', profile, 'isOwn:', isOwnProfile, 'isDefault:', isDefaultProfile);
+
       // If no profile found and no URL params, redirect to login or show message
       if (!profile && !viewUsername && !viewId) {
         // Check if user is logged in but has no profile
         if (session && session.user) {
-          // User is logged in but has no profile - create one or show message
+          // User is logged in but has no profile - show message
           console.log('[Profile] User logged in but no profile found');
-          // Show a message in the skeleton
-          document.getElementById('profileSkeleton').innerHTML =
+          document.getElementById('profileSkeleton').style.display = 'none';
+          document.getElementById('profileContent').innerHTML =
             '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
             '<i class="fas fa-user-plus" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
-            '<p style="font-size:16px;margin-bottom:8px;">Profile not found</p>' +
-            '<p style="font-size:13px;color:var(--text-muted);">Complete your profile to get started.</p>' +
+            '<p style="font-size:16px;margin-bottom:8px;color:#fff;">No profile found</p>' +
+            '<p style="font-size:13px;color:var(--text-muted);">Your profile doesn\'t exist yet.</p>' +
             '</div>';
-          document.getElementById('profileSkeleton').style.display = 'block';
-          document.getElementById('profileContent').style.display = 'none';
+          document.getElementById('profileContent').style.display = 'block';
           return;
         } else {
           // Not logged in - redirect to login
+          console.log('[Profile] Not logged in, redirecting to login');
           window.location.href = 'login.html';
           return;
         }
       }
 
       if (!profile) {
-        document.getElementById('profileSkeleton').innerHTML =
+        console.log('[Profile] Profile not found for:', viewUsername || viewId);
+        document.getElementById('profileSkeleton').style.display = 'none';
+        document.getElementById('profileContent').innerHTML =
           '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
           '<i class="fas fa-user-slash" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
-          '<p style="font-size:16px;margin-bottom:8px;">Profile not found</p>' +
-          '<p style="font-size:13px;color:var(--text-muted);">If this is your first time here, make sure you ran the SQL setup in your Supabase Dashboard → SQL Editor.</p>' +
+          '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Profile not found</p>' +
+          '<p style="font-size:13px;color:var(--text-muted);">The profile you\'re looking for doesn\'t exist.</p>' +
           '</div>';
+        document.getElementById('profileContent').style.display = 'block';
         return;
       }
 
