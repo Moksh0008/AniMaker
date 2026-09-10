@@ -600,13 +600,13 @@
   <script src="../js/social.js"></script>
   <script>
     // Wait for Supabase to be ready before loading profile
-    function initProfile() {
+    async function initProfile() {
       if (!supabaseClient) {
         console.log('[Profile] Waiting for Supabase...');
         setTimeout(initProfile, 100);
         return;
       }
-      (async function() {
+      try {
         await updateNavbarAuth();
         if (typeof renderNotificationBell === 'function') renderNotificationBell();
 
@@ -1410,8 +1410,21 @@
     function escapeAttr(str) {
       return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-  })();
+      } catch (err) {
+        console.error('[Profile] Initialization error:', err);
+        document.getElementById('profileSkeleton').style.display = 'none';
+        document.getElementById('profileContent').innerHTML =
+          '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
+          '<i class="fas fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+          '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Error loading profile</p>' +
+          '<p style="font-size:13px;color:var(--text-muted);">' + err.message + '</p>' +
+          '</div>';
+        document.getElementById('profileContent').style.display = 'block';
+      }
     }
+    
+    // Start profile initialization
+    initProfile();
   </script>
 </body>
 </html>
