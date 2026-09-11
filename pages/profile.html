@@ -632,7 +632,8 @@
           profile = await loadUserProfile(viewUsername);
         }
       } else if (viewId) {
-        profile = await loadUserProfile(viewId);      } else if (session && session.user) {
+        profile = await loadUserProfile(viewId);
+      } else if (session && session.user) {
         // No param — show own profile
         console.log('[Profile] Loading own profile for user:', session.user.id);
         profile = await getCurrentProfile();
@@ -697,7 +698,18 @@
         // Load social stats (followers, following counts)
         loadProfileSocialStats(profile.id, isOwnProfile);
       }
-    })();
+    } catch (err) {
+      console.error('[Profile] Initialization error:', err);
+      document.getElementById('profileSkeleton').style.display = 'none';
+      document.getElementById('profileContent').innerHTML =
+        '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
+        '<i class="fas fa-triangle-exclamation" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+        '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Something went wrong</p>' +
+        '<p style="font-size:13px;color:var(--text-muted);">Failed to load profile. Please refresh or sign in again.</p>' +
+        '</div>';
+      document.getElementById('profileContent').style.display = 'block';
+    }
+  })();
 
     function renderProfile(profile, isOwn) {
       var p = formatProfile(profile);
@@ -954,11 +966,6 @@
     }
 
     /* ---- Load profile creations ---- */
-    var _profileCreationCounts = { creator: 0, writer: 0, maker: 0 };
-    var _profileCreations = { creator: [], writer: [], maker: [] };
-    var _currentProfileTab = 'creator';
-    var _profileUserId = null;
-
     async function loadProfilePosts(userId) {
       _profileUserId = userId;
       var grid = document.getElementById('profileGrid');
