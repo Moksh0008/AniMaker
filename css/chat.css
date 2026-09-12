@@ -814,6 +814,7 @@
   border-top: 1px solid var(--border);
   background: var(--bg-secondary);
   flex-shrink: 0;
+  position: relative; /* anchor the emoji picker dropdown */
 }
 
 .chat-composer-reply-preview {
