@@ -699,6 +699,18 @@ function openMakerDetail(id, userOverride) {
       '</div>';
     document.body.appendChild(overlay);
     renderCommentsSection(id, overlay.querySelector('.comments-section'));
+    // Autoplay as soon as the modal opens (user gesture already happened)
+    var vid = overlay.querySelector('video');
+    if (vid) {
+      vid.muted = false;
+      var p = vid.play();
+      if (p && p.catch) p.catch(function() {
+        // Browser blocked unmuted autoplay - retry muted
+        vid.muted = true;
+        var p2 = vid.play();
+        if (p2 && p2.catch) p2.catch(function() {});
+      });
+    }
   });
 }
 
