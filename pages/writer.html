@@ -404,30 +404,34 @@
         }
       } catch (e1) { /* counts stay at 0 */ }
 
-      // 2) Per-user liked/saved state (requires session)
+      // 2) Batch-fetch MY liked + saved state in TWO queries (requires session)
       var session = await getSession();
       if (!session || !session.user) return;
-      for (var i = 0; i < cards.length; i++) {
-        var id = cards[i].getAttribute('data-creation-id');
-        try {
-          var liked = await hasUserLiked(id);
-          var saved = await hasUserSaved(id);
-          if (liked) {
-            var lb = cards[i].querySelector('.story-card-action.like');
-            if (lb) { lb.classList.add('liked'); var li = lb.querySelector('i'); if (li) li.className = 'fas fa-heart'; }
+
+      var likedMap = {}, savedMap = {};
+      try {
+        likedMap = await getMyLikedCreationIds(ids) || {};
+        savedMap = await getSavedCreationIds(ids) || {};
+      } catch (e2) { return; }
+
+      ids.forEach(function(id) {
+        var card = document.querySelector('.story-card[data-creation-id="' + id + '"]');
+        if (!card) return;
+        if (likedMap[id]) {
+          var lb = card.querySelector('.story-card-action.like');
+          if (lb) { lb.classList.add('liked'); var li = lb.querySelector('i'); if (li) li.className = 'fas fa-heart'; }
+        }
+        if (savedMap[id]) {
+          var sb = card.querySelector('.story-card-action.save');
+          if (sb) {
+            sb.classList.add('saved');
+            var si = sb.querySelector('i');
+            if (si) si.className = 'fas fa-bookmark';
+            var sl = sb.querySelector('.story-save-label');
+            if (sl) sl.textContent = 'Saved';
           }
-          if (saved) {
-            var sb = cards[i].querySelector('.story-card-action.save');
-            if (sb) {
-              sb.classList.add('saved');
-              var si = sb.querySelector('i');
-              if (si) si.className = 'fas fa-bookmark';
-              var sl = sb.querySelector('.story-save-label');
-              if (sl) sl.textContent = 'Saved';
-            }
-          }
-        } catch (e) { /* skip card */ }
-      }
+        }
+      });
     }
 
     /* ---- Story popup for default stories ---- */
@@ -671,7 +675,7 @@
     function checkEmpty() {
       var gallery = document.getElementById('writerGallery');
       var empty = document.getElementById('galleryEmpty');
-      var cards = gallery.querySelectorAll('.creation-card');
+      var cards = gallery.querySelectorAll('.story-card');
       if (cards.length === 0) empty.classList.add('active'); else empty.classList.remove('active');
     }
 
