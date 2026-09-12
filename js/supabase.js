@@ -8,6 +8,8 @@
 var supabaseClient = null;
 
 (function initSupabase() {
+  // TODO: Replace with your Supabase project credentials
+  // Get them from: https://supabase.com/dashboard → Project Settings → API
   var SUPABASE_URL  = 'https://wdjimkdtnuzgeabrpdba.supabase.co';
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indkamlta2R0bnV6Z2VhYnJwZGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDg5MTAsImV4cCI6MjEwMzkyNDkxMH0.TUgdAOmmwhYs02Zqb0IpvA3f3WDboACjibswoT_91JY';
 
