@@ -64,6 +64,7 @@ async function chatGetOrCreateConversation(userId) {
 
   if (convErr) {
     console.error('[Chat] Create conversation error:', convErr.message);
+    if (typeof showToast === 'function') showToast('Chat error: ' + convErr.message, 'error');
     return null;
   }
 
@@ -74,6 +75,7 @@ async function chatGetOrCreateConversation(userId) {
     .insert({ conversation_id: conv.id, user_id: _chatCurrentUserId });
   if (first.error) {
     console.error('[Chat] Add self participant error:', first.error.message);
+    if (typeof showToast === 'function') showToast('Chat error: ' + first.error.message, 'error');
     return null;
   }
 
@@ -82,6 +84,7 @@ async function chatGetOrCreateConversation(userId) {
     .insert({ conversation_id: conv.id, user_id: userId });
   if (second.error) {
     console.error('[Chat] Add participant error:', second.error.message);
+    if (typeof showToast === 'function') showToast('Chat error: ' + second.error.message, 'error');
     return null;
   }
 
