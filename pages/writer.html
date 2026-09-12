@@ -491,7 +491,7 @@
       card.className = 'story-card' + (c.cover_image_url ? '' : ' no-cover');
       card.setAttribute('data-creation-id', c.id);
       var imgHtml = c.cover_image_url
-        ? '<img class="story-card-img" onerror="this.parentElement.classList.add(\'no-cover\');this.remove();" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
+        ? '<img class="story-card-img" onerror="this.parentElement.classList.add(\'no-cover\');this.remove();" src="' + resolveAssetUrl(c.cover_image_url) + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
         : '';
       card.onclick = function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(c.id); };
       var userName = getCreationUserName(profile);

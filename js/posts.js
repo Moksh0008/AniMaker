@@ -350,6 +350,17 @@ function postEscapeHtml(str) {
   return div.innerHTML;
 }
 
+/* ---- Utility: resolve legacy root-relative asset paths ----
+   Old seeded rows store covers as 'assets/...' which only resolves
+   from the site root; pages live in /pages/, so rewrite at render. */
+function resolveAssetUrl(url) {
+  if (!url) return url;
+  if (url.indexOf('assets/') === 0 && window.location.pathname.indexOf('/pages/') !== -1) {
+    return '../' + url;
+  }
+  return url;
+}
+
 /* ---- Utility: reading time estimate ---- */
 function estimateReadingTime(text) {
   if (!text) return '1 min read';
@@ -431,7 +442,7 @@ function openCreatorDetail(id, userOverride) {
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
     overlay.innerHTML = '<button class="creator-popup-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
       '<div class="creator-popup">' +
-        '<div class="creator-popup-image"><img src="' + (c.cover_image_url || '') + '"></div>' +
+        '<div class="creator-popup-image"><img src="' + resolveAssetUrl(c.cover_image_url || '') + '"></div>' +
         '<div class="creator-popup-info">' +
           '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">' +
             '<a href="profile.html?user=' + (profile.username || '') + '" style="text-decoration:none;">' + getCreationUserAvatar(profile, 44) + '</a>' +
@@ -508,7 +519,7 @@ function openStoryDetail(id, userOverride) {
     }
 
     var coverHtml = c.cover_image_url
-      ? '<div class="writer-hero-cover"><img src="' + c.cover_image_url + '" alt="' + postEscapeHtml(c.title) + '"></div>'
+      ? '<div class="writer-hero-cover"><img src="' + resolveAssetUrl(c.cover_image_url) + '" alt="' + postEscapeHtml(c.title) + '" onerror="this.parentElement.classList.add(\'writer-hero-cover-empty\');this.remove();"><i class=\"fas fa-feather-pointed\" style=\"display:none;\"></i></div>'
       : '<div class="writer-hero-cover writer-hero-cover-empty"><i class="fas fa-feather-pointed"></i></div>';
 
     var overlay = document.createElement('div');
