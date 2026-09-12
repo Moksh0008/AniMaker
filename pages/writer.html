@@ -206,6 +206,27 @@
   <script src="../js/posts.js"></script>
   <script src="../js/social.js"></script>
   <script>
+    /* ---- Default (sample) stories shown while the gallery is empty ----
+       These render client-side only; real published stories come from the DB. */
+    var defaultStories = [
+      { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg', genre: 'Fan Fiction', tags: ['luffy','goku','crossover'],
+        story_content: 'In a small, peaceful village on Earth, Goku\'s younger brother, Luffy, was born. Unlike Goku, Luffy\'s personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.\n\nLuffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn\'t mind; every loss made him stronger, and every challenge gave him more fire. "One day, I\'ll be as strong as you!" he\'d shout with a grin, despite his bruises.\n\nAs they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world\'s greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.\n\nGoku would often send Luffy letters with encouragement, but Luffy\'s only reply would be a laughing message: "I\'m already on my way to being the King of the Sea, big bro!"\n\nYears later, Luffy\'s name became known across the seas, just as Goku\'s became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected.' },
+      { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg', genre: 'Adventure', tags: ['naruto','luffy','goku'],
+        story_content: 'Naruto, Luffy, and Goku were three young adventurers brought together by fate in a world where ninjas, pirates, and martial artists lived side by side. Though their personalities were completely different, they quickly became inseparable. Goku was calm and fearless, Luffy was wild and cheerful, while Naruto was determined and never willing to give up.\n\nThey would often train together, turning every practice session into a friendly competition. Goku challenged them to test their strength, Luffy rushed into every fight with a huge grin, and Naruto refused to let either of them get ahead. Even when they lost, they would laugh, learn, and promise to become stronger together.\n\nAs they grew older, each of them began chasing their own dream. Goku wanted to become the greatest martial artist, Luffy dreamed of becoming the Pirate King, and Naruto wanted to become Hokage and earn the respect of everyone around him.\n\nYears later, their names became legends across the world. No matter how far their journeys took them, the three friends always found their way back to each other.' },
+      { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg', genre: 'Slice of Life', tags: ['ramen','friends'],
+        story_content: 'There was something magical about a warm bowl of ramen that brought even the greatest warriors together. Every Sunday evening, Naruto, Goku, and Luffy would gather at Ichiraku Ramen, the only place in the world where a Hokage, a Saiyan, and a Pirate King could sit side by side and simply enjoy a meal.\n\nNaruto always ordered the same thing — miso ramen with extra pork. Goku, being Goku, ordered ten bowls of everything. Luffy would eat until the entire shop ran out of ingredients, laughing the whole time.\n\n"You know," Naruto said between slurps, "this is the best part of my day." Goku nodded, his mouth full of noodles. Luffy grinned, sauce on his face. "Better than treasure!" he declared.\n\nThey talked about their adventures, their dreams, and their friends. In those quiet moments over steaming bowls of ramen, they weren\'t legends or heroes — they were just three friends, sharing a meal and a bond that would last forever.' },
+      { id: 'default-w4', title: 'The Last Battle', cover_image_url: '../assets/images/writer/writer-pic-4.jpg', genre: 'Action', tags: ['battle','trio'],
+        story_content: 'The sky turned dark as the ultimate threat emerged — a villain so powerful that even the gods trembled. Naruto, Goku, and Luffy stood side by side, facing the enemy that threatened to destroy everything they had ever loved.\n\n"Ready?" Goku asked, his voice calm despite the chaos around them. Naruto grinned, his eyes blazing with determination. "Always." Luffy cracked his knuckles, his hat pulled low. "Let\'s do this."\n\nThe battle was unlike anything the world had ever seen. Goku transformed through his forms, his power reaching new heights with every blow. Naruto unleashed the full force of the Nine-Tails, his chakra painting the sky in golden light. Luffy activated Gear 5, his body bending reality itself.\n\nTogether, they were unstoppable. When the final blow landed, the darkness shattered like glass, and the sun broke through the clouds.\n\nBreathing heavily, the three warriors looked at each other and smiled. They had won — not alone, but together. That was the power of friendship, the power of three legends who refused to give up.' },
+      { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg', genre: 'Adventure', tags: ['goats','legends'],
+        story_content: 'In a world where power meant everything, three names echoed across every land, every sea, every universe — Goku, Naruto, and Luffy. They were known as the GOATs, the Greatest Of All Time.\n\nBut fame never changed them. Goku still trained every morning with a smile. Naruto still visited his friends in the Hidden Leaf Village. Luffy still gathered his crew, laughing and dreaming of new adventures on the Grand Line.\n\nThey met once a year at a secret location — a small island in the middle of the ocean. There, they would train, fight, eat, and share stories. No cameras, no fans, no titles. Just three friends being themselves.\n\n"You know what I love most?" Luffy said one evening, watching the sunset. "This. Just us." Goku nodded, stretching his arms behind his head. Naruto smiled. "Me too. This is what it\'s all about."' },
+      { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg', genre: 'Adventure', tags: ['luffy','pirates'],
+        story_content: 'Monkey D. Luffy had always been fearless, but when he discovered the legendary treasure of Gol D. Roger, everything changed. The treasure wasn\'t gold or jewels — it was a map to a hidden island where the greatest pirates in history had left their legacy.\n\nLuffy gathered his crew and set sail immediately. "We\'re going to find this treasure!" he declared. The journey was filled with challenges — treacherous storms, powerful enemies, and impossible obstacles.\n\nWhen they finally reached the island, Luffy found something unexpected — a letter from Gol D. Roger himself. "The real treasure isn\'t on this island," it read. "It\'s the journey you took to get here, and the friends who traveled with you."\n\nLuffy laughed, holding the letter to his chest. "He\'s right!" he said, looking at his crew. "You guys are my treasure!"' },
+      { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg', genre: 'Action', tags: ['zoro','swordsman'],
+        story_content: 'They called him the Pirate Slayer, but that wasn\'t quite right. Roronoa Zoro didn\'t slay pirates for money or fame — he did it because it was the right thing to do. With his three swords and an unbreakable will, he had earned a reputation as the most feared swordsman in the world.\n\nHis journey began in a small village where he trained under a master swordsman. "To become truly strong," his master told him, "you must fight for something more than yourself."\n\nAlong the way, he met friends who changed his life. He joined Luffy\'s crew, finding brothers in the Straw Hat Pirates. He trained with Mihawk, his rival and inspiration. He faced death more times than he could count, but each time he rose stronger.\n\n"The world will know my name," Zoro once said, "as the greatest swordsman who ever lived."' },
+      { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg', genre: 'Action', tags: ['trio','combo'],
+        story_content: 'In the entire multiverse, there was one combination that no enemy could defeat — the Unbeatable Combo of Goku, Naruto, and Luffy. Together, they had faced gods, aliens, demons, and pirates, and they had never lost.\n\nThe secret to their power wasn\'t just their individual strength — it was how they worked together. Goku\'s raw power, Naruto\'s strategic mind, and Luffy\'s unpredictable fighting style created a combination that was impossible to counter.\n\nWhen Goku attacked with a Kamehameha, Naruto would follow with a Rasenshuriken, and Luffy would finish with a Gear 5 punch that bent reality itself.\n\n"We\'re unstoppable!" Luffy would shout after every victory. Goku would laugh, rubbing the back of his head. Naruto would grin, crossing his arms. "Believe it!"\n\nThe Unbeatable Combo wasn\'t just a fighting team — it was a family, bound by friendship, loyalty, and the shared dream of protecting the world they loved.' }
+    ];
+
     var currentUserId = null;
 
     try {
@@ -513,8 +534,39 @@
       });
 
       creations.forEach(function(c) { container.appendChild(renderSupabaseCard(c)); });
+
+      // Append the default sample stories (skip any whose titles exist as real rows)
+      var dbTitles = {};
+      creations.forEach(function(c) { dbTitles[c.title] = true; });
+      defaultStories.forEach(function(ds) {
+        if (dbTitles[ds.title]) return;
+        container.appendChild(renderDefaultCard(ds));
+      });
+
       checkEmpty();
       hydrateStoryCards();
+    }
+
+    /* ---- Default sample story card (client-side only, opens the reader) ---- */
+    function renderDefaultCard(ds) {
+      var profile = getDefaultUser(ds) || {};
+      var card = document.createElement('div');
+      card.className = 'story-card' + (ds.cover_image_url ? '' : ' no-cover');
+      card.onclick = function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(ds); };
+      var userName = getCreationUserName(profile);
+      var userAvatar = profile.avatar_url
+        ? '<img src="' + profile.avatar_url + '" alt="">'
+        : '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">' + userName.charAt(0).toUpperCase() + '</div>';
+      card.innerHTML =
+        '<img class="story-card-img" src="' + ds.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(ds.title) + '">' +
+        '<div class="story-card-scrim"></div>' +
+        '<div class="story-card-user">' + userAvatar + '<span>' + postEscapeHtml(userName) + '</span></div>' +
+        '<div class="story-card-title">' + postEscapeHtml(ds.title) + '</div>' +
+        '<div class="story-card-actions">' +
+          '<button class="story-card-action" title="Sample story" onclick="event.stopPropagation();openStoryDetail(window.defaultStories.find(function(s){return s.id===\'' + ds.id + '\'}))"><i class="fas fa-feather-pointed"></i></button>' +
+          '<button class="story-card-action" onclick="event.stopPropagation();openStoryDetail(window.defaultStories.find(function(s){return s.id===\'' + ds.id + '\'}))"><i class="far fa-comment"></i></button>' +
+        '</div>';
+      return card;
     }
   </script>
 </body>
