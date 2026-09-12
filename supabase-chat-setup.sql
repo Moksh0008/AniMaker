@@ -111,19 +111,31 @@ CREATE INDEX IF NOT EXISTS idx_conv_participants_user_archived ON conversation_p
 CREATE INDEX IF NOT EXISTS idx_messages_conv_created ON messages(conversation_id, created_at DESC);
 
 -- =============================================
--- 7. RLS POLICIES — CONVERSATIONS
+-- 7. RLS POLICIES — MEMBERSHIP FUNCTION + CONVERSATIONS
 -- =============================================
+
+/* SECURITY DEFINER membership check — bypasses RLS on the table it
+   queries, preventing the infinite recursion that cross-table policies
+   cause (conversations -> participants -> conversations). */
+CREATE OR REPLACE FUNCTION public.is_conversation_member(p_conversation_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM conversation_participants cp
+    WHERE cp.conversation_id = p_conversation_id
+      AND cp.user_id = auth.uid()
+  );
+$$;
 
 -- Users can read conversations they participate in
 DROP POLICY IF EXISTS "Users can read own conversations" ON conversations;
 CREATE POLICY "Users can read own conversations"
   ON conversations FOR SELECT
-  USING (
-    id IN (
-      SELECT conversation_id FROM conversation_participants
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (public.is_conversation_member(id));
 
 -- Users can create conversations (any authenticated user)
 DROP POLICY IF EXISTS "Authenticated users can create conversations" ON conversations;
@@ -140,10 +152,8 @@ DROP POLICY IF EXISTS "Users can read own conversation participants" ON conversa
 CREATE POLICY "Users can read own conversation participants"
   ON conversation_participants FOR SELECT
   USING (
-    conversation_id IN (
-      SELECT conversation_id FROM conversation_participants
-      WHERE user_id = auth.uid()
-    )
+    user_id = auth.uid()
+    OR public.is_conversation_member(conversation_id)
   );
 
 -- Users can add participants: themselves to any conversation (needed to
@@ -154,13 +164,7 @@ CREATE POLICY "Users can add participants to conversations"
   ON conversation_participants FOR INSERT
   WITH CHECK (
     user_id = auth.uid()
-    OR conversation_id IN (
-      SELECT id FROM conversations
-      WHERE id IN (
-        SELECT conversation_id FROM conversation_participants
-        WHERE user_id = auth.uid()
-      )
-    )
+    OR public.is_conversation_member(conversation_id)
   );
 
 -- Users can update their own participant record
@@ -184,12 +188,7 @@ CREATE POLICY "Users can delete own participant record"
 DROP POLICY IF EXISTS "Users can read messages in own conversations" ON messages;
 CREATE POLICY "Users can read messages in own conversations"
   ON messages FOR SELECT
-  USING (
-    conversation_id IN (
-      SELECT conversation_id FROM conversation_participants
-      WHERE user_id = auth.uid()
-    )
-  );
+  USING (public.is_conversation_member(conversation_id));
 
 -- Users can insert messages into their conversations
 DROP POLICY IF EXISTS "Users can send messages to own conversations" ON messages;
@@ -197,10 +196,7 @@ CREATE POLICY "Users can send messages to own conversations"
   ON messages FOR INSERT
   WITH CHECK (
     auth.uid() = sender_id
-    AND conversation_id IN (
-      SELECT conversation_id FROM conversation_participants
-      WHERE user_id = auth.uid()
-    )
+    AND public.is_conversation_member(conversation_id)
   );
 
 -- Users can update their own messages (edit)
@@ -225,10 +221,10 @@ DROP POLICY IF EXISTS "Users can read reactions in own conversations" ON message
 CREATE POLICY "Users can read reactions in own conversations"
   ON message_reactions FOR SELECT
   USING (
-    message_id IN (
-      SELECT m.id FROM messages m
-      JOIN conversation_participants cp ON m.conversation_id = cp.conversation_id
-      WHERE cp.user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM messages m
+      WHERE m.id = message_id
+        AND public.is_conversation_member(m.conversation_id)
     )
   );
 
@@ -238,10 +234,10 @@ CREATE POLICY "Users can add reactions"
   ON message_reactions FOR INSERT
   WITH CHECK (
     auth.uid() = user_id
-    AND message_id IN (
-      SELECT m.id FROM messages m
-      JOIN conversation_participants cp ON m.conversation_id = cp.conversation_id
-      WHERE cp.user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM messages m
+      WHERE m.id = message_id
+        AND public.is_conversation_member(m.conversation_id)
     )
   );
 
