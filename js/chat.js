@@ -147,10 +147,10 @@ async function chatFetchConversations() {
     var conv = convs[i];
     var myPart = myParts.find(function(p) { return p.conversation_id === conv.id; });
 
-    // Get other participant
+    // Get other participant (with their read position for Seen status)
     var { data: otherParts } = await supabaseClient
       .from('conversation_participants')
-      .select('user_id')
+      .select('user_id, last_read_at')
       .eq('conversation_id', conv.id)
       .neq('user_id', _chatCurrentUserId)
       .limit(1);
@@ -207,6 +207,7 @@ async function chatFetchConversations() {
       lastMessageAt: lastMsgData ? lastMsgData.created_at : conv.last_message_at,
       lastMessageSender: lastMsgData ? lastMsgData.sender_id : '',
       unreadCount: unreadCount || 0,
+      otherUserLastReadAt: otherParts[0].last_read_at || null,
       isRequest: !networkIds[otherParts[0].user_id],
       archived: myPart ? myPart.archived : false,
       muted: myPart ? myPart.muted : false,

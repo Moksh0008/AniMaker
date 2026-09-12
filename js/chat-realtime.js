@@ -111,6 +111,25 @@ function chatSubscribeMessages(conversationId) {
         chatRefreshMessages();
       }
     )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'conversation_participants',
+        filter: 'conversation_id=eq.' + conversationId
+      },
+      function(payload) {
+        // The other user opened/read the chat — repaint Sent/Delivered/Seen
+        var row = payload.new || {};
+        if (_chatCurrentConv && _chatCurrentConv.otherUser &&
+            row.user_id === _chatCurrentConv.otherUser.id) {
+          _chatOtherLastRead = row.last_read_at || null;
+          var container = document.getElementById('chatMessages');
+          if (container && _chatMessages.length) renderChatMessages(_chatMessages, container, false);
+        }
+      }
+    )
     .subscribe();
 }
 

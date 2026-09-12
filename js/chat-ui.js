@@ -5,6 +5,43 @@
    ========================================================= */
 
 /* =========================================================
+   MESSAGE STATUS (Sent / Delivered / Seen)
+   ========================================================= */
+
+/* The other participant's last_read_at for the open conversation.
+   Refreshed when conversations refresh and when participants change. */
+var _chatOtherLastRead = null;
+
+function chatUpdateOtherLastRead(convs) {
+  _chatOtherLastRead = null;
+  if (!_chatCurrentConv || !convs) return;
+  var conv = null;
+  for (var i = 0; i < convs.length; i++) {
+    if (convs[i].id === _chatCurrentConv.id) { conv = convs[i]; break; }
+  }
+  if (conv) _chatOtherLastRead = conv.otherUserLastReadAt || null;
+}
+
+/* Status of one of my messages:
+   - Sent      = written to the database (always true once it renders)
+   - Delivered = the other user's client received the message
+                 (they have an active presence session) OR they have
+                 read up to this message
+   - Seen      = the other user's last_read_at is at/after this message */
+function chatMessageStatus(msg) {
+  if (_chatOtherLastRead && new Date(msg.created_at) <= new Date(_chatOtherLastRead)) {
+    return 'Seen';
+  }
+  // Delivered heuristic: recipient online right now means their client
+  // is connected and has pulled this conversation's realtime stream
+  if (_chatCurrentConv && _chatCurrentConv.otherUser &&
+      typeof isUserOnline === 'function' && isUserOnline(_chatCurrentConv.otherUser.id)) {
+    return 'Delivered';
+  }
+  return 'Sent';
+}
+
+/* =========================================================
    CONVERSATION LIST RENDERING
    ========================================================= */
 
@@ -183,13 +220,12 @@ function renderChatMessages(messages, container, isAppend) {
     // Action menu
     var actionHtml = renderMessageActions(msg, isMine);
 
-    // Status and time
+    // Status and time — WhatsApp-style: Sent / Delivered / Seen
     var statusHtml = '';
     if (isMine) {
-      var seenByOther = msg.seen || false;
-      statusHtml = '<span class="chat-msg-status ' + (seenByOther ? 'seen' : '') + '">' +
-        (seenByOther ? '<i class="fas fa-check-double"></i>' : '<i class="fas fa-check"></i>') +
-      '</span>';
+      var state = chatMessageStatus(msg);
+      var cls = state === 'Seen' ? 'seen' : '';
+      statusHtml = '<span class="chat-msg-status ' + cls + '">' + state + '</span>';
     }
 
     var contentHtml =
@@ -472,6 +508,13 @@ async function chatRefreshConversations() {
   renderChatConversationList(convs, list);
   updateUnreadBadge(convs);
   updateRequestBadge(convs);
+  chatUpdateOtherLastRead(convs);
+
+  // If the open conversation is visible, repaint statuses live
+  if (_chatCurrentConv && _chatMessages.length) {
+    var container = document.getElementById('chatMessages');
+    if (container) renderChatMessages(_chatMessages, container, false);
+  }
 }
 
 /* Red badge on the Requests tab = unread chats from non-network people */
