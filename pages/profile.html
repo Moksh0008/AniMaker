@@ -271,6 +271,29 @@
 
     .profile-grid-item:hover img { opacity: 0.7; }
 
+    /* Delete button on own profile grid items */
+    .post-grid-delete {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s ease, background 0.15s ease;
+      z-index: 2;
+    }
+    .post-grid-item:hover .post-grid-delete { opacity: 1; }
+    .post-grid-delete:hover { background: var(--error, #ef4444); }
+
     .profile-empty {
       text-align: center;
       padding: 80px 24px;
@@ -769,6 +792,9 @@
       }
       document.getElementById('profileMeta').innerHTML = metaHtml;
 
+      // Track whether this grid shows the viewer's own posts (for delete buttons)
+      window._profileIsOwn = !!isOwn && !isDefault;
+
       // Actions
       var actionsEl = document.getElementById('profileActions');
       if (isDefault) {
@@ -1048,14 +1074,16 @@
 
       emptyEl.style.display = 'none';
       grid.style.display = 'grid';
-      renderProfileGridItems(items, grid);
+      renderProfileGridItems(items, grid, false); // saved posts belong to others — never deletable here
     }
 
-    function renderProfileGridItems(items, grid) {
+    function renderProfileGridItems(items, grid, allowDelete) {
+      if (allowDelete === undefined) allowDelete = window._profileIsOwn;
       items.forEach(function(c) {
         var item = document.createElement('div');
         item.className = 'post-grid-item';
         item.style.cursor = 'pointer';
+        item.style.position = 'relative';
         var clickFn = c.type === 'creator' ? 'openCreatorDetail' : c.type === 'writer' ? 'openStoryDetail' : 'openMakerDetail';
         item.onclick = function() { window[clickFn](c.id); };
 
@@ -1072,9 +1100,47 @@
         } else {
           item.innerHTML = '<img src="' + (c.cover_image_url || '') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
         }
+        if (allowDelete) {
+          var del = document.createElement('button');
+          del.className = 'post-grid-delete';
+          del.title = 'Delete post';
+          del.setAttribute('aria-label', 'Delete post');
+          del.innerHTML = '<i class="fas fa-trash"></i>';
+          del.onclick = function(e) { e.stopPropagation(); deleteProfilePost(c.id, item); };
+          item.appendChild(del);
+        }
         grid.appendChild(item);
       });
     }
+
+    /* ---- Delete one of my posts from the profile grid ---- */
+    window.deleteProfilePost = async function(id, itemEl) {
+      var ok = await showConfirm('Delete Post', 'Are you sure you want to delete this post? This action cannot be undone.');
+      if (!ok) return;
+      try {
+        await deleteCreation(id);
+        if (itemEl) itemEl.remove();
+        showToast('Post deleted.', 'success');
+        // Refresh the tab counts + posts total
+        if (_profileUserId) {
+          var counts = await countCreationsByType(_profileUserId);
+          _profileCreationCounts = counts;
+          document.getElementById('postsCount').textContent = counts.total;
+          document.getElementById('tabCreatorCount').textContent = counts.creator;
+          document.getElementById('tabWriterCount').textContent = counts.writer;
+          document.getElementById('tabMakerCount').textContent = counts.maker;
+        }
+        // If the active tab is now empty, show its empty state
+        var tab = _currentProfileTab;
+        if (tab !== 'saved' && (_profileCreations[tab] || []).length) {
+          _profileCreations[tab] = _profileCreations[tab].filter(function(c) { return c.id !== id; });
+          var grid = document.getElementById('profileGrid');
+          if (!grid.querySelector('.post-grid-item')) showProfileTab(tab);
+        }
+      } catch (err) {
+        showToast(err.message || 'Failed to delete post.', 'error');
+      }
+    };
 
     window.switchCreationTab = function(tab) { showProfileTab(tab); };
 

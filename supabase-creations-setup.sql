@@ -41,6 +41,8 @@ ALTER TABLE creations ENABLE ROW LEVEL SECURITY;
 
 -- 5. Grant permissions
 GRANT SELECT, INSERT, UPDATE, DELETE ON creations TO authenticated;
+-- Allow logged-out visitors to browse the galleries (read-only)
+GRANT SELECT ON creations TO anon;
 
 -- 6. Drop old policies if they exist, then recreate
 DROP POLICY IF EXISTS "Creations are publicly viewable" ON creations;

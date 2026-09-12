@@ -12,90 +12,16 @@
     @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     .auth-loading-overlay { animation: hideOverlay 2s forwards; }
     @keyframes hideOverlay { from { opacity: 1; } to { opacity: 0; pointer-events: none; } }
-    .story-popup-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 5000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background-size: cover;
-      background-position: center;
-      background-color: #0a0a0f;
-      animation: fadeIn 0.2s ease;
-    }
-    .story-popup-overlay::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(10, 10, 15, 0.5);
-      z-index: 0;
-    }
-    .story-popup-close {
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #6a1bbd, #8a2be2);
-      color: #fff;
-      border: none;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: transform 0.25s ease;
-      z-index: 5001;
-    }
-    .story-popup-close:hover { transform: scale(1.1); }
-    .story-popup-content {
-      position: relative;
-      z-index: 1;
-      max-width: 750px;
-      width: 90%;
-      text-align: center;
-    }
-    .story-popup-content h2 {
-      color: #fff;
-      font-family: var(--font-display);
-      font-size: 1.6rem;
-      margin-bottom: 16px;
-      text-shadow: 0 2px 16px rgba(0,0,0,0.9);
-    }
-    .story-popup-box {
-      text-align: justify;
-      line-height: 1.7;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 24px;
-      border-radius: 12px;
-      max-height: 60vh;
-      overflow-y: auto;
-    }
-    .story-popup-box p {
-      font-size: 14px;
-      color: rgba(255,255,255,0.85);
-      margin-bottom: 14px;
-    }
-    .story-popup-box p:last-child { margin-bottom: 0; }
 
-    /* ---- Watermark-style story cards ---- */
+    /* ---- Watermark-style cards (Pinterest masonry) ---- */
     .story-card {
       position: relative;
-      aspect-ratio: 3 / 4;
+      margin: 0 0 16px;
       border-radius: var(--radius-md);
       overflow: hidden;
       border: 1px solid var(--border);
       cursor: pointer;
-      background-color: var(--bg-tertiary);
-      background-size: cover;
-      background-position: center;
+      background: var(--bg-tertiary);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       break-inside: avoid;
     }
@@ -103,37 +29,58 @@
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
     }
-    /* Dim the cover image so it reads like a watermark */
+    /* Natural-height image (Pinterest style) */
+    .story-card-img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    /* Dim the image so it reads like a watermark */
     .story-card::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(10, 10, 15, 0.55);
+      background: rgba(10, 10, 15, 0.4);
       transition: background 0.2s ease;
       z-index: 0;
+      pointer-events: none;
     }
     .story-card:hover::before {
-      background: rgba(10, 10, 15, 0.35);
+      background: rgba(10, 10, 15, 0.2);
+    }
+    /* Bottom scrim for title readability */
+    .story-card-scrim {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 55%;
+      background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0));
+      z-index: 1;
+      pointer-events: none;
     }
     .story-card.no-cover {
       background: linear-gradient(145deg, var(--bg-elevated), var(--bg-tertiary));
+      min-height: 170px;
     }
     .story-card-title {
       position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 20px;
-      z-index: 1;
+      left: 14px;
+      right: 14px;
+      bottom: 56px;
+      z-index: 2;
       color: #fff;
       font-family: var(--font-display);
       font-weight: 700;
-      font-size: 20px;
-      line-height: 1.35;
-      text-align: center;
-      text-shadow: 0 2px 14px rgba(0,0,0,0.95);
+      font-size: 15px;
+      line-height: 1.3;
+      text-align: left;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.95);
       pointer-events: none;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     .story-card-user {
       position: absolute;
@@ -161,7 +108,7 @@
       position: absolute;
       top: 8px;
       right: 8px;
-      z-index: 2;
+      z-index: 3;
       display: flex;
       gap: 6px;
     }
@@ -169,7 +116,7 @@
       position: absolute;
       right: 10px;
       bottom: 10px;
-      z-index: 2;
+      z-index: 3;
       display: flex;
       gap: 8px;
     }
@@ -227,9 +174,6 @@
       </div>
     </aside>
 
-
-
-
     <main class="main-content">
       <div class="page-container">
         <div class="gallery-header">
@@ -242,7 +186,6 @@
           <div class="gallery-empty-icon"><i class="fas fa-pen-nib"></i></div>
           <h3>No stories yet</h3>
           <p>Every great universe starts with a story.</p>
-          <button class="btn-create" onclick="openCreateModal()"><i class="fas fa-plus"></i> Write Story</button>
         </div>
 
         <div class="gallery gallery-masonry" id="writerGallery"></div>
@@ -252,7 +195,6 @@
     </main>
   </div>
 
-  <div id="uploadModal" style="display:none;"></div>
   <div id="editModal" style="display:none;"></div>
   <div id="confirmDialog" style="display:none;"></div>
   <div class="toast-container" id="toastContainer"></div>
@@ -264,25 +206,6 @@
   <script src="../js/posts.js"></script>
   <script src="../js/social.js"></script>
   <script>
-    var defaultStories = [
-      { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg',
-        story: 'In a small, peaceful village on Earth, Goku\'s younger brother, Luffy, was born. Unlike Goku, Luffy\'s personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.\n\nLuffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn\'t mind; every loss made him stronger, and every challenge gave him more fire. "One day, I\'ll be as strong as you!" he\'d shout with a grin, despite his bruises.\n\nAs they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world\'s greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.\n\nGoku would often send Luffy letters with encouragement, but Luffy\'s only reply would be a laughing message: "I\'m already on my way to being the King of the Sea, big bro!"\n\nYears later, Luffy\'s name became known across the seas, just as Goku\'s became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected.' },
-      { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg',
-        story: 'Naruto, Luffy, and Goku were three young adventurers brought together by fate in a world where ninjas, pirates, and martial artists lived side by side. Though their personalities were completely different, they quickly became inseparable. Goku was calm and fearless, Luffy was wild and cheerful, while Naruto was determined and never willing to give up.\n\nThey would often train together, turning every practice session into a friendly competition. Goku challenged them to test their strength, Luffy rushed into every fight with a huge grin, and Naruto refused to let either of them get ahead. Even when they lost, they would laugh, learn, and promise to become stronger together.\n\nAs they grew older, each of them began chasing their own dream. Goku wanted to become the greatest martial artist, Luffy dreamed of becoming the Pirate King, and Naruto wanted to become Hokage and earn the respect of everyone around him.\n\nYears later, their names became legends across the world. No matter how far their journeys took them, the three friends always found their way back to each other.' },
-      { id: 'default-w3', title: 'Ramen Lovers Together', cover_image_url: '../assets/images/writer/writer-pic-3.jpg',
-        story: 'There was something magical about a warm bowl of ramen that brought even the greatest warriors together. Every Sunday evening, Naruto, Goku, and Luffy would gather at Ichiraku Ramen, the only place in the world where a Hokage, a Saiyan, and a Pirate King could sit side by side and simply enjoy a meal.\n\nNaruto always ordered the same thing — miso ramen with extra pork. Goku, being Goku, ordered ten bowls of everything. Luffy would eat until the entire shop ran out of ingredients, laughing the whole time.\n\n"You know," Naruto said between slurps, "this is the best part of my day." Goku nodded, his mouth full of noodles. Luffy grinned, sauce on his face. "Better than treasure!" he declared.\n\nThey talked about their adventures, their dreams, and their friends. In those quiet moments over steaming bowls of ramen, they weren\'t legends or heroes — they were just three friends, sharing a meal and a bond that would last forever.' },
-      { id: 'default-w4', title: 'The Last Battle', cover_image_url: '../assets/images/writer/writer-pic-4.jpg',
-        story: 'The sky turned dark as the ultimate threat emerged — a villain so powerful that even the gods trembled. Naruto, Goku, and Luffy stood side by side, facing the enemy that threatened to destroy everything they had ever loved.\n\n"Ready?" Goku asked, his voice calm despite the chaos around them. Naruto grinned, his eyes blazing with determination. "Always." Luffy cracked his knuckles, his hat pulled low. "Let\'s do this."\n\nThe battle was unlike anything the world had ever seen. Goku transformed through his forms, his power reaching new heights with every blow. Naruto unleashed the full force of the Nine-Tails, his chakra painting the sky in golden light. Luffy activated Gear 5, his body bending reality itself.\n\nTogether, they were unstoppable. When the final blow landed, the darkness shattered like glass, and the sun broke through the clouds.\n\nBreathing heavily, the three warriors looked at each other and smiled. They had won — not alone, but together. That was the power of friendship, the power of three legends who refused to give up.' },
-      { id: 'default-w5', title: 'Team Goats', cover_image_url: '../assets/images/writer/writer-pic-5.jpg',
-        story: 'In a world where power meant everything, three names echoed across every land, every sea, every universe — Goku, Naruto, and Luffy. They were known as the GOATs, the Greatest Of All Time.\n\nBut fame never changed them. Goku still trained every morning with a smile. Naruto still visited his friends in the Hidden Leaf Village. Luffy still gathered his crew, laughing and dreaming of new adventures on the Grand Line.\n\nThey met once a year at a secret location — a small island in the middle of the ocean. There, they would train, fight, eat, and share stories. No cameras, no fans, no titles. Just three friends being themselves.\n\n"You know what I love most?" Luffy said one evening, watching the sunset. "This. Just us." Goku nodded, stretching his arms behind his head. Naruto smiled. "Me too. This is what it\'s all about."' },
-      { id: 'default-w6', title: 'Jack Luffy', cover_image_url: '../assets/images/writer/writer-pic-6.jpg',
-        story: 'Monkey D. Luffy had always been fearless, but when he discovered the legendary treasure of Gol D. Roger, everything changed. The treasure wasn\'t gold or jewels — it was a map to a hidden island where the greatest pirates in history had left their legacy.\n\nLuffy gathered his crew and set sail immediately. "We\'re going to find this treasure!" he declared. The journey was filled with challenges — treacherous storms, powerful enemies, and impossible obstacles.\n\nWhen they finally reached the island, Luffy found something unexpected — a letter from Gol D. Roger himself. "The real treasure isn\'t on this island," it read. "It\'s the journey you took to get here, and the friends who traveled with you."\n\nLuffy laughed, holding the letter to his chest. "He\'s right!" he said, looking at his crew. "You guys are my treasure!"' },
-      { id: 'default-w7', title: 'Pirate Slayer', cover_image_url: '../assets/images/writer/writer-pic-7.jpg',
-        story: 'They called him the Pirate Slayer, but that wasn\'t quite right. Roronoa Zoro didn\'t slay pirates for money or fame — he did it because it was the right thing to do. With his three swords and an unbreakable will, he had earned a reputation as the most feared swordsman in the world.\n\nHis journey began in a small village where he trained under a master swordsman. "To become truly strong," his master told him, "you must fight for something more than yourself."\n\nAlong the way, he met friends who changed his life. He joined Luffy\'s crew, finding brothers in the Straw Hat Pirates. He trained with Mihawk, his rival and inspiration. He faced death more times than he could count, but each time he rose stronger.\n\n"The world will know my name," Zoro once said, "as the greatest swordsman who ever lived."' },
-      { id: 'default-w8', title: 'Unbeatable Combo', cover_image_url: '../assets/images/writer/writer-pic-8.jpg',
-        story: 'In the entire multiverse, there was one combination that no enemy could defeat — the Unbeatable Combo of Goku, Naruto, and Luffy. Together, they had faced gods, aliens, demons, and pirates, and they had never lost.\n\nThe secret to their power wasn\'t just their individual strength — it was how they worked together. Goku\'s raw power, Naruto\'s strategic mind, and Luffy\'s unpredictable fighting style created a combination that was impossible to counter.\n\nWhen Goku attacked with a Kamehameha, Naruto would follow with a Rasenshuriken, and Luffy would finish with a Gear 5 punch that bent reality itself.\n\n"We\'re unstoppable!" Luffy would shout after every victory. Goku would laugh, rubbing the back of his head. Naruto would grin, crossing his arms. "Believe it!"\n\nThe Unbeatable Combo wasn\'t just a fighting team — it was a family, bound by friendship, loyalty, and the shared dream of protecting the world they loved.' }
-    ];
-
     var currentUserId = null;
 
     try {
@@ -379,7 +302,7 @@
       }
     }
 
-    /* ---- Hydrate like/save state on visible story cards ---- */
+    /* ---- Hydrate like/save state on visible cards (3 batched queries) ---- */
     async function hydrateStoryCards() {
       var cards = document.querySelectorAll('.story-card[data-creation-id]');
       if (!cards.length) return;
@@ -432,170 +355,6 @@
           }
         }
       });
-    }
-
-    /* ---- Story popup for default stories ---- */
-    function openStoryPopup(bgImage, title, storyText) {
-      var paragraphs = storyText.split('\n\n').map(function(p) { return '<p>' + p + '</p>'; }).join('');
-      var overlay = document.createElement('div');
-      overlay.className = 'story-popup-overlay';
-      overlay.style.backgroundImage = 'url(' + bgImage + ')';
-      overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-      overlay.innerHTML = '<button class="story-popup-close" onclick="this.parentElement.remove()"><i class="fas fa-arrow-left"></i></button>' +
-        '<div class="story-popup-content"><h2>' + title + '</h2><div class="story-popup-box">' + paragraphs + '</div></div>';
-      document.body.appendChild(overlay);
-    }
-
-    /* ---- Create Story Modal ---- */
-    var _uploadCoverFile = null;
-
-    function openCreateModal() {
-      _uploadCoverFile = null;
-      var modal = document.getElementById('uploadModal');
-      modal.style.display = 'block';
-      modal.innerHTML = '<div class="upload-modal-overlay" onclick="if(event.target===this)closeCreateModal()">' +
-        '<div class="upload-modal" onclick="event.stopPropagation()" style="max-width:700px;">' +
-          '<div class="upload-modal-header"><h3>Write a Story</h3><button class="upload-modal-close" onclick="closeCreateModal()"><i class="fas fa-xmark"></i></button></div>' +
-          '<div class="upload-modal-body">' +
-            '<div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar-bg"><div class="upload-progress-bar" id="uploadProgressBar"></div></div><div class="upload-progress-text" id="uploadProgressText">Uploading...</div></div>' +
-            '<div class="upload-dropzone" id="dropzone" style="padding:20px;">' +
-              '<div class="upload-dropzone-icon"><i class="fas fa-image"></i></div>' +
-              '<h4>Upload cover image (optional)</h4><p>JPG, PNG, WEBP, GIF — Max 10MB</p>' +
-            '</div>' +
-            '<div class="upload-preview" id="mediaPreview"></div>' +
-            '<input type="file" id="fileInput" style="display:none" accept="image/jpeg,image/png,image/webp,image/gif">' +
-            '<div class="form-group"><label>Story Title *</label><input type="text" id="uploadTitle" placeholder="Give your story a title" maxlength="150"></div>' +
-            '<div class="form-group"><label>Short Summary</label><input type="text" id="uploadSummary" placeholder="A brief summary of your story" maxlength="300"></div>' +
-            '<div class="form-group"><label>Genre</label>' +
-              '<select id="uploadGenre">' +
-                '<option value="">Select genre...</option>' +
-                '<option value="Action">Action</option>' +
-                '<option value="Adventure">Adventure</option>' +
-                '<option value="Comedy">Comedy</option>' +
-                '<option value="Drama">Drama</option>' +
-                '<option value="Fantasy">Fantasy</option>' +
-                '<option value="Horror">Horror</option>' +
-                '<option value="Romance">Romance</option>' +
-                '<option value="Sci-Fi">Sci-Fi</option>' +
-                '<option value="Slice of Life">Slice of Life</option>' +
-                '<option value="Thriller">Thriller</option>' +
-                '<option value="Fan Fiction">Fan Fiction</option>' +
-              '</select>' +
-            '</div>' +
-            '<div class="form-group"><label>Tags (comma separated)</label><input type="text" id="uploadTags" placeholder="anime, crossover, adventure" maxlength="200"></div>' +
-            '<div class="form-group"><label>Story Content *</label>' +
-              '<textarea class="story-editor-area" id="uploadStoryContent" placeholder="Write your story here..." maxlength="50000"></textarea>' +
-              '<div class="story-editor-footer"><span id="wordCount">0 words · 0 characters</span><span id="readingTime">~0 min read</span></div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="upload-modal-footer">' +
-            '<button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>' +
-            '<button class="btn btn-primary" id="publishBtn" onclick="handlePublish()"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-
-      setupDropzone();
-      updateWordCount();
-      document.getElementById('uploadStoryContent').addEventListener('input', updateWordCount);
-    }
-
-    function closeCreateModal() {
-      document.getElementById('uploadModal').style.display = 'none';
-      _uploadCoverFile = null;
-    }
-
-    function setupDropzone() {
-      var dz = document.getElementById('dropzone');
-      var fi = document.getElementById('fileInput');
-      if (!dz || !fi) return;
-      dz.addEventListener('click', function() { fi.click(); });
-      dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
-      dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
-      dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]); });
-      fi.addEventListener('change', function(e) { if (e.target.files[0]) handleFileSelect(e.target.files[0]); });
-    }
-
-    function handleFileSelect(file) {
-      if (!VALID_IMAGE_TYPES.includes(file.type)) { showToast('Please select an image file.', 'error'); return; }
-      if (file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 10MB.', 'error'); return; }
-      _uploadCoverFile = file;
-      var preview = document.getElementById('mediaPreview');
-      var dz = document.getElementById('dropzone');
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        preview.innerHTML = '<img src="' + e.target.result + '"><button class="upload-preview-remove" onclick="removeUploadFile()"><i class="fas fa-xmark"></i></button>';
-        preview.classList.add('active');
-        if (dz) dz.style.display = 'none';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function removeUploadFile() {
-      _uploadCoverFile = null;
-      var preview = document.getElementById('mediaPreview');
-      preview.classList.remove('active'); preview.innerHTML = '';
-      var dz = document.getElementById('dropzone');
-      if (dz) dz.style.display = '';
-      document.getElementById('fileInput').value = '';
-    }
-
-    function updateWordCount() {
-      var content = (document.getElementById('uploadStoryContent') || {}).value || '';
-      var words = content.trim() ? content.trim().split(/\s+/).length : 0;
-      var chars = content.length;
-      var minutes = Math.max(1, Math.round(words / 200));
-      var wc = document.getElementById('wordCount');
-      var rt = document.getElementById('readingTime');
-      if (wc) wc.textContent = words + ' words · ' + chars + ' characters';
-      if (rt) rt.textContent = '~' + minutes + ' min read';
-    }
-
-    async function handlePublish() {
-      var btn = document.getElementById('publishBtn');
-      if (!btn || btn.disabled) return;
-      var title = (document.getElementById('uploadTitle') || {}).value || '';
-      var summary = (document.getElementById('uploadSummary') || {}).value || '';
-      var genre = (document.getElementById('uploadGenre') || {}).value || '';
-      var tagsStr = (document.getElementById('uploadTags') || {}).value || '';
-      var storyContent = (document.getElementById('uploadStoryContent') || {}).value || '';
-      if (!title.trim()) { showToast('Please enter a title.', 'error'); return; }
-      if (!storyContent.trim()) { showToast('Please write your story.', 'error'); return; }
-
-      var tags = tagsStr.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
-
-      btn.disabled = true;
-      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Publishing...';
-      document.getElementById('uploadProgress').classList.add('active');
-
-      try {
-        var data = {
-          type: 'writer',
-          title: title.trim(),
-          description: summary.trim(),
-          genre: genre,
-          tags: tags,
-          story_content: storyContent
-        };
-
-        if (_uploadCoverFile) {
-          var result = await uploadCreationFile(_uploadCoverFile, 'uploads', function(pct) {
-            document.getElementById('uploadProgressBar').style.width = pct + '%';
-            document.getElementById('uploadProgressText').textContent = pct < 100 ? 'Uploading cover... ' + pct + '%' : 'Processing...';
-          });
-          data.cover_image_url = result.url;
-        }
-
-        await createCreation(data);
-        closeCreateModal();
-        showToast('Story published!', 'success');
-        loadGallery();
-      } catch (err) {
-        showToast(err.message || 'Failed to publish.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px;"></i>Publish';
-        document.getElementById('uploadProgress').classList.remove('active');
-      }
     }
 
     /* ---- Edit Story Modal ---- */
@@ -679,25 +438,28 @@
       if (cards.length === 0) empty.classList.add('active'); else empty.classList.remove('active');
     }
 
-
-
     function renderSupabaseCard(c) {
       var profile = getDefaultUser(c) || c.profiles || {};
       var isOwner = currentUserId && c.user_id === currentUserId;
       var card = document.createElement('div');
       card.className = 'story-card' + (c.cover_image_url ? '' : ' no-cover');
       card.setAttribute('data-creation-id', c.id);
-      if (c.cover_image_url) card.style.backgroundImage = 'url(\'' + c.cover_image_url + '\')';
+      var imgHtml = c.cover_image_url
+        ? '<img class="story-card-img" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
+        : '';
       card.onclick = function(e) { if (e.target.closest('.story-card-action') || e.target.closest('.creation-card-action-btn')) return; openStoryDetail(c.id); };
       var ownerHtml = isOwner ? '<div class="story-card-owner">' +
         '<button class="creation-card-action-btn" onclick="event.stopPropagation();openEditModal(\'' + c.id + '\')"><i class="fas fa-pen"></i></button>' +
         '<button class="creation-card-action-btn delete" onclick="event.stopPropagation();handleDelete(\'' + c.id + '\')"><i class="fas fa-trash"></i></button>' +
       '</div>' : '';
+      var userName = getCreationUserName(profile);
       var userAvatar = profile.avatar_url
         ? '<img src="' + profile.avatar_url + '" alt="">'
-        : '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">' + getCreationUserName(profile).charAt(0).toUpperCase() + '</div>';
+        : '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">' + userName.charAt(0).toUpperCase() + '</div>';
       card.innerHTML =
-        '<div class="story-card-user">' + userAvatar + '<span>' + postEscapeHtml(getCreationUserName(profile)) + '</span></div>' +
+        imgHtml +
+        '<div class="story-card-scrim"></div>' +
+        '<div class="story-card-user">' + userAvatar + '<span>' + postEscapeHtml(userName) + '</span></div>' +
         ownerHtml +
         '<div class="story-card-title">' + postEscapeHtml(c.title) + '</div>' +
         '<div class="story-card-actions">' +
@@ -708,98 +470,49 @@
       return card;
     }
 
-    /* ---- Load Gallery ---- */
-    async function ensureDefaultStories() {
-      if (!supabaseClient) return {};
-      var mapping = {};
+    /* ---- One-time cleanup: remove old seeded default stories ----
+       Seeded rows can be identified by their local asset cover paths
+       (real user uploads always live in Supabase Storage). Safe to run
+       on every load; RLS ensures only owned rows are actually removed. */
+    async function cleanupSeededStories() {
+      if (!supabaseClient) return;
       try {
-        for (var i = 0; i < defaultStories.length; i++) {
-          var ds = defaultStories[i];
-          var { data: existing } = await supabaseClient
-            .from('creations')
-            .select('id')
-            .eq('title', ds.title)
-            .eq('type', 'writer')
-            .maybeSingle();
-          if (existing) {
-            mapping[ds.id] = existing.id;
-          } else {
-            var { data: profiles } = await supabaseClient.from('profiles').select('id').limit(1);
-            var userId = profiles && profiles.length ? profiles[0].id : null;
-            if (!userId) continue;
-            var { data: inserted } = await supabaseClient
-              .from('creations')
-              .insert({
-                user_id: userId,
-                type: 'writer',
-                title: ds.title,
-                description: ds.title,
-                cover_image_url: ds.cover_image_url,
-                story_content: ds.story
-              })
-              .select('id')
-              .single();
-            if (inserted) mapping[ds.id] = inserted.id;
-          }
-        }
-      } catch(e) { console.error('[Writer] ensureDefault error:', e); }
-      return mapping;
+        await supabaseClient
+          .from('creations')
+          .delete()
+          .eq('type', 'writer')
+          .like('cover_image_url', '%assets/images/writer/writer-pic-%');
+        // Also catch seeded rows stored without a cover
+        await supabaseClient
+          .from('creations')
+          .delete()
+          .eq('type', 'writer')
+          .in('title', ['Luffy as Lil Bro of Goku', 'Goats as a Trio', 'Ramen Lovers Together', 'The Last Battle', 'Team Goats', 'Jack Luffy', 'Pirate Slayer', 'Unbeatable Combo'])
+          .or('cover_image_url.eq.,cover_image_url.is.null');
+      } catch (e) { /* non-fatal */ }
     }
 
+    /* ---- Load Gallery (real stories only — no seeded defaults) ---- */
     async function loadGallery() {
       var container = document.getElementById('writerGallery');
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
       container.innerHTML = '';
 
-      var idMapping = {};
-      try { idMapping = await ensureDefaultStories(); } catch(e) {}
+      await cleanupSeededStories();
 
       var creations = [];
       try { creations = await fetchCreations({ limit: 50, type: 'writer' }); } catch(e) { console.error('[Writer] fetch error:', e); }
       loading.style.display = 'none';
 
-      var randomUsers = [
-        { name: 'StoryWeaver', initial: 'S', avatar: '../assets/images/avatars/anime-avatar-9.png' },
-        { name: 'AnimeScribe', initial: 'A', avatar: '../assets/images/avatars/anime-avatar-10.png' },
-        { name: 'MangaWriter', initial: 'M', avatar: '../assets/images/avatars/anime-avatar-11.png' },
-        { name: 'NinjaNarrator', initial: 'N', avatar: '../assets/images/avatars/anime-avatar-12.png' },
-        { name: 'PiratePoet', initial: 'P', avatar: '../assets/images/avatars/anime-avatar-13.png' },
-        { name: 'SaiyanStories', initial: 'S', avatar: '../assets/images/avatars/anime-avatar-14.png' },
-        { name: 'ShonenAuthor', initial: 'S', avatar: '../assets/images/avatars/anime-avatar-15.png' },
-        { name: 'AnimeWriter', initial: 'A', avatar: '../assets/images/avatars/anime-avatar-16.png' }
-      ];
-      var randomDates = ['3h ago', '8h ago', '1d ago', '2d ago', '4d ago', '1w ago', '2w ago', '1mo ago'];      defaultStories.forEach(function(c, i) {
-        var user = randomUsers[i % randomUsers.length];
-        var realId = idMapping[c.id];
-        var card = document.createElement('div');
-        card.className = 'story-card';
-        card.style.backgroundImage = 'url(\'' + c.cover_image_url + '\')';
-        var actionsHtml = realId
-          ? '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + realId + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
-            '<button class="story-card-action" onclick="event.stopPropagation();openStoryDetail(\'' + realId + '\')"><i class="far fa-comment"></i></button>' +
-            '<button class="story-card-action save" data-save-for="' + realId + '" onclick="event.stopPropagation();handleStorySave(\'' + realId + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>'
-          : '';
-        if (realId) {
-          card.setAttribute('data-creation-id', realId);
-          card.onclick = (function(rid, u) { return function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(rid, { username: u.name, full_name: u.name, avatar_url: u.avatar }); }; })(realId, user);
-        } else {
-          card.onclick = function() { openStoryPopup(c.cover_image_url, c.title, c.story); };
-        }
-        card.innerHTML =
-          '<div class="story-card-user">' +
-            '<img src="' + user.avatar + '" alt="' + user.name + '">' +
-            '<span>' + user.name + '</span>' +
-          '</div>' +
-          '<div class="story-card-title">' + c.title + '</div>' +
-          (actionsHtml ? '<div class="story-card-actions">' + actionsHtml + '</div>' : '');
-        container.appendChild(card);
+      // Hide leftover seeded rows client-side too (RLS can block the delete for
+      // anonymous visitors; real user uploads always live in Supabase Storage)
+      creations = creations.filter(function(c) {
+        var seededCover = c.cover_image_url && c.cover_image_url.indexOf('/storage/') === -1 && c.cover_image_url.indexOf('assets/') !== -1;
+        return !seededCover;
       });
 
-      var defaultTitles = defaultStories.map(function(d) { return d.title; });
-      creations.forEach(function(c) {
-        if (defaultTitles.indexOf(c.title) === -1) container.appendChild(renderSupabaseCard(c));
-      });
+      creations.forEach(function(c) { container.appendChild(renderSupabaseCard(c)); });
       checkEmpty();
       hydrateStoryCards();
     }
