@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!-- TEMPORARY HELPER: applies the chat DB fix. Safe to delete once chat works. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chat Fix — AniMaker</title>
+<style>
+  body { background:#0d0d14; color:#e5e5ef; font-family:system-ui,sans-serif; margin:0; padding:32px 18px; }
+  .wrap { max-width:860px; margin:0 auto; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .sub { color:#9a9ab0; font-size:14px; margin-bottom:26px; }
+  .step { background:#17171f; border:1px solid #26262f; border-radius:12px; padding:18px 20px; margin-bottom:14px; }
+  .step b { color:#a78bfa; }
+  button { background:#7c5cfc; color:#fff; border:none; border-radius:10px; padding:12px 22px; font-size:15px; font-weight:700; cursor:pointer; }
+  button:hover { background:#8d70ff; }
+  .ok { color:#4ade80; font-weight:600; margin-left:12px; display:none; }
+  .status { margin-top:22px; padding:14px 18px; border-radius:10px; background:#17171f; border:1px solid #26262f; font-size:14px; }
+  .good { border-color:#2e7d32; }
+  .bad { border-color:#b0483f; }
+  code { background:#101018; padding:2px 6px; border-radius:5px; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Chat database fix</h1>
+  <div class="sub">One missing step: the chat policy/function script hasn't been applied to your Supabase project. This page makes it a 20-second job.</div>
+
+  <div class="step"><b>1.</b> Click this button — it copies the entire fix to your clipboard:
+    <br><br>
+    <button id="copyBtn">Copy chat fix SQL</button><span class="ok" id="copiedMsg">✓ Copied!</span>
+  </div>
+
+  <div class="step"><b>2.</b> Open <a href="https://supabase.com/dashboard" target="_blank" style="color:#a78bfa;">supabase.com/dashboard</a> → your project → <b>SQL Editor</b> → click <b>New query</b>.</div>
+
+  <div class="step"><b>3.</b> Click into the query box, press <code>Ctrl+A</code> then <code>Del</code> (make sure it's empty), paste (<code>Ctrl+V</code>), and press <b>Run</b>. You should see <code>Success. No rows returned</code>.</div>
+
+  <div class="step"><b>4.</b> Come back here. The status line below turns green when the fix lands (this page re-checks every 5 seconds automatically). Then open <a href="chat.html" style="color:#a78bfa;">chat.html</a> — hard-refresh it (Ctrl+Shift+R) — and click a contact. Chat will work.</div>
+
+  <div class="status" id="status">Checking database…</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+/* Fetch the SQL file from the site itself so there is no second copy to maintain */
+async function copySql() {
+  const res = await fetch('../supabase-chat-quickfix.sql?t=' + Date.now());
+  const sql = await res.text();
+  try { await navigator.clipboard.writeText(sql); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = sql; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  }
+  document.getElementById('copiedMsg').style.display = 'inline';
+  setTimeout(() => document.getElementById('copiedMsg').style.display = 'none', 2500);
+}
+document.getElementById('copyBtn').onclick = copySql;
+
+async function check() {
+  const el = document.getElementById('status');
+  try {
+    const r = await supabaseClient.rpc('chat_start_conversation', { p_other_user_id: '00000000-0000-0000-0000-000000000000' });
+    const missing = r.error && (r.error.code === 'PGRST202' || r.error.code === '404');
+    if (!missing) {
+      el.className = 'status good';
+      el.innerHTML = '✓ Fix is installed — chat is unblocked. Open <a href="chat.html" style="color:#a78bfa;">chat.html</a>, hard-refresh (Ctrl+Shift+R), and click a contact.';
+    } else {
+      el.className = 'status bad';
+      el.textContent = '✗ Fix not applied yet. Click the button in step 1, paste in Supabase SQL Editor, and Run. Re-checking every 5 seconds…';
+    }
+  } catch (e) {
+    el.className = 'status bad';
+    el.textContent = 'Checking… (' + e.message + ')';
+  }
+}
+check();
+setInterval(check, 5000);
+</script>
+</body>
+</html>
