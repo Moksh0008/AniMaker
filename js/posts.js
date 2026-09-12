@@ -447,7 +447,7 @@ function openCreatorDetail(id, userOverride) {
             '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
             '</button>' +
-            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" onclick="handleSave(\'' + id + '\', this)">' +
+            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
               '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
             '</button>' +
           '</div>' +
@@ -502,7 +502,7 @@ function openStoryDetail(id, userOverride) {
             '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
             '</button>' +
-            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" onclick="handleSave(\'' + id + '\', this)">' +
+            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
               '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
             '</button>' +
           '</div>' +
@@ -556,7 +556,7 @@ function openMakerDetail(id, userOverride) {
             '</button>' +
             '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
-            '</button>' +            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" onclick="handleSave(\'' + id + '\', this)">' +
+            '</button>' +            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
               '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
             '</button>' +
           '</div>' +
@@ -593,7 +593,20 @@ async function handleLike(creationId, btn) {
   }
 
   try {
-    await toggleLike(creationId);
+    var nowLiked = await toggleLike(creationId);
+    // Notify the creation owner when someone likes their work
+    if (nowLiked && typeof createNotification === 'function') {
+      try {
+        var creation = await fetchCreation(creationId);
+        if (creation && creation.user_id) {
+          var me = await getCurrentProfile();
+          var myName = me ? (me.full_name || me.username) : 'Someone';
+          await createNotification(creation.user_id, 'like', creationId, null, myName + ' liked your creation');
+        }
+      } catch (e2) {}
+    }
+    // Refresh the notification badge if the recipient is viewing this page
+    try { if (typeof loadNotifBadge === 'function') await loadNotifBadge(); } catch (e3) {}
   } catch(e) {
     btn.classList.toggle('liked');
     iconEl.className = prevLiked ? 'fas fa-heart' : 'far fa-heart';
@@ -611,13 +624,36 @@ async function handleSave(creationId, btn) {
   btn.classList.toggle('saved');
   var iconEl = btn.querySelector('i');
   iconEl.className = btn.classList.contains('saved') ? 'fas fa-bookmark' : 'far fa-bookmark';
+  var labelEl = btn.querySelector('span');
+  if (labelEl) labelEl.textContent = btn.classList.contains('saved') ? 'Saved' : 'Save';
+
+  // Keep every visible Save button for this creation in sync (feed card + detail popup)
+  document.querySelectorAll('[data-save-for="' + creationId + '"]').forEach(function(other) {
+    if (other === btn) return;
+    syncSaveButton(other, btn.classList.contains('saved'));
+  });
 
   try {
     await toggleSave(creationId);
   } catch(e) {
     btn.classList.toggle('saved');
     iconEl.className = prevSaved ? 'fas fa-bookmark' : 'far fa-bookmark';
+    if (labelEl) labelEl.textContent = prevSaved ? 'Saved' : 'Save';
+    document.querySelectorAll('[data-save-for="' + creationId + '"]').forEach(function(other) {
+      if (other === btn) return;
+      syncSaveButton(other, prevSaved);
+    });
   }
+}
+
+/* ---- Sync a save/bookmark button's visual state ---- */
+function syncSaveButton(btn, isSaved) {
+  if (!btn) return;
+  btn.classList.toggle('saved', isSaved);
+  var iconEl = btn.querySelector('i');
+  var labelEl = btn.querySelector('span');
+  if (iconEl) iconEl.className = isSaved ? 'fas fa-bookmark' : 'far fa-bookmark';
+  if (labelEl) labelEl.textContent = isSaved ? 'Saved' : 'Save';
 }
 
 /* ---- FOLLOW HANDLER ---- */
@@ -794,7 +830,7 @@ async function postNewComment(creationId) {
       if (c && c.user_id && typeof createNotification === 'function') {
         var me = await getCurrentProfile();
         var name = me ? (me.full_name || me.username) : 'Someone';
-        await createNotification(c.user_id, 'comment', creationId, newComment.id, name + ' commented on your creation');
+        await createNotification(c.user_id, 'comment', creationId, newComment.id, name + ' commented on your creation "' + (c.title || '') + '"');
       }
     } catch(e2) {}
     await loadComments(creationId, 0);
@@ -831,7 +867,7 @@ async function postReply(parentId, creationId) {
       if (c && c.user_id && typeof createNotification === 'function') {
         var me = await getCurrentProfile();
         var name = me ? (me.full_name || me.username) : 'Someone';
-        await createNotification(c.user_id, 'comment', creationId, newComment.id, name + ' replied to a comment on your creation');
+        await createNotification(c.user_id, 'comment', creationId, newComment.id, name + ' replied to your comment on "' + (c.title || '') + '"');
       }
     } catch(e2) {}
     await loadComments(creationId, 0);

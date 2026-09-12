@@ -278,6 +278,10 @@ async function chatSendMessage(conversationId, content, replyToId) {
     .single();
 
   if (error) throw new Error(error.message || 'Failed to send message');
+
+  // Notify other conversation participants about the new message
+  try { await chatNotifyParticipants(conversationId, 'sent you a message'); } catch (e) {}
+
   return data;
 }
 
@@ -335,7 +339,29 @@ async function chatSendMediaMessage(conversationId, file, replyToId) {
     .single();
 
   if (error) throw new Error(error.message || 'Failed to send media');
+
+  // Notify other participants for media messages too
+  try { await chatNotifyParticipants(conversationId, 'sent you an attachment'); } catch (e) {}
+
   return data;
+}
+
+/* ---- Notify other conversation participants about a new message ---- */
+async function chatNotifyParticipants(conversationId, actionText) {
+  if (!supabaseClient || !_chatCurrentUserId) return;
+  var { data: parts } = await supabaseClient
+    .from('conversation_participants')
+    .select('user_id')
+    .eq('conversation_id', conversationId);
+  if (!parts || !parts.length) return;
+
+  var me = await getCurrentProfile();
+  var myName = me ? (me.full_name || me.username) : 'Someone';
+  for (var i = 0; i < parts.length; i++) {
+    var uid = parts[i].user_id;
+    if (uid === _chatCurrentUserId) continue;
+    await createNotification(uid, 'message', null, null, myName + ' ' + actionText);
+  }
 }
 
 /* ---- Edit a message ---- */

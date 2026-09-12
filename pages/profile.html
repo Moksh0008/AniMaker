@@ -600,116 +600,117 @@
   <script src="../js/social.js"></script>
   <script>
     // Wait for Supabase to be ready before loading profile
-    async function initProfile() {
+    (async function initProfile() {
       if (!supabaseClient) {
         console.log('[Profile] Waiting for Supabase...');
         setTimeout(initProfile, 100);
         return;
       }
+
       try {
         await updateNavbarAuth();
         if (typeof renderNotificationBell === 'function') renderNotificationBell();
 
-      // Get username from URL: profile.html?user=username or ?id=uuid
-      var params = new URLSearchParams(window.location.search);
-      var viewUsername = params.get('user');
-      var viewId = params.get('id');
-      var session = await getSession();
-      console.log('[Profile] Session:', session ? session.user.id : 'null');
-      console.log('[Profile] supabaseClient:', !!supabaseClient);
+        // Get username from URL: profile.html?user=username or ?id=uuid
+        var params = new URLSearchParams(window.location.search);
+        var viewUsername = params.get('user');
+        var viewId = params.get('id');
+        var session = await getSession();
+        console.log('[Profile] Session:', session ? session.user.id : 'null');
+        console.log('[Profile] supabaseClient:', !!supabaseClient);
 
-      var profile = null;
-      var isOwnProfile = false;
-      var isDefaultProfile = false;
+        var profile = null;
+        var isOwnProfile = false;
+        var isDefaultProfile = false;
 
-      if (viewUsername) {
-        // Check if this is a predefined default profile first
-        var defaultProf = getDefaultProfile(viewUsername);
-        if (defaultProf) {
-          profile = defaultProf;
-          isDefaultProfile = true;
-        } else {
-          profile = await loadUserProfile(viewUsername);
+        if (viewUsername) {
+          // Check if this is a predefined default profile first
+          var defaultProf = getDefaultProfile(viewUsername);
+          if (defaultProf) {
+            profile = defaultProf;
+            isDefaultProfile = true;
+          } else {
+            profile = await loadUserProfile(viewUsername);
+          }
+        } else if (viewId) {
+          profile = await loadUserProfile(viewId);
+        } else if (session && session.user) {
+          // No param — show own profile
+          console.log('[Profile] Loading own profile for user:', session.user.id);
+          profile = await getCurrentProfile();
+          console.log('[Profile] getCurrentProfile result:', profile);
+          isOwnProfile = true;
         }
-      } else if (viewId) {
-        profile = await loadUserProfile(viewId);
-      } else if (session && session.user) {
-        // No param — show own profile
-        console.log('[Profile] Loading own profile for user:', session.user.id);
-        profile = await getCurrentProfile();
-        console.log('[Profile] getCurrentProfile result:', profile);
-        isOwnProfile = true;
-      }
 
-      console.log('[Profile] Final profile:', profile, 'isOwn:', isOwnProfile, 'isDefault:', isDefaultProfile);
+        console.log('[Profile] Final profile:', profile, 'isOwn:', isOwnProfile, 'isDefault:', isDefaultProfile);
 
-      // If no profile found and no URL params, redirect to login or show message
-      if (!profile && !viewUsername && !viewId) {
-        // Check if user is logged in but has no profile
-        if (session && session.user) {
-          // User is logged in but has no profile - show message
-          console.log('[Profile] User logged in but no profile found');
+        // If no profile found and no URL params, redirect to login or show message
+        if (!profile && !viewUsername && !viewId) {
+          // Check if user is logged in but has no profile
+          if (session && session.user) {
+            // User is logged in but has no profile - show message
+            console.log('[Profile] User logged in but no profile found');
+            document.getElementById('profileSkeleton').style.display = 'none';
+            document.getElementById('profileContent').innerHTML =
+              '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
+              '<i class="fas fa-user-plus" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+              '<p style="font-size:16px;margin-bottom:8px;color:#fff;">No profile found</p>' +
+              '<p style="font-size:13px;color:var(--text-muted);">Your profile doesn&apos;t exist yet.</p>' +
+              '</div>';
+            document.getElementById('profileContent').style.display = 'block';
+            return;
+          } else {
+            // Not logged in - redirect to login
+            console.log('[Profile] Not logged in, redirecting to login');
+            window.location.href = 'login.html';
+            return;
+          }
+        }
+
+        if (!profile) {
+          console.log('[Profile] Profile not found for:', viewUsername || viewId);
           document.getElementById('profileSkeleton').style.display = 'none';
           document.getElementById('profileContent').innerHTML =
             '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
-            '<i class="fas fa-user-plus" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
-            '<p style="font-size:16px;margin-bottom:8px;color:#fff;">No profile found</p>' +
-            '<p style="font-size:13px;color:var(--text-muted);">Your profile doesn\'t exist yet.</p>' +
+            '<i class="fas fa-user-slash" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+            '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Profile not found</p>' +
+            '<p style="font-size:13px;color:var(--text-muted);">The profile you&apos;re looking for doesn&apos;t exist.</p>' +
             '</div>';
           document.getElementById('profileContent').style.display = 'block';
           return;
-        } else {
-          // Not logged in - redirect to login
-          console.log('[Profile] Not logged in, redirecting to login');
-          window.location.href = 'login.html';
-          return;
         }
-      }
 
-      if (!profile) {
-        console.log('[Profile] Profile not found for:', viewUsername || viewId);
+        // Check if viewing own profile
+        if (session && session.user && profile.id === session.user.id) {
+          isOwnProfile = true;
+        }
+
+        // Render profile
+        renderProfile(profile, isOwnProfile);
+
+        document.getElementById('profileSkeleton').style.display = 'none';
+        document.getElementById('profileContent').style.display = 'block';
+
+        // Load user's posts — for default profiles, load their creations from DEFAULT_USER_MAP
+        if (isDefaultProfile) {
+          loadDefaultProfilePosts(profile.username);
+        } else {
+          loadProfilePosts(profile.id);
+          // Load social stats (followers, following counts)
+          loadProfileSocialStats(profile.id, isOwnProfile);
+        }
+      } catch (err) {
+        console.error('[Profile] Initialization error:', err);
         document.getElementById('profileSkeleton').style.display = 'none';
         document.getElementById('profileContent').innerHTML =
           '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
-          '<i class="fas fa-user-slash" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
-          '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Profile not found</p>' +
-          '<p style="font-size:13px;color:var(--text-muted);">The profile you\'re looking for doesn\'t exist.</p>' +
+          '<i class="fas fa-triangle-exclamation" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
+          '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Something went wrong</p>' +
+          '<p style="font-size:13px;color:var(--text-muted);">Failed to load profile. Please refresh or sign in again.</p>' +
           '</div>';
         document.getElementById('profileContent').style.display = 'block';
-        return;
       }
-
-      // Check if viewing own profile
-      if (session && session.user && profile.id === session.user.id) {
-        isOwnProfile = true;
-      }
-
-      // Render profile
-      renderProfile(profile, isOwnProfile);
-
-      document.getElementById('profileSkeleton').style.display = 'none';
-      document.getElementById('profileContent').style.display = 'block';
-
-      // Load user's posts — for default profiles, load their creations from DEFAULT_USER_MAP
-      if (isDefaultProfile) {
-        loadDefaultProfilePosts(profile.username);
-      } else {
-        loadProfilePosts(profile.id);
-        // Load social stats (followers, following counts)
-        loadProfileSocialStats(profile.id, isOwnProfile);
-      }
-    } catch (err) {
-      console.error('[Profile] Initialization error:', err);
-      document.getElementById('profileSkeleton').style.display = 'none';
-      document.getElementById('profileContent').innerHTML =
-        '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
-        '<i class="fas fa-triangle-exclamation" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
-        '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Something went wrong</p>' +
-        '<p style="font-size:13px;color:var(--text-muted);">Failed to load profile. Please refresh or sign in again.</p>' +
-        '</div>';
-      document.getElementById('profileContent').style.display = 'block';
-    }
-  })();
+    })();
 
     function renderProfile(profile, isOwn) {
       var p = formatProfile(profile);
@@ -732,7 +733,6 @@
         document.getElementById('postsCount').textContent = _profileCreationCounts.total || 0;
         document.getElementById('followersCount').textContent = '0';
         document.getElementById('followingCount').textContent = '0';
-        document.getElementById('likesCount').textContent = '0';
         // Make followers/following non-clickable for default profiles
         document.getElementById('followersStat').style.cursor = 'default';
         document.getElementById('followingStat').style.cursor = 'default';
@@ -1228,9 +1228,7 @@
           '</div>' +
         '</div>' +
       '</div>';
-    }
-
-    window.selectPCreationType = function(type) {
+    }    window.selectPCreationType = function(type) {
       _pCreateType = type; _pCreateFile = null; _pCreateCover = null;
       var modal = document.getElementById('createPostModal');
       var header = type.charAt(0).toUpperCase() + type.slice(1);
@@ -1386,6 +1384,7 @@
 
     window.saveProfile = async function() {
       var btn = document.getElementById('saveProfileBtn');
+      if (!btn) return;
       btn.disabled = true;
       btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Saving...';
 
@@ -1417,21 +1416,6 @@
     function escapeAttr(str) {
       return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-      } catch (err) {
-        console.error('[Profile] Initialization error:', err);
-        document.getElementById('profileSkeleton').style.display = 'none';
-        document.getElementById('profileContent').innerHTML =
-          '<div style="text-align:center;padding:80px 24px;color:var(--text-muted);">' +
-          '<i class="fas fa-exclamation-triangle" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.4;"></i>' +
-          '<p style="font-size:16px;margin-bottom:8px;color:#fff;">Error loading profile</p>' +
-          '<p style="font-size:13px;color:var(--text-muted);">' + err.message + '</p>' +
-          '</div>';
-        document.getElementById('profileContent').style.display = 'block';
-      }
-    }
-    
-    // Start profile initialization
-    initProfile();
   </script>
 </body>
 </html>

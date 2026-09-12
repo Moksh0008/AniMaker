@@ -49,6 +49,11 @@
 
     .role-card:hover { transform: translateY(-6px) scale(1.02); }
     .feature-card:hover { transform: translateY(-4px) scale(1.02); }
+
+    /* Active like/save state on feed cards */
+    .post-action-btn.active { color: var(--text-secondary); }
+    .post-action-btn.active i.fa-heart { color: #ef4444; }
+    .post-action-btn.active i.fa-bookmark { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -322,6 +327,10 @@
         }
       });
 
+      var likeCount = (post.like_count || 0);
+      var likeBtnId = 'post-like-' + post.id;
+      var saveBtnId = 'post-save-' + post.id;
+
       return '<div class="post-card" data-post-id="' + post.id + '">' +
         '<div class="post-card-header">' +
           '<div class="post-card-avatar"><a href="pages/profile.html?user=' + username + '">' + avatarHtml + '</a></div>' +
@@ -338,15 +347,108 @@
         mediaHtml +
         '<div class="post-card-details">' + categoryHtml + titleHtml + captionHtml + '</div>' +
         '<div class="post-card-footer">' +
-          '<button class="post-action-btn"><i class="far fa-heart"></i> <span>Like</span></button>' +
-          '<button class="post-action-btn"><i class="far fa-comment"></i> <span>Comment</span></button>' +
-          '<button class="post-action-btn"><i class="far fa-bookmark"></i> <span>Save</span></button>' +
+          '<button class="post-action-btn" id="' + likeBtnId + '" onclick="handlePostLike(\'' + post.id + '\', this)"><i class="far fa-heart"></i> <span>' + likeCount + ' like' + (likeCount === 1 ? '' : 's') + '</span></button>' +
+          '<button class="post-action-btn" onclick="openPostComments(\'' + post.id + '\')"><i class="far fa-comment"></i> <span>Comment</span></button>' +
+          '<button class="post-action-btn" id="' + saveBtnId + '" onclick="handlePostSave(\'' + post.id + '\', this)"><i class="far fa-bookmark"></i> <span>Save</span></button>' +
         '</div>' +
       '</div>';
     }
 
     /* ---- Feed state ---- */
     var feedLoaded = false;
+
+    /* ---- Like / Save handlers for home feed posts ---- */
+    function syncPostActionBtn(btn, on, offIcon, onIcon, onLabel, offLabel) {
+      if (!btn) return;
+      btn.classList.toggle('active', on);
+      var iconEl = btn.querySelector('i');
+      var labelEl = btn.querySelector('span');
+      if (iconEl) iconEl.className = on ? onIcon : offIcon;
+      if (labelEl) labelEl.textContent = on ? onLabel : offLabel;
+    }
+
+    async function handlePostLike(postId, btn) {
+      if (!btn) return;
+      var session = await getSession();
+      if (!session) { window.location.href = 'pages/login.html'; return; }
+
+      var wasActive = btn.classList.contains('active');
+      var labelEl = btn.querySelector('span');
+      var prevLabel = labelEl ? labelEl.textContent : 'Like';
+
+      // Optimistic update
+      var prevCount = (parseInt(labelEl ? labelEl.textContent : '') || 0);
+      if (!wasActive) {
+        syncPostActionBtn(btn, true, 'far fa-heart', 'fas fa-heart', (prevCount + 1) + ' like' + (prevCount + 1 === 1 ? '' : 's'), '');
+      } else {
+        var newCount = Math.max(0, prevCount - 1);
+        syncPostActionBtn(btn, false, 'far fa-heart', 'fas fa-heart', newCount + ' like' + (newCount === 1 ? '' : 's'), '');
+      }
+
+      try {
+        await togglePostLike(postId);
+      } catch (e) {
+        // Revert on failure
+        syncPostActionBtn(btn, wasActive, 'far fa-heart', 'fas fa-heart', prevLabel, prevLabel);
+        showToast('Failed to update like', 'error');
+      }
+    }
+
+    async function handlePostSave(postId, btn) {
+      if (!btn) return;
+      var session = await getSession();
+      if (!session) { window.location.href = 'pages/login.html'; return; }
+
+      var wasActive = btn.classList.contains('active');
+      syncPostActionBtn(btn, !wasActive, 'far fa-bookmark', 'fas fa-bookmark', 'Saved', 'Save');
+
+      try {
+        await togglePostSave(postId);
+        showToast(!wasActive ? 'Post saved!' : 'Removed from saved', !wasActive ? 'success' : 'info');
+      } catch (e) {
+        syncPostActionBtn(btn, wasActive, 'far fa-bookmark', 'fas fa-bookmark', wasActive ? 'Saved' : 'Save', wasActive ? 'Saved' : 'Save');
+        showToast('Failed to update save', 'error');
+      }
+    }
+
+    function openPostComments(postId) {
+      showToast('Comments are available on the detail view', 'info');
+    }
+
+    // Hydrate like/save state on feed cards
+    async function hydrateFeedSocialState(posts) {
+      var session = await getSession();
+      if (!session || !session.user) return;
+
+      for (var i = 0; i < posts.length; i++) {
+        var post = posts[i];
+        try {
+          var [liked, saved, likeCount] = await Promise.all([
+            hasUserLikedPost(post.id),
+            hasUserSavedPost(post.id),
+            getPostLikeCount(post.id)
+          ]);
+
+          var likeBtn = document.getElementById('post-like-' + post.id);
+          if (likeBtn) {
+            if (liked) likeBtn.classList.add('active');
+            var iconEl = likeBtn.querySelector('i');
+            var labelEl = likeBtn.querySelector('span');
+            if (iconEl) iconEl.className = liked ? 'fas fa-heart' : 'far fa-heart';
+            if (labelEl) labelEl.textContent = likeCount + ' like' + (likeCount === 1 ? '' : 's');
+          }
+
+          var saveBtn = document.getElementById('post-save-' + post.id);
+          if (saveBtn && saved) {
+            saveBtn.classList.add('active');
+            var sIcon = saveBtn.querySelector('i');
+            var sLabel = saveBtn.querySelector('span');
+            if (sIcon) sIcon.className = 'fas fa-bookmark';
+            if (sLabel) sLabel.textContent = 'Saved';
+          }
+        } catch (e) { /* skip this post */ }
+      }
+    }
 
     async function loadFeed() {
       document.getElementById('feedLoading').style.display = 'block';
@@ -368,6 +470,7 @@
       });
       document.getElementById('feedPosts').innerHTML = html;
       feedLoaded = true;
+      hydrateFeedSocialState(posts);
 
       // Check which posts belong to current user and show menu
       var session = await getSession();

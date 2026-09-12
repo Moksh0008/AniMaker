@@ -471,3 +471,88 @@ async function handleChangePassword() {
     showToast(err.message || 'Failed to update password', 'error');
   }
 }
+
+/* =========================================================
+   Home Feed — Post Likes & Saves
+   Backed by post_likes / post_saved tables
+   (created by supabase-posts-setup.sql section 10)
+   ========================================================= */
+
+async function hasUserLikedPost(postId) {
+  if (!supabaseClient) return false;
+  var session = await getSession();
+  if (!session || !session.user) return false;
+  var { data } = await supabaseClient
+    .from('post_likes')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+  return !!data;
+}
+
+async function getPostLikeCount(postId) {
+  if (!supabaseClient) return 0;
+  var { count } = await supabaseClient
+    .from('post_likes')
+    .select('id', { count: 'exact', head: true })
+    .eq('post_id', postId);
+  return count || 0;
+}
+
+async function togglePostLike(postId) {
+  if (!supabaseClient) throw new Error('Supabase not available');
+  var session = await getSession();
+  if (!session || !session.user) throw new Error('Not authenticated');
+  var { data: existing } = await supabaseClient
+    .from('post_likes')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+  if (existing) {
+    var { error } = await supabaseClient.from('post_likes').delete().eq('id', existing.id);
+    if (error) throw new Error(error.message);
+    return false;
+  }
+  var { error: insErr } = await supabaseClient
+    .from('post_likes')
+    .insert({ post_id: postId, user_id: session.user.id });
+  if (insErr) throw new Error(insErr.message);
+  return true;
+}
+
+async function hasUserSavedPost(postId) {
+  if (!supabaseClient) return false;
+  var session = await getSession();
+  if (!session || !session.user) return false;
+  var { data } = await supabaseClient
+    .from('post_saved')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+  return !!data;
+}
+
+async function togglePostSave(postId) {
+  if (!supabaseClient) throw new Error('Supabase not available');
+  var session = await getSession();
+  if (!session || !session.user) throw new Error('Not authenticated');
+  var { data: existing } = await supabaseClient
+    .from('post_saved')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+  if (existing) {
+    var { error } = await supabaseClient.from('post_saved').delete().eq('id', existing.id);
+    if (error) throw new Error(error.message);
+    return false;
+  }
+  var { error: insErr } = await supabaseClient
+    .from('post_saved')
+    .insert({ post_id: postId, user_id: session.user.id });
+  if (insErr) throw new Error(insErr.message);
+  return true;
+}

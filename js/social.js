@@ -592,9 +592,14 @@ async function toggleNotifDropdown() {
         var avatar = from.avatar_url
           ? '<img src="' + from.avatar_url + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
           : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">' + ((from.full_name || from.username || '?').charAt(0).toUpperCase()) + '</div>';
-        var icon = n.type === 'comment' ? 'fa-comment' : n.type === 'follow' ? 'fa-user-plus' : n.type === 'like' ? 'fa-heart' : 'fa-bell';
+        var icon = n.type === 'comment' ? 'fa-comment' : n.type === 'follow' ? 'fa-user-plus' : n.type === 'like' ? 'fa-heart' : n.type === 'message' ? 'fa-envelope' : 'fa-bell';
         var bg = n.is_read ? 'transparent' : 'rgba(124,92,252,0.08)';
-        var clickAction = n.creation_id ? 'onclick="toggleNotifDropdown();openCreatorDetail(\'' + n.creation_id + '\')"' : '';
+        var clickAction = '';
+        if (n.type === 'message') {
+          clickAction = 'onclick="toggleNotifDropdown();window.location.href=\'chat.html\'"';
+        } else if (n.creation_id) {
+          clickAction = 'onclick="toggleNotifDropdown();openCreatorDetail(\'' + n.creation_id + '\')"';
+        }
         html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:' + bg + ';cursor:pointer;transition:background 0.15s;" ' + clickAction + ' onmouseenter="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseleave="this.style.background=\'' + bg + '\'">' +
           avatar +
           '<div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text-secondary);line-height:1.4;">' + (n.message || n.type) + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + timeAgo(n.created_at) + '</div></div>' +

@@ -96,3 +96,45 @@ CREATE POLICY "Users can delete their own post media"
     bucket_id = 'post-media'
     AND auth.uid()::text = (string_to_array(name, '/'))[1]
   );
+
+-- ============================================
+-- 10. POST LIKES & SAVES (Home feed)
+--    Run this section if the tables don't exist yet.
+--    Safe to re-run.
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS post_likes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(post_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS post_saved (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(post_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_post_likes_post ON post_likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_likes_user ON post_likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_saved_user ON post_saved(user_id);
+
+ALTER TABLE post_likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_saved ENABLE ROW LEVEL SECURITY;
+
+GRANT SELECT, INSERT, DELETE ON post_likes TO authenticated;
+GRANT SELECT, INSERT, DELETE ON post_saved TO authenticated;
+
+-- Anyone can view like/save rows (needed for public counts)
+CREATE POLICY "Post likes are publicly viewable" ON post_likes FOR SELECT USING (true);
+CREATE POLICY "Post saves are publicly viewable" ON post_saved FOR SELECT USING (true);
+
+-- Authenticated users manage their own rows
+CREATE POLICY "Users insert own post likes" ON post_likes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own post likes" ON post_likes FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own saved posts" ON post_saved FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own saved posts" ON post_saved FOR DELETE USING (auth.uid() = user_id);

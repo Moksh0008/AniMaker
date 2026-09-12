@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   from_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  type TEXT NOT NULL CHECK (type IN ('comment', 'like', 'follow', 'comment_like')),
+  type TEXT NOT NULL CHECK (type IN ('comment', 'like', 'follow', 'comment_like', 'message')),
   creation_id UUID REFERENCES creations(id) ON DELETE CASCADE,
   comment_id UUID REFERENCES comments(id) ON DELETE CASCADE,
   message TEXT DEFAULT '',
@@ -32,6 +32,12 @@ CREATE POLICY "Update own notifications" ON notifications FOR UPDATE USING (auth
 CREATE POLICY "Delete own notifications" ON notifications FOR DELETE USING (auth.uid() = user_id);
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON notifications TO authenticated;
+
+-- Allow 'message' notification type on databases where the table already exists.
+-- Safe to re-run.
+ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check;
+ALTER TABLE notifications ADD CONSTRAINT notifications_type_check
+  CHECK (type IN ('comment', 'like', 'follow', 'comment_like', 'message'));
 
 -- Function to create notification
 CREATE OR REPLACE FUNCTION create_notification(
