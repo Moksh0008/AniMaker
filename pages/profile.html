@@ -1089,16 +1089,16 @@
 
         if (c.type === 'writer') {
           if (c.cover_image_url) {
-            item.innerHTML = '<img src="' + c.cover_image_url + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
+            item.innerHTML = '<img src="' + resolveAssetUrl(c.cover_image_url) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
           } else {
             item.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);"><i class="fas fa-pen-nib" style="font-size:24px;color:var(--text-muted);"></i></div>';
           }
         } else if (c.type === 'maker') {
-          var thumb = c.cover_image_url || c.media_url;
+          var thumb = resolveAssetUrl(c.cover_image_url || c.media_url);
           item.innerHTML = '<img src="' + thumb + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' +
             '<div class="post-grid-overlay"><span class="post-grid-stat"><i class="fas fa-play"></i></span></div>';
         } else {
-          item.innerHTML = '<img src="' + (c.cover_image_url || '') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
+          item.innerHTML = '<img src="' + resolveAssetUrl(c.cover_image_url || '') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">';
         }
         if (allowDelete) {
           var del = document.createElement('button');
