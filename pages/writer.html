@@ -519,7 +519,10 @@
             };
           });
 
-        if (rows.length) await supabaseClient.from('creations').insert(rows);
+        if (rows.length) {
+          var ins = await supabaseClient.from('creations').insert(rows);
+          if (ins.error) throw new Error(ins.error.message);
+        }
         localStorage.setItem('animaker_writer_seeded', '1');
         console.log('[Writer] Seeded ' + rows.length + ' sample stories.');
       } catch (e) {
