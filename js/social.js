@@ -506,6 +506,21 @@ async function getNotifications(limit) {
       data.forEach(function(n) { n.from_user = map[n.from_user_id] || null; });
     } catch (e2) { /* avatars/names just stay generic */ }
   }
+
+  // Batch-fetch creation thumbnails for rows that reference a creation
+  var cids = [];
+  data.forEach(function(n) { if (n.creation_id && cids.indexOf(n.creation_id) === -1) cids.push(n.creation_id); });
+  if (cids.length) {
+    try {
+      var { data: crs } = await supabaseClient
+        .from('creations')
+        .select('id, cover_image_url, media_url, type')
+        .in('id', cids);
+      var cmap = {};
+      (crs || []).forEach(function(cc) { cmap[cc.id] = cc; });
+      data.forEach(function(n) { n.creation = cmap[n.creation_id] || null; });
+    } catch (e3) { /* thumbnails just stay hidden */ }
+  }
   return data;
 }
 
@@ -601,18 +616,71 @@ function closeNotifPanels() {
   if (sp) sp.style.display = 'none';
 }
 
-/* ---- Shared notification list markup (used by bell dropdown + sidebar panel) ---- */
+/* ---- Shared notification panel markup (grouped, Instagram-style) ---- */
+function notifTypeIcon(type) {
+  if (type === 'comment') return { cls: 'fa-comment', bg: '#3b82f6' };
+  if (type === 'follow') return { cls: 'fa-user-plus', bg: '#22c55e' };
+  if (type === 'like') return { cls: 'fa-heart', bg: '#ef4444' };
+  if (type === 'message') return { cls: 'fa-envelope', bg: '#8b5cf6' };
+  if (type === 'comment_like') return { cls: 'fa-thumbs-up', bg: '#f59e0b' };
+  return { cls: 'fa-bell', bg: '#64748b' };
+}
+
+function notifGroupLabel(d) {
+  var now = Date.now();
+  var t = new Date(d).getTime();
+  var mins = Math.floor((now - t) / 60000);
+  if (mins < 60 * 24) return 'Today';
+  if (mins < 60 * 24 * 7) return 'This week';
+  if (mins < 60 * 24 * 30) return 'This month';
+  return 'Earlier';
+}
+
 function buildNotifPanelHtml(notifs) {
   if (notifs.length === 0) {
-    return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">No notifications yet</div>';
+    return '<div style="padding:36px 24px;text-align:center;color:var(--text-muted);">' +
+      '<i class="far fa-bell" style="font-size:28px;display:block;margin-bottom:10px;opacity:0.5;"></i>' +
+      '<div style="font-size:13px;">No notifications yet</div>' +
+      '<div style="font-size:12px;margin-top:4px;opacity:0.7;">Likes, comments and follows will show up here</div>' +
+    '</div>';
   }
-  var html = '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:600;color:#fff;font-size:14px;">Notifications</span><button onclick="markAllRead();loadNotifBadge();closeNotifPanels();" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;">Mark all read</button></div>';
+
+  var html = '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">' +
+    '<span style="font-weight:700;color:#fff;font-size:15px;">Notifications</span>' +
+    '<button onclick="markAllRead();loadNotifBadge();closeNotifPanels();" style="background:none;border:none;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">Mark all read</button>' +
+  '</div>';
+
+  var lastGroup = null;
   notifs.forEach(function(n) {
+    // Group headers: New (any unread) > Today > This week > ...
+    var group = n.is_read ? notifGroupLabel(n.created_at) : 'New';
+    if (group !== lastGroup) {
+      html += '<div style="padding:10px 16px 4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:' + (group === 'New' ? 'var(--accent)' : 'var(--text-muted)') + ';">' + group + '</div>';
+      lastGroup = group;
+    }
+
     var from = n.from_user || {};
-    var avatar = from.avatar_url
-      ? '<img src="' + from.avatar_url + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
-      : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">' + ((from.full_name || from.username || '?').charAt(0).toUpperCase()) + '</div>';
-    var icon = n.type === 'comment' ? 'fa-comment' : n.type === 'follow' ? 'fa-user-plus' : n.type === 'like' ? 'fa-heart' : n.type === 'message' ? 'fa-envelope' : 'fa-bell';
+    var name = postEscapeHtmlLocal(from.full_name || from.username || 'Someone');
+    var verb = n.type === 'comment' ? 'commented on your post' : n.type === 'follow' ? 'started following you' : n.type === 'like' ? 'liked your post' : n.type === 'comment_like' ? 'liked your comment' : n.type === 'message' ? 'sent you a message' : 'interacted with you';
+
+    var icon = notifTypeIcon(n.type);
+
+    // Avatar with small type badge overlapping bottom-right
+    var avatarInner = from.avatar_url
+      ? '<img src="' + from.avatar_url + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">'
+      : '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#9333ea);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;">' + (from.full_name || from.username || '?').charAt(0).toUpperCase() + '</div>';
+    var avatar = '<div style="position:relative;flex-shrink:0;">' + avatarInner +
+      '<span style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:' + icon.bg + ';border:2px solid var(--bg-card);display:flex;align-items:center;justify-content:center;"><i class="fas ' + icon.cls + '" style="font-size:8px;color:#fff;"></i></span>' +
+    '</div>';
+
+    // Optional creation thumbnail on the right (Instagram-style)
+    var thumb = '';
+    var cr = n.creation;
+    if (cr) {
+      var turl = cr.cover_image_url || (cr.type === 'maker' ? cr.media_url : '');
+      if (turl) thumb = '<img src="' + turl + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;">';
+    }
+
     var bg = n.is_read ? 'transparent' : 'rgba(124,92,252,0.08)';
     var clickAction = '';
     if (n.type === 'message') {
@@ -620,13 +688,24 @@ function buildNotifPanelHtml(notifs) {
     } else if (n.creation_id) {
       clickAction = 'onclick="closeNotifPanels();openCreationDetailById(\'' + n.creation_id + '\')"';
     }
-    html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:' + bg + ';cursor:pointer;transition:background 0.15s;" ' + clickAction + ' onmouseenter="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseleave="this.style.background=\'' + bg + '\'">' +
+
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:' + bg + ';cursor:pointer;transition:background 0.15s;" ' + clickAction + ' onmouseenter="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseleave="this.style.background=\'' + bg + '\'">' +
       avatar +
-      '<div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text-secondary);line-height:1.4;">' + (n.message || n.type) + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + timeAgo(n.created_at) + '</div></div>' +
-      '<i class="fas ' + icon + '" style="font-size:12px;color:var(--accent);flex-shrink:0;"></i>' +
+      '<div style="flex:1;min-width:0;font-size:13px;line-height:1.45;color:var(--text-secondary);">' +
+        '<span style="color:#fff;font-weight:600;">' + name + '</span> ' + verb +
+        '<span style="display:block;font-size:11px;color:var(--text-muted);margin-top:2px;">' + timeAgo(n.created_at) + '</span>' +
+      '</div>' +
+      thumb +
     '</div>';
   });
   return html;
+}
+
+function postEscapeHtmlLocal(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 async function toggleNotifDropdown() {
