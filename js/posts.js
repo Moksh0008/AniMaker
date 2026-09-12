@@ -511,18 +511,13 @@ function openStoryDetail(id, userOverride) {
       ? '<div class="writer-hero-cover"><img src="' + c.cover_image_url + '" alt="' + postEscapeHtml(c.title) + '"></div>'
       : '<div class="writer-hero-cover writer-hero-cover-empty"><i class="fas fa-feather-pointed"></i></div>';
 
-    // Blurred cover as the popup's watermark background
-    var bgUrl = (c.cover_image_url || '').replace(/'/g, '%27');
-    var bgHtml = bgUrl ? '<div class="writer-popup-bg" style="background-image:url(\'' + bgUrl + '\')"></div>' : '';
-
     var overlay = document.createElement('div');
     overlay.className = 'detail-overlay writer-overlay';
     overlay.id = 'detail-overlay-' + id;
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
     overlay.innerHTML =
+      '<button class="writer-close-btn" aria-label="Close" onclick="this.closest(\'.writer-overlay\').remove()"><i class="fas fa-xmark"></i></button>' +
       '<article class="writer-popup" role="dialog" aria-label="Story reader">' +
-        bgHtml +
-        '<button class="creator-popup-close" aria-label="Close" onclick="this.closest(\'.writer-overlay\').remove()"><i class="fas fa-xmark"></i></button>' +
 
         /* ---- Hero header: cover left, story info right ---- */
         '<header class="writer-hero">' +

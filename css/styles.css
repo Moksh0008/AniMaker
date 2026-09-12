@@ -4429,32 +4429,28 @@ textarea.form-input {
   animation: writerPopIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Blurred cover watermark behind the whole reader */
-.writer-popup-bg {
-  position: absolute;
-  inset: -40px;
-  background-size: cover;
-  background-position: center 20%;
-  filter: blur(42px) saturate(1.35);
-  opacity: 0.85;
-  z-index: 0;
-  pointer-events: none;
+/* Fixed close button for the writer reader (lives outside the popup) */
+.writer-close-btn {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5001;
+  transition: background 0.15s ease;
 }
 
-/* Soft dark veil so text stays readable over the watermark */
-.writer-popup-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(1200px 500px at 50% -10%, rgba(20, 12, 40, 0.18), transparent 70%),
-    linear-gradient(180deg, rgba(8, 6, 14, 0.3) 0%, rgba(8, 6, 14, 0.62) 45%, rgba(8, 6, 14, 0.82) 100%);
-}
-
-/* All content sits above the watermark */
-.writer-popup > *:not(.writer-popup-bg) {
-  position: relative;
-  z-index: 1;
+.writer-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 @keyframes writerPopIn {
