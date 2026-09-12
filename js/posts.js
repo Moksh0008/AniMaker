@@ -491,15 +491,6 @@ function openStoryDetail(id, userOverride) {
       followBtnHtml = '<button class="follow-btn ' + (followingUser ? 'following' : 'follow') + '" onclick="handleFollow(\'' + c.user_id + '\', this)">' + (followingUser ? '<i class="fas fa-check"></i> Following' : '<i class="fas fa-plus"></i> Follow') + '</button>';
     }
 
-    // Own-story Edit / Delete
-    var ownActionsHtml = '';
-    if (isOwn) {
-      ownActionsHtml = '<div class="writer-own-actions">' +
-        '<button class="writer-edit-btn" onclick="writerEditStory(\'' + id + '\')"><i class="fas fa-pen"></i> Edit</button>' +
-        '<button class="writer-delete-btn" onclick="writerDeleteStory(\'' + id + '\')"><i class="fas fa-trash"></i> Delete</button>' +
-      '</div>';
-    }
-
     // Meta chips: genre + tags + reading time
     var metaBits = [];
     if (c.genre) metaBits.push('<span class="writer-meta-chip writer-genre-chip"><i class="fas fa-book-open"></i> ' + postEscapeHtml(c.genre) + '</span>');
@@ -568,7 +559,6 @@ function openStoryDetail(id, userOverride) {
 
         /* ---- Social actions + comments ---- */
         '<div class="writer-actions-panel">' +
-          ownActionsHtml +
           '<div class="creation-action-bar writer-action-bar">' +
             '<button class="creation-action-btn' + (liked ? ' liked' : '') + '" onclick="handleLike(\'' + id + '\', this)">' +
               '<i class="fa' + (liked ? 's' : 'r') + ' fa-heart"></i> <span class="action-like-count">' + likeCount + '</span>' +
