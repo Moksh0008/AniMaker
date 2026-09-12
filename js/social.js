@@ -588,8 +588,89 @@ function renderNotificationBell() {
     }
   }
   renderSidebarNotifications();
+  renderSidebarChatBadge();
   loadNotifBadge();
+  loadChatUnreadBadge();
   startNotifRealtime();
+  startChatBadgeRealtime();
+}
+
+/* ---- Instagram-style unread badge on the sidebar Chat item ---- */
+function renderSidebarChatBadge() {
+  var nav = document.querySelector('.sidebar-nav');
+  if (!nav) return;
+  // Home page links root-relative (pages/chat.html); other pages use chat.html
+  var chatLink = nav.querySelector('a[href="chat.html"]') || nav.querySelector('a[href="pages/chat.html"]');
+  if (!chatLink || document.getElementById('sidebarChatBadge')) return;
+  chatLink.style.position = 'relative';
+  var badge = document.createElement('span');
+  badge.id = 'sidebarChatBadge';
+  badge.style.cssText = 'position:absolute;top:2px;right:6px;min-width:16px;height:16px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;z-index:2;';
+  chatLink.appendChild(badge);
+}
+
+/* Total unread chat messages across all my conversations.
+   Gracefully returns 0 if chat tables don't exist yet. */
+async function getChatUnreadCount() {
+  if (!supabaseClient) return 0;
+  var session = await getSession();
+  if (!session || !session.user) return 0;
+  var myId = session.user.id;
+  var { data: parts, error } = await supabaseClient
+    .from('conversation_participants')
+    .select('conversation_id, last_read_at')
+    .eq('user_id', myId);
+  if (error || !parts || !parts.length) return 0;
+  var total = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var { count } = await supabaseClient
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('conversation_id', parts[i].conversation_id)
+      .neq('sender_id', myId)
+      .is('deleted_at', null)
+      .gt('created_at', parts[i].last_read_at || '2000-01-01');
+    total += count || 0;
+  }
+  return total;
+}
+
+async function loadChatUnreadBadge() {
+  try {
+    var c = await getChatUnreadCount();
+    setNotifBadgeEl(document.getElementById('sidebarChatBadge'), c);
+  } catch (e) { /* badge just stays as-is */ }
+}
+
+/* Live updates: messages INSERT stream (RLS-scoped to my conversations)
+   plus a 60s polling fallback. Skips recounts for the conversation I'm
+   actively viewing — reading it auto-marks it as read. */
+var _chatBadgeRealtimeStarted = false;
+
+async function startChatBadgeRealtime() {
+  if (_chatBadgeRealtimeStarted || !supabaseClient) return;
+  var session = await getSession();
+  if (!session || !session.user) return;
+  _chatBadgeRealtimeStarted = true;
+  var myId = session.user.id;
+
+  try {
+    if (typeof supabaseClient.channel === 'function') {
+      supabaseClient
+        .channel('chat-badge-' + myId.slice(0, 8))
+        .on('postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages' },
+          function(payload) {
+            var m = payload.new || {};
+            if (m.sender_id === myId) return;
+            if (typeof _chatCurrentConv !== 'undefined' && _chatCurrentConv && _chatCurrentConv.id === m.conversation_id) return;
+            loadChatUnreadBadge();
+          })
+        .subscribe();
+    }
+  } catch (e) { /* fall back to polling only */ }
+
+  setInterval(function() { loadChatUnreadBadge(); }, 60000);
 }
 
 /* ---- Real-time notifications ----
