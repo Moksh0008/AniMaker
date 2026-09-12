@@ -26,6 +26,8 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Grant permissions to authenticated role
 GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
+-- Allow logged-out visitors to see public profile info on creations/posts
+GRANT SELECT ON public.profiles TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON storage.objects TO authenticated;
 GRANT SELECT ON storage.buckets TO authenticated;
 

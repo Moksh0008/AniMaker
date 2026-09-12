@@ -478,24 +478,81 @@ function openStoryDetail(id, userOverride) {
       followBtnHtml = '<button class="follow-btn ' + (followingUser ? 'following' : 'follow') + '" onclick="handleFollow(\'' + c.user_id + '\', this)">' + (followingUser ? '<i class="fas fa-check"></i> Following' : '<i class="fas fa-plus"></i> Follow') + '</button>';
     }
 
+    // Own-story Edit / Delete
+    var ownActionsHtml = '';
+    if (isOwn) {
+      ownActionsHtml = '<div class="writer-own-actions">' +
+        '<button class="writer-edit-btn" onclick="writerEditStory(\'' + id + '\')"><i class="fas fa-pen"></i> Edit</button>' +
+        '<button class="writer-delete-btn" onclick="writerDeleteStory(\'' + id + '\')"><i class="fas fa-trash"></i> Delete</button>' +
+      '</div>';
+    }
+
+    // Meta chips: genre + tags + reading time
+    var metaBits = [];
+    if (c.genre) metaBits.push('<span class="writer-meta-chip writer-genre-chip"><i class="fas fa-book-open"></i> ' + postEscapeHtml(c.genre) + '</span>');
+    if (Array.isArray(c.tags)) {
+      c.tags.slice(0, 6).forEach(function(t) {
+        if (t) metaBits.push('<span class="writer-meta-chip">#' + postEscapeHtml(String(t)) + '</span>');
+      });
+    }
+    var metaHtml = metaBits.length ? '<div class="writer-meta-row">' + metaBits.join('') + '</div>' : '';
+
+    var readingTime = estimateReadingTime(c.story_content);
+    var publishedDate = '';
+    try { publishedDate = new Date(c.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { publishedDate = timeAgo(c.created_at); }
+
+    var coverHtml = c.cover_image_url
+      ? '<div class="writer-hero-cover"><img src="' + c.cover_image_url + '" alt="' + postEscapeHtml(c.title) + '"></div>'
+      : '<div class="writer-hero-cover writer-hero-cover-empty"><i class="fas fa-feather-pointed"></i></div>';
+
     var overlay = document.createElement('div');
-    overlay.className = 'detail-overlay';
+    overlay.className = 'detail-overlay writer-overlay';
     overlay.id = 'detail-overlay-' + id;
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-    overlay.innerHTML = '<button class="detail-close" onclick="this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
-      '<div class="story-detail">' +
-        (c.cover_image_url ? '<img class="story-detail-cover" src="' + c.cover_image_url + '">' : '') +
-        '<div class="story-detail-body">' +
-          '<div class="story-detail-title">' + postEscapeHtml(c.title) + '</div>' +
-          '<div class="story-detail-author" style="justify-content:space-between;">' +
-            '<div style="display:flex;align-items:center;gap:10px;">' +
-              '<a href="profile.html?user=' + (profile.username || '') + '" style="text-decoration:none;">' + getCreationUserAvatar(profile, 40) + '</a>' +
-              '<div><a href="profile.html?user=' + (profile.username || '') + '" style="text-decoration:none;"><div class="author-name" style="color:#fff;">' + getCreationUserName(profile) + '</div></a><div class="author-meta">' + estimateReadingTime(c.story_content) + '</div></div>' +
+    overlay.innerHTML =
+      '<article class="writer-popup" role="dialog" aria-label="Story reader">' +
+        '<button class="creator-popup-close" aria-label="Close" onclick="this.closest(\'.writer-overlay\').remove()"><i class="fas fa-xmark"></i></button>' +
+
+        /* ---- Hero header: cover left, story info right ---- */
+        '<header class="writer-hero">' +
+          coverHtml +
+          '<div class="writer-hero-info">' +
+            '<div class="writer-hero-author">' +
+              '<a href="profile.html?user=' + (profile.username || '') + '" style="text-decoration:none;">' + getCreationUserAvatar(profile, 44) + '</a>' +
+              '<div class="writer-hero-author-text">' +
+                '<a href="profile.html?user=' + (profile.username || '') + '" style="text-decoration:none;"><span class="writer-hero-author-name">' + getCreationUserName(profile) + '</span></a>' +
+                '<span class="writer-hero-author-role"><i class="fas fa-pen-nib"></i> Writer</span>' +
+              '</div>' +
+              followBtnHtml +
             '</div>' +
-            followBtnHtml +
+            '<h1 class="writer-hero-title">' + postEscapeHtml(c.title) + '</h1>' +
+            (c.description ? '<p class="writer-hero-desc">' + postEscapeHtml(c.description) + '</p>' : '') +
+            metaHtml +
+            '<div class="writer-hero-stats">' +
+              '<span><i class="far fa-clock"></i> ' + readingTime + '</span>' +
+              '<span class="dot">&middot;</span>' +
+              '<span><i class="far fa-calendar"></i> ' + publishedDate + '</span>' +
+            '</div>' +
           '</div>' +
-          '<div class="story-detail-content">' + postEscapeHtml(c.story_content || '').replace(/\n/g, '<br>') + '</div>' +
-          '<div class="creation-action-bar">' +
+        '</header>' +
+
+        /* ---- Reading area ---- */
+        '<div class="writer-reading">' +
+          '<div class="writer-reading-label"><span class="writer-reading-line"></span> Start Reading <span class="writer-reading-line"></span></div>' +
+          (c.story_content
+            ? '<div class="writer-story-content" id="writer-content-' + id + '">' +
+                postEscapeHtml(c.story_content).split(/\n{2,}/).map(function(para) {
+                  return para.trim() ? '<p>' + para.replace(/\n/g, '<br>') + '</p>' : '';
+                }).join('') +
+              '</div>'
+            : '<div class="writer-story-content writer-story-empty"><i class="fas fa-feather-pointed"></i><p>The author hasn\'t written any chapters yet.</p></div>') +
+          '<div class="writer-reading-end"><span class="writer-reading-line"></span></div>' +
+        '</div>' +
+
+        /* ---- Social actions + comments ---- */
+        '<div class="writer-actions-panel">' +
+          ownActionsHtml +
+          '<div class="creation-action-bar writer-action-bar">' +
             '<button class="creation-action-btn' + (liked ? ' liked' : '') + '" onclick="handleLike(\'' + id + '\', this)">' +
               '<i class="fa' + (liked ? 's' : 'r') + ' fa-heart"></i> <span class="action-like-count">' + likeCount + '</span>' +
             '</button>' +
@@ -507,12 +564,83 @@ function openStoryDetail(id, userOverride) {
             '</button>' +
           '</div>' +
           '<div class="comments-section" id="comments-section-' + id + '"></div>' +
-          '<div class="story-detail-footer"><span>' + timeAgo(c.created_at) + '</span></div>' +
         '</div>' +
-      '</div>';
+      '</article>';
     document.body.appendChild(overlay);
     renderCommentsSection(id, overlay.querySelector('.comments-section'));
   });
+}
+
+/* ---- Edit own story from the reader (inline, same data + Supabase) ---- */
+async function writerEditStory(id) {
+  var session = await getSession();
+  if (!session) return;
+  var c = await fetchCreation(id);
+  if (!c || c.user_id !== session.user.id) return;
+
+  var overlay = document.getElementById('detail-overlay-' + id);
+  if (!overlay) return;
+
+  var esc = function(s) { return postEscapeHtml(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+  var titleEl = overlay.querySelector('.writer-hero-title');
+  var descEl = overlay.querySelector('.writer-hero-desc');
+  var contentEl = overlay.querySelector('.writer-story-content');
+  if (!titleEl || !contentEl) return;
+
+  var editingBar = document.createElement('div');
+  editingBar.className = 'writer-edit-bar';
+  editingBar.innerHTML =
+    '<label>Title<input id="we-title" type="text" value="' + esc(c.title) + '" maxlength="120"></label>' +
+    '<label>Summary<input id="we-desc" type="text" value="' + esc(c.description || '') + '" maxlength="300" placeholder="A short summary of your story"></label>' +
+    '<label>Genre<input id="we-genre" type="text" value="' + esc(c.genre || '') + '" maxlength="60" placeholder="Fantasy, Sci-fi..."></label>' +
+    '<label>Tags (comma separated)<input id="we-tags" type="text" value="' + esc(Array.isArray(c.tags) ? c.tags.join(', ') : (c.tags || '')) + '" placeholder="anime, fanfic"></label>' +
+    '<label>Story<textarea id="we-content" rows="12">' + esc(c.story_content || '') + '</textarea></label>' +
+    '<div class="writer-edit-actions">' +
+      '<button class="writer-edit-cancel" onclick="this.closest(\'.writer-edit-bar\').remove()">Cancel</button>' +
+      '<button class="writer-edit-save" id="we-save-btn"><i class="fas fa-check"></i> Save changes</button>' +
+    '</div>';
+
+  titleEl.parentNode.insertBefore(editingBar, titleEl);
+  titleEl.style.display = 'none';
+  if (descEl) descEl.style.display = 'none';
+  contentEl.style.display = 'none';
+
+  editingBar.querySelector('#we-save-btn').onclick = async function() {
+    var btn = this;
+    btn.disabled = true;
+    var title = editingBar.querySelector('#we-title').value.trim();
+    if (!title) { showToast('Title cannot be empty.', 'error'); btn.disabled = false; return; }
+    var tags = editingBar.querySelector('#we-tags').value.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+    try {
+      await updateCreation(id, {
+        title: title,
+        description: editingBar.querySelector('#we-desc').value.trim(),
+        genre: editingBar.querySelector('#we-genre').value.trim(),
+        tags: tags,
+        story_content: editingBar.querySelector('#we-content').value
+      });
+      showToast('Story updated.', 'success');
+      overlay.remove();
+      openStoryDetail(id);
+    } catch (err) {
+      showToast(err.message || 'Failed to update story.', 'error');
+      btn.disabled = false;
+    }
+  };
+}
+
+/* ---- Delete own story from the reader ---- */
+async function writerDeleteStory(id) {
+  if (!confirm('Delete this story? This cannot be undone.')) return;
+  try {
+    await deleteCreation(id);
+    var overlay = document.getElementById('detail-overlay-' + id);
+    if (overlay) overlay.remove();
+    showToast('Story deleted.', 'success');
+    document.dispatchEvent(new CustomEvent('creation:deleted', { detail: { id: id } }));
+  } catch (err) {
+    showToast(err.message || 'Failed to delete story.', 'error');
+  }
 }
 
 function openMakerDetail(id, userOverride) {
