@@ -84,6 +84,118 @@
       margin-bottom: 14px;
     }
     .story-popup-box p:last-child { margin-bottom: 0; }
+
+    /* ---- Watermark-style story cards ---- */
+    .story-card {
+      position: relative;
+      aspect-ratio: 3 / 4;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background-color: var(--bg-tertiary);
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      break-inside: avoid;
+    }
+    .story-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    /* Dim the cover image so it reads like a watermark */
+    .story-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 15, 0.55);
+      transition: background 0.2s ease;
+      z-index: 0;
+    }
+    .story-card:hover::before {
+      background: rgba(10, 10, 15, 0.35);
+    }
+    .story-card.no-cover {
+      background: linear-gradient(145deg, var(--bg-elevated), var(--bg-tertiary));
+    }
+    .story-card-title {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      z-index: 1;
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1.35;
+      text-align: center;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.95);
+      pointer-events: none;
+    }
+    .story-card-user {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px 3px 4px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .story-card-user img {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .story-card-owner {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 2;
+      display: flex;
+      gap: 6px;
+    }
+    .story-card-actions {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      z-index: 2;
+      display: flex;
+      gap: 8px;
+    }
+    .story-card-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-width: 34px;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .story-card-action:hover {
+      background: var(--accent);
+      transform: scale(1.08);
+    }
+    .story-card-action.liked i { color: #ff4d6d; }
+    .story-card-action.saved i { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -214,6 +326,85 @@
           '<div class="confirm-actions"><button class="btn btn-secondary btn-sm" onclick="document.getElementById(\'confirmDialog\').style.display=\'none\'">Cancel</button><button class="btn btn-primary btn-sm" id="confirmYesBtn">Delete</button></div></div></div>';
         document.getElementById('confirmYesBtn').onclick = function() { dialog.style.display = 'none'; resolve(true); };
       });
+    }
+
+    /* ---- Like / Save handlers for story cards ---- */
+    async function handleStoryLike(id, btn) {
+      var session = await getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      var prev = btn.classList.contains('liked');
+      btn.classList.toggle('liked');
+      var iconEl = btn.querySelector('i');
+      iconEl.className = btn.classList.contains('liked') ? 'fas fa-heart' : 'far fa-heart';
+      var countEl = btn.querySelector('.story-like-count');
+      var n = parseInt(countEl.textContent) || 0;
+      countEl.textContent = btn.classList.contains('liked') ? n + 1 : Math.max(0, n - 1);
+      try {
+        var nowLiked = await toggleLike(id);
+        if (nowLiked && typeof createNotification === 'function') {
+          try {
+            var c = await fetchCreation(id);
+            if (c && c.user_id) {
+              var me = await getCurrentProfile();
+              var myName = me ? (me.full_name || me.username) : 'Someone';
+              await createNotification(c.user_id, 'like', id, null, myName + ' liked your creation');
+            }
+          } catch (e2) {}
+        }
+      } catch (e) {
+        btn.classList.toggle('liked');
+        iconEl.className = prev ? 'fas fa-heart' : 'far fa-heart';
+        countEl.textContent = n;
+      }
+    }
+
+    async function handleStorySave(id, btn) {
+      var session = await getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      var prev = btn.classList.contains('saved');
+      btn.classList.toggle('saved');
+      var iconEl = btn.querySelector('i');
+      iconEl.className = btn.classList.contains('saved') ? 'fas fa-bookmark' : 'far fa-bookmark';
+      var labelEl = btn.querySelector('.story-save-label');
+      if (labelEl) labelEl.textContent = btn.classList.contains('saved') ? 'Saved' : 'Save';
+      try {
+        await toggleSave(id);
+        if (typeof syncSaveButton === 'function') {
+          document.querySelectorAll('[data-save-for="' + id + '"]').forEach(function(o) { syncSaveButton(o, btn.classList.contains('saved')); });
+        }
+      } catch (e) {
+        btn.classList.toggle('saved');
+        iconEl.className = prev ? 'fas fa-bookmark' : 'far fa-bookmark';
+        if (labelEl) labelEl.textContent = prev ? 'Saved' : 'Save';
+      }
+    }
+
+    /* ---- Hydrate like/save state on visible story cards ---- */
+    async function hydrateStoryCards() {
+      var session = await getSession();
+      if (!session || !session.user) return;
+      var cards = document.querySelectorAll('.story-card[data-creation-id]');
+      for (var i = 0; i < cards.length; i++) {
+        var id = cards[i].getAttribute('data-creation-id');
+        try {
+          var liked = await hasUserLiked(id);
+          var saved = await hasUserSaved(id);
+          if (liked) {
+            var lb = cards[i].querySelector('.story-card-action.like');
+            if (lb) { lb.classList.add('liked'); var li = lb.querySelector('i'); if (li) li.className = 'fas fa-heart'; }
+          }
+          if (saved) {
+            var sb = cards[i].querySelector('.story-card-action.save');
+            if (sb) {
+              sb.classList.add('saved');
+              var si = sb.querySelector('i');
+              if (si) si.className = 'fas fa-bookmark';
+              var sl = sb.querySelector('.story-save-label');
+              if (sl) sl.textContent = 'Saved';
+            }
+          }
+        } catch (e) { /* skip card */ }
+      }
     }
 
     /* ---- Story popup for default stories ---- */
@@ -467,24 +658,25 @@
       var profile = getDefaultUser(c) || c.profiles || {};
       var isOwner = currentUserId && c.user_id === currentUserId;
       var card = document.createElement('div');
-      card.className = 'creation-card';
+      card.className = 'story-card' + (c.cover_image_url ? '' : ' no-cover');
       card.setAttribute('data-creation-id', c.id);
-      card.onclick = function(e) { if (e.target.closest('.creation-card-action-btn')) return; openStoryDetail(c.id); };
-      var actionsHtml = isOwner ? '<div class="creation-card-actions">' +
+      if (c.cover_image_url) card.style.backgroundImage = 'url(\'' + c.cover_image_url + '\')';
+      card.onclick = function(e) { if (e.target.closest('.story-card-action') || e.target.closest('.creation-card-action-btn')) return; openStoryDetail(c.id); };
+      var ownerHtml = isOwner ? '<div class="story-card-owner">' +
         '<button class="creation-card-action-btn" onclick="event.stopPropagation();openEditModal(\'' + c.id + '\')"><i class="fas fa-pen"></i></button>' +
         '<button class="creation-card-action-btn delete" onclick="event.stopPropagation();handleDelete(\'' + c.id + '\')"><i class="fas fa-trash"></i></button>' +
       '</div>' : '';
-      var coverHtml = c.cover_image_url
-        ? '<img src="' + c.cover_image_url + '" loading="lazy">'
-        : '<div style="display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);height:200px;"><i class="fas fa-pen-nib" style="font-size:32px;color:var(--text-muted);"></i></div>';
-      var genreHtml = c.genre ? '<span style="font-size:11px;background:var(--accent-muted);color:var(--accent);padding:2px 8px;border-radius:20px;">' + postEscapeHtml(c.genre) + '</span>' : '';
-      var excerpt = c.story_content ? postEscapeHtml(c.story_content.substring(0, 100)) + '...' : '';
-      card.innerHTML = '<div class="creation-card-image">' + coverHtml + actionsHtml + '</div>' +
-        '<div class="creation-card-body">' +
-          '<div class="creation-card-title">' + postEscapeHtml(c.title) + '</div>' +
-          (excerpt ? '<div style="font-size:13px;color:var(--text-muted);margin:4px 0;line-height:1.4;">' + excerpt + '</div>' : '') +
-          '<div class="creation-card-user">' + getCreationUserAvatar(profile, 24) + '<span>' + getCreationUserName(profile) + '</span>' + genreHtml + '</div>' +
-          '<div class="creation-card-meta"><span>' + estimateReadingTime(c.story_content) + '</span><span>' + timeAgo(c.created_at) + '</span></div>' +
+      var userAvatar = profile.avatar_url
+        ? '<img src="' + profile.avatar_url + '" alt="">'
+        : '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">' + getCreationUserName(profile).charAt(0).toUpperCase() + '</div>';
+      card.innerHTML =
+        '<div class="story-card-user">' + userAvatar + '<span>' + postEscapeHtml(getCreationUserName(profile)) + '</span></div>' +
+        ownerHtml +
+        '<div class="story-card-title">' + postEscapeHtml(c.title) + '</div>' +
+        '<div class="story-card-actions">' +
+          '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + c.id + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
+          '<button class="story-card-action" onclick="event.stopPropagation();openStoryDetail(\'' + c.id + '\')"><i class="far fa-comment"></i></button>' +
+          '<button class="story-card-action save" data-save-for="' + c.id + '" onclick="event.stopPropagation();handleStorySave(\'' + c.id + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>' +
         '</div>';
       return card;
     }
@@ -550,27 +742,30 @@
         { name: 'ShonenAuthor', initial: 'S', avatar: '../assets/images/avatars/anime-avatar-15.png' },
         { name: 'AnimeWriter', initial: 'A', avatar: '../assets/images/avatars/anime-avatar-16.png' }
       ];
-      var randomDates = ['3h ago', '8h ago', '1d ago', '2d ago', '4d ago', '1w ago', '2w ago', '1mo ago'];
-
-      defaultStories.forEach(function(c, i) {
+      var randomDates = ['3h ago', '8h ago', '1d ago', '2d ago', '4d ago', '1w ago', '2w ago', '1mo ago'];      defaultStories.forEach(function(c, i) {
         var user = randomUsers[i % randomUsers.length];
         var realId = idMapping[c.id];
         var card = document.createElement('div');
-        card.className = 'creation-card';
+        card.className = 'story-card';
+        card.style.backgroundImage = 'url(\'' + c.cover_image_url + '\')';
+        var actionsHtml = realId
+          ? '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + realId + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
+            '<button class="story-card-action" onclick="event.stopPropagation();openStoryDetail(\'' + realId + '\')"><i class="far fa-comment"></i></button>' +
+            '<button class="story-card-action save" data-save-for="' + realId + '" onclick="event.stopPropagation();handleStorySave(\'' + realId + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>'
+          : '';
         if (realId) {
-          card.onclick = (function(rid, u) { return function() { openStoryDetail(rid, { username: u.name, full_name: u.name, avatar_url: u.avatar }); }; })(realId, user);
+          card.setAttribute('data-creation-id', realId);
+          card.onclick = (function(rid, u) { return function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(rid, { username: u.name, full_name: u.name, avatar_url: u.avatar }); }; })(realId, user);
         } else {
           card.onclick = function() { openStoryPopup(c.cover_image_url, c.title, c.story); };
         }
-        card.innerHTML = '<div class="creation-card-image"><img src="' + c.cover_image_url + '" loading="lazy"></div>' +
-          '<div class="creation-card-body">' +
-            '<div class="creation-card-title">' + c.title + '</div>' +
-            '<div class="creation-card-user">' +
-              '<img src="' + user.avatar + '" alt="' + user.name + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">' +
-              '<span>' + user.name + '</span>' +
-            '</div>' +
-            '<div class="creation-card-meta"><span>' + randomDates[i % randomDates.length] + '</span></div>' +
-          '</div>';
+        card.innerHTML =
+          '<div class="story-card-user">' +
+            '<img src="' + user.avatar + '" alt="' + user.name + '">' +
+            '<span>' + user.name + '</span>' +
+          '</div>' +
+          '<div class="story-card-title">' + c.title + '</div>' +
+          (actionsHtml ? '<div class="story-card-actions">' + actionsHtml + '</div>' : '');
         container.appendChild(card);
       });
 
@@ -579,6 +774,7 @@
         if (defaultTitles.indexOf(c.title) === -1) container.appendChild(renderSupabaseCard(c));
       });
       checkEmpty();
+      hydrateStoryCards();
     }
   </script>
 </body>
