@@ -143,11 +143,14 @@ CREATE POLICY "Users can read own conversation participants"
     )
   );
 
--- Users can add participants to conversations they belong to
-CREATE POLICY "Users can add participants to own conversations"
+-- Users can add participants: themselves to any conversation (needed to
+-- bootstrap a new conversation), or others to conversations they belong to
+DROP POLICY IF EXISTS "Users can add participants to own conversations" ON conversation_participants;
+CREATE POLICY "Users can add participants to conversations"
   ON conversation_participants FOR INSERT
   WITH CHECK (
-    conversation_id IN (
+    user_id = auth.uid()
+    OR conversation_id IN (
       SELECT id FROM conversations
       WHERE id IN (
         SELECT conversation_id FROM conversation_participants

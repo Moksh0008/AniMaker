@@ -66,16 +66,21 @@ async function chatGetOrCreateConversation(userId) {
     return null;
   }
 
-  // Add both participants
-  var { error: partErr } = await supabaseClient
+  // Add both participants (me first so the other insert passes RLS:
+  // adding others requires already belonging to the conversation)
+  var first = await supabaseClient
     .from('conversation_participants')
-    .insert([
-      { conversation_id: conv.id, user_id: _chatCurrentUserId },
-      { conversation_id: conv.id, user_id: userId }
-    ]);
+    .insert({ conversation_id: conv.id, user_id: _chatCurrentUserId });
+  if (first.error) {
+    console.error('[Chat] Add self participant error:', first.error.message);
+    return null;
+  }
 
-  if (partErr) {
-    console.error('[Chat] Add participants error:', partErr.message);
+  var second = await supabaseClient
+    .from('conversation_participants')
+    .insert({ conversation_id: conv.id, user_id: userId });
+  if (second.error) {
+    console.error('[Chat] Add participant error:', second.error.message);
     return null;
   }
 

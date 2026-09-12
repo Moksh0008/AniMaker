@@ -675,10 +675,22 @@
       if (modal) modal.remove();
 
       var convId = await chatGetOrCreateConversation(userId);
-      if (convId) {
-        await chatRefreshConversations();
-        await chatOpenConversation(convId);
+      if (!convId) { if (typeof showToast === 'function') showToast('Could not start the chat. Please try again.', 'error'); return; }
+
+      // Refresh the cached list, then open. If the list has not caught up
+      // yet (fresh conversation), synthesize the entry so the view opens
+      // immediately and realtime takes over from there.
+      await chatRefreshConversations();
+      var conv = _chatConversations.find(function(c) { return c.id === convId; });
+      if (!conv) {
+        var p = _chatConnections.find(function(u) { return u.id === userId; });
+        if (p) {
+          conv = { id: convId, otherUser: p, otherUserName: p.full_name || p.username || 'User', messages: [], unreadCount: 0 };
+          _chatConversations.unshift(conv);
+        }
       }
+      if (conv) await chatOpenConversation(convId);
+      else await chatRefreshConversations();
     }
 
     /* ---- Details Panel ---- */
