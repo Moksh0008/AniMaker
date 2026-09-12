@@ -461,18 +461,13 @@
 
     function renderSupabaseCard(c) {
       var profile = getDefaultUser(c) || c.profiles || {};
-      var isOwner = currentUserId && c.user_id === currentUserId;
       var card = document.createElement('div');
       card.className = 'story-card' + (c.cover_image_url ? '' : ' no-cover');
       card.setAttribute('data-creation-id', c.id);
       var imgHtml = c.cover_image_url
         ? '<img class="story-card-img" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
         : '';
-      card.onclick = function(e) { if (e.target.closest('.story-card-action') || e.target.closest('.creation-card-action-btn')) return; openStoryDetail(c.id); };
-      var ownerHtml = isOwner ? '<div class="story-card-owner">' +
-        '<button class="creation-card-action-btn" onclick="event.stopPropagation();openEditModal(\'' + c.id + '\')"><i class="fas fa-pen"></i></button>' +
-        '<button class="creation-card-action-btn delete" onclick="event.stopPropagation();handleDelete(\'' + c.id + '\')"><i class="fas fa-trash"></i></button>' +
-      '</div>' : '';
+      card.onclick = function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(c.id); };
       var userName = getCreationUserName(profile);
       var userAvatar = profile.avatar_url
         ? '<img src="' + profile.avatar_url + '" alt="">'
@@ -481,7 +476,6 @@
         imgHtml +
         '<div class="story-card-scrim"></div>' +
         '<div class="story-card-user">' + userAvatar + '<span>' + postEscapeHtml(userName) + '</span></div>' +
-        ownerHtml +
         '<div class="story-card-title">' + postEscapeHtml(c.title) + '</div>' +
         '<div class="story-card-actions">' +
           '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + c.id + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
