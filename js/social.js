@@ -561,32 +561,72 @@ async function getFollowing(userId, limit, offset) {
 
 function renderNotificationBell() {
   var container = document.querySelector('.nav-actions');
-  if (!container) return;
-  var existing = document.getElementById('notifBellWrap');
-  if (existing) return;
-
-  var wrap = document.createElement('div');
-  wrap.id = 'notifBellWrap';
-  wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;margin-left:12px;';
-  wrap.innerHTML = '<button id="notifBellBtn" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:6px;border-radius:8px;transition:color 0.15s;" onmouseenter="this.style.color=\'#fff\'" onmouseleave="this.style.color=\'var(--text-secondary)\'" aria-label="Notifications"><i class="fas fa-bell"></i><span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;width:16px;height:16px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:50%;display:none;align-items:center;justify-content:center;"></span></button><div id="notifDropdown" style="display:none;position:absolute;top:100%;right:0;width:360px;max-height:420px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:2000;margin-top:8px;"></div>';
-  container.appendChild(wrap);
-
-  document.getElementById('notifBellBtn').onclick = toggleNotifDropdown;
+  if (container) {
+    var existing = document.getElementById('notifBellWrap');
+    if (!existing) {
+      var wrap = document.createElement('div');
+      wrap.id = 'notifBellWrap';
+      wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;margin-left:12px;';
+      wrap.innerHTML = '<button id="notifBellBtn" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:6px;border-radius:8px;transition:color 0.15s;" onmouseenter="this.style.color=\'#fff\'" onmouseleave="this.style.color=\'var(--text-secondary)\'" aria-label="Notifications"><i class="fas fa-bell"></i><span id="notifBadge" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;"></span></button><div id="notifDropdown" style="display:none;position:absolute;top:100%;right:0;width:360px;max-height:420px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:2000;margin-top:8px;"></div>';
+      container.appendChild(wrap);
+      document.getElementById('notifBellBtn').onclick = toggleNotifDropdown;
+    }
+  }
+  renderSidebarNotifications();
   loadNotifBadge();
 }
 
+function setNotifBadgeEl(el, count) {
+  if (!el) return;
+  if (count > 0) {
+    el.style.display = 'flex';
+    el.textContent = count > 9 ? '9+' : count;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 async function loadNotifBadge() {
-  var badge = document.getElementById('notifBadge');
-  if (!badge) return;
   try {
     var count = await getUnreadCount();
-    if (count > 0) {
-      badge.style.display = 'flex';
-      badge.textContent = count > 9 ? '9+' : count;
-    } else {
-      badge.style.display = 'none';
-    }
+    setNotifBadgeEl(document.getElementById('notifBadge'), count);
+    setNotifBadgeEl(document.getElementById('sidebarNotifBadge'), count);
   } catch(e) {}
+}
+
+function closeNotifPanels() {
+  var dd = document.getElementById('notifDropdown');
+  if (dd) dd.style.display = 'none';
+  var sp = document.getElementById('sidebarNotifPanel');
+  if (sp) sp.style.display = 'none';
+}
+
+/* ---- Shared notification list markup (used by bell dropdown + sidebar panel) ---- */
+function buildNotifPanelHtml(notifs) {
+  if (notifs.length === 0) {
+    return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">No notifications yet</div>';
+  }
+  var html = '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:600;color:#fff;font-size:14px;">Notifications</span><button onclick="markAllRead();loadNotifBadge();closeNotifPanels();" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;">Mark all read</button></div>';
+  notifs.forEach(function(n) {
+    var from = n.from_user || {};
+    var avatar = from.avatar_url
+      ? '<img src="' + from.avatar_url + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+      : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">' + ((from.full_name || from.username || '?').charAt(0).toUpperCase()) + '</div>';
+    var icon = n.type === 'comment' ? 'fa-comment' : n.type === 'follow' ? 'fa-user-plus' : n.type === 'like' ? 'fa-heart' : n.type === 'message' ? 'fa-envelope' : 'fa-bell';
+    var bg = n.is_read ? 'transparent' : 'rgba(124,92,252,0.08)';
+    var clickAction = '';
+    if (n.type === 'message') {
+      clickAction = 'onclick="closeNotifPanels();window.location.href=\'chat.html\'"';
+    } else if (n.creation_id) {
+      clickAction = 'onclick="closeNotifPanels();openCreationDetailById(\'' + n.creation_id + '\')"';
+    }
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:' + bg + ';cursor:pointer;transition:background 0.15s;" ' + clickAction + ' onmouseenter="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseleave="this.style.background=\'' + bg + '\'">' +
+      avatar +
+      '<div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text-secondary);line-height:1.4;">' + (n.message || n.type) + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + timeAgo(n.created_at) + '</div></div>' +
+      '<i class="fas ' + icon + '" style="font-size:12px;color:var(--accent);flex-shrink:0;"></i>' +
+    '</div>';
+  });
+  return html;
 }
 
 async function toggleNotifDropdown() {
@@ -596,47 +636,77 @@ async function toggleNotifDropdown() {
     dropdown.style.display = 'none';
     return;
   }
+  closeNotifPanels();
   dropdown.style.display = 'block';
   dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i></div>';
 
   try {
     var notifs = await getNotifications(20);
-    if (notifs.length === 0) {
-      dropdown.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">No notifications yet</div>';
-    } else {
-      var html = '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:600;color:#fff;font-size:14px;">Notifications</span><button onclick="markAllRead();loadNotifBadge();document.getElementById(\'notifDropdown\').innerHTML=\'\';toggleNotifDropdown();" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;">Mark all read</button></div>';
-      notifs.forEach(function(n) {
-        var from = n.from_user || {};
-        var avatar = from.avatar_url
-          ? '<img src="' + from.avatar_url + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
-          : '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">' + ((from.full_name || from.username || '?').charAt(0).toUpperCase()) + '</div>';
-        var icon = n.type === 'comment' ? 'fa-comment' : n.type === 'follow' ? 'fa-user-plus' : n.type === 'like' ? 'fa-heart' : n.type === 'message' ? 'fa-envelope' : 'fa-bell';
-        var bg = n.is_read ? 'transparent' : 'rgba(124,92,252,0.08)';
-        var clickAction = '';
-        if (n.type === 'message') {
-          clickAction = 'onclick="toggleNotifDropdown();window.location.href=\'chat.html\'"';
-        } else if (n.creation_id) {
-          clickAction = 'onclick="toggleNotifDropdown();openCreationDetailById(\'' + n.creation_id + '\')"';
-        }
-        html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:' + bg + ';cursor:pointer;transition:background 0.15s;" ' + clickAction + ' onmouseenter="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseleave="this.style.background=\'' + bg + '\'">' +
-          avatar +
-          '<div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text-secondary);line-height:1.4;">' + (n.message || n.type) + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + timeAgo(n.created_at) + '</div></div>' +
-          '<i class="fas ' + icon + '" style="font-size:12px;color:var(--accent);flex-shrink:0;"></i>' +
-        '</div>';
-      });
-      dropdown.innerHTML = html;
-    }
+    dropdown.innerHTML = buildNotifPanelHtml(notifs);
   } catch(e) {
     dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">Couldn\'t load notifications</div>';
   }
 }
 
-// Close dropdown on outside click
+/* ---- Instagram-style Notifications item in the sidebar ---- */
+function renderSidebarNotifications() {
+  var nav = document.querySelector('.sidebar-nav');
+  if (!nav || document.getElementById('sidebarNotifLink')) return;
+
+  var link = document.createElement('a');
+  link.href = 'javascript:void(0)';
+  link.id = 'sidebarNotifLink';
+  link.className = 'sidebar-link';
+  link.setAttribute('data-tooltip', 'Notifications');
+  link.style.position = 'relative';
+  link.onclick = toggleSidebarNotifPanel;
+  link.innerHTML = '<i class="fas fa-heart"></i><span>Notifications</span><span id="sidebarNotifBadge" style="position:absolute;top:2px;right:4px;min-width:16px;height:16px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;z-index:2;"></span>';
+
+  var messages = nav.querySelector('a[href="chat.html"]');
+  if (messages && messages.parentNode === nav) nav.insertBefore(link, messages.nextSibling);
+  else nav.appendChild(link);
+
+  var panel = document.createElement('div');
+  panel.id = 'sidebarNotifPanel';
+  panel.style.cssText = 'display:none;position:fixed;width:360px;max-height:420px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:3000;';
+  document.body.appendChild(panel);
+}
+
+async function toggleSidebarNotifPanel() {
+  var panel = document.getElementById('sidebarNotifPanel');
+  var link = document.getElementById('sidebarNotifLink');
+  if (!panel || !link) return;
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+    return;
+  }
+  closeNotifPanels();
+  // Position next to the sidebar item, like Instagram's popover
+  var rect = link.getBoundingClientRect();
+  panel.style.left = (rect.right + 12) + 'px';
+  panel.style.top = Math.max(70, Math.min(rect.top - 60, window.innerHeight - 440)) + 'px';
+  panel.style.display = 'block';
+  panel.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i></div>';
+
+  try {
+    var notifs = await getNotifications(20);
+    panel.innerHTML = buildNotifPanelHtml(notifs);
+  } catch(e) {
+    panel.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">Couldn\'t load notifications</div>';
+  }
+}
+
+// Close panels on outside click
 document.addEventListener('click', function(e) {
   var wrap = document.getElementById('notifBellWrap');
   var dropdown = document.getElementById('notifDropdown');
   if (wrap && dropdown && !wrap.contains(e.target)) {
     dropdown.style.display = 'none';
+  }
+  var sLink = document.getElementById('sidebarNotifLink');
+  var sPanel = document.getElementById('sidebarNotifPanel');
+  if (sPanel && sPanel.style.display === 'block' && sLink && !sLink.contains(e.target) && !sPanel.contains(e.target)) {
+    sPanel.style.display = 'none';
   }
 });
 
