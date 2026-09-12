@@ -589,6 +589,63 @@ function renderNotificationBell() {
   }
   renderSidebarNotifications();
   loadNotifBadge();
+  startNotifRealtime();
+}
+
+/* ---- Real-time notifications ----
+   Instant updates via Supabase Realtime (postgres_changes on the
+   notifications table), with a 60s polling fallback for missed events. */
+var _notifRealtimeStarted = false;
+
+async function startNotifRealtime() {
+  if (_notifRealtimeStarted || !supabaseClient) return;
+  var session = await getSession();
+  if (!session || !session.user) return;
+  _notifRealtimeStarted = true;
+  var myId = session.user.id;
+
+  try {
+    if (typeof supabaseClient.channel === 'function') {
+      supabaseClient
+        .channel('notif-' + myId.slice(0, 8))
+        .on('postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + myId },
+          function(payload) { handleNewNotification(payload.new); })
+        .subscribe();
+    }
+  } catch (e) { /* fall back to polling only */ }
+
+  // Polling safety net: refresh badges every 60s
+  setInterval(async function() {
+    try {
+      var c = await getUnreadCount();
+      setNotifBadgeEl(document.getElementById('notifBadge'), c);
+      setNotifBadgeEl(document.getElementById('sidebarNotifBadge'), c);
+    } catch (e2) {}
+  }, 60000);
+}
+
+async function handleNewNotification(n) {
+  // Refresh both badges
+  loadNotifBadge();
+
+  // Toast with the sender's message
+  try {
+    var msg = (n && n.message) ? n.message : 'You have a new notification';
+    if (typeof showToast === 'function') showToast(msg, 'info');
+  } catch (e1) {}
+
+  // If a panel is open, live-refresh its list
+  var dd = document.getElementById('notifDropdown');
+  var sp = document.getElementById('sidebarNotifPanel');
+  if ((dd && dd.style.display === 'block') || (sp && sp.style.display === 'block')) {
+    try {
+      var list = await getNotifications(20);
+      var html = buildNotifPanelHtml(list);
+      if (dd && dd.style.display === 'block') dd.innerHTML = html;
+      if (sp && sp.style.display === 'block') sp.innerHTML = html;
+    } catch (e2) {}
+  }
 }
 
 function setNotifBadgeEl(el, count) {
