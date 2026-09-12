@@ -208,7 +208,7 @@
   <script>
     /* ---- Default (sample) stories shown while the gallery is empty ----
        These render client-side only; real published stories come from the DB. */
-    var defaultStories = [
+    var seedStories = [
       { id: 'default-w1', title: 'Luffy as Lil Bro of Goku', cover_image_url: '../assets/images/writer/writer-pic-1.jpg', genre: 'Fan Fiction', tags: ['luffy','goku','crossover'],
         story_content: 'In a small, peaceful village on Earth, Goku\'s younger brother, Luffy, was born. Unlike Goku, Luffy\'s personality was fiery and impulsive, often getting himself into trouble with his mischievous adventures. Growing up under the same roof, the two brothers formed a bond like no other, each pushing the other to grow stronger.\n\nLuffy, always eager to fight, would often challenge Goku to sparring matches, only to be defeated effortlessly. But Luffy didn\'t mind; every loss made him stronger, and every challenge gave him more fire. "One day, I\'ll be as strong as you!" he\'d shout with a grin, despite his bruises.\n\nAs they grew, the two adventurers set off on separate journeys. Goku pursued his dreams of becoming the world\'s greatest martial artist, while Luffy set his sights on the Grand Line, declaring himself the future Pirate King. Their paths were different, but both had the same unyielding drive.\n\nGoku would often send Luffy letters with encouragement, but Luffy\'s only reply would be a laughing message: "I\'m already on my way to being the King of the Sea, big bro!"\n\nYears later, Luffy\'s name became known across the seas, just as Goku\'s became known across the universe. And though they fought different battles, the bond of family and adventure would always keep them connected.' },
       { id: 'default-w2', title: 'Goats as a Trio', cover_image_url: '../assets/images/writer/writer-pic-2.jpg', genre: 'Adventure', tags: ['naruto','luffy','goku'],
@@ -491,82 +491,65 @@
       return card;
     }
 
-    /* ---- One-time cleanup: remove old seeded default stories ----
-       Seeded rows can be identified by their local asset cover paths
-       (real user uploads always live in Supabase Storage). Safe to run
-       on every load; RLS ensures only owned rows are actually removed. */
-    async function cleanupSeededStories() {
+    /* ---- One-time seeding: insert the sample stories as REAL posts ----
+       Runs once per browser (localStorage flag). Stories are inserted
+       owned by the currently signed-in user, so they get full
+       like/comment/save functionality for everyone. */
+    async function seedSampleStories() {
       if (!supabaseClient) return;
+      var session = await getSession();
+      if (!session || !session.user) return; // seeding needs an owner
+      if (localStorage.getItem('animaker_writer_seeded')) return;
+
       try {
-        await supabaseClient
+        var { data: existing } = await supabaseClient
           .from('creations')
-          .delete()
+          .select('title')
           .eq('type', 'writer')
-          .like('cover_image_url', '%assets/images/writer/writer-pic-%');
-        // Also catch seeded rows stored without a cover
-        await supabaseClient
-          .from('creations')
-          .delete()
-          .eq('type', 'writer')
-          .in('title', ['Luffy as Lil Bro of Goku', 'Goats as a Trio', 'Ramen Lovers Together', 'The Last Battle', 'Team Goats', 'Jack Luffy', 'Pirate Slayer', 'Unbeatable Combo'])
-          .or('cover_image_url.eq.,cover_image_url.is.null');
-      } catch (e) { /* non-fatal */ }
+          .in('title', seedStories.map(function(s) { return s.title; }));
+        var have = {};
+        (existing || []).forEach(function(r) { have[r.title] = true; });
+
+        var rows = seedStories
+          .filter(function(s) { return !have[s.title]; })
+          .map(function(s) {
+            return {
+              user_id: session.user.id,
+              type: 'writer',
+              title: s.title,
+              description: s.description || '',
+              genre: s.genre || '',
+              tags: s.tags || [],
+              cover_image_url: s.cover_image_url || '',
+              story_content: s.story_content || ''
+            };
+          });
+
+        if (rows.length) await supabaseClient.from('creations').insert(rows);
+        localStorage.setItem('animaker_writer_seeded', '1');
+        console.log('[Writer] Seeded ' + rows.length + ' sample stories.');
+      } catch (e) {
+        console.warn('[Writer] Seeding skipped:', e.message || e);
+      }
     }
 
-    /* ---- Load Gallery (real stories only — no seeded defaults) ---- */
+    /* ---- Load Gallery ---- */
     async function loadGallery() {
       var container = document.getElementById('writerGallery');
       var loading = document.getElementById('galleryLoading');
       loading.style.display = 'block';
       container.innerHTML = '';
 
-      await cleanupSeededStories();
+      await seedSampleStories();
 
       var creations = [];
       try { creations = await fetchCreations({ limit: 50, type: 'writer' }); } catch(e) { console.error('[Writer] fetch error:', e); }
       loading.style.display = 'none';
 
-      // Hide leftover seeded rows client-side too (RLS can block the delete for
-      // anonymous visitors; real user uploads always live in Supabase Storage)
-      creations = creations.filter(function(c) {
-        var seededCover = c.cover_image_url && c.cover_image_url.indexOf('/storage/') === -1 && c.cover_image_url.indexOf('assets/') !== -1;
-        return !seededCover;
-      });
-
       creations.forEach(function(c) { container.appendChild(renderSupabaseCard(c)); });
-
-      // Append the default sample stories (skip any whose titles exist as real rows)
-      var dbTitles = {};
-      creations.forEach(function(c) { dbTitles[c.title] = true; });
-      defaultStories.forEach(function(ds) {
-        if (dbTitles[ds.title]) return;
-        container.appendChild(renderDefaultCard(ds));
-      });
 
       checkEmpty();
       hydrateStoryCards();
-    }
-
-    /* ---- Default sample story card (client-side only, opens the reader) ---- */
-    function renderDefaultCard(ds) {
-      var profile = getDefaultUser(ds) || {};
-      var card = document.createElement('div');
-      card.className = 'story-card' + (ds.cover_image_url ? '' : ' no-cover');
-      card.onclick = function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(ds); };
-      var userName = getCreationUserName(profile);
-      var userAvatar = profile.avatar_url
-        ? '<img src="' + profile.avatar_url + '" alt="">'
-        : '<div style="width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">' + userName.charAt(0).toUpperCase() + '</div>';
-      card.innerHTML =
-        '<img class="story-card-img" src="' + ds.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(ds.title) + '">' +
-        '<div class="story-card-scrim"></div>' +
-        '<div class="story-card-user">' + userAvatar + '<span>' + postEscapeHtml(userName) + '</span></div>' +
-        '<div class="story-card-title">' + postEscapeHtml(ds.title) + '</div>' +
-        '<div class="story-card-actions">' +
-          '<button class="story-card-action" title="Sample story" onclick="event.stopPropagation();openStoryDetail(window.defaultStories.find(function(s){return s.id===\'' + ds.id + '\'}))"><i class="fas fa-feather-pointed"></i></button>' +
-          '<button class="story-card-action" onclick="event.stopPropagation();openStoryDetail(window.defaultStories.find(function(s){return s.id===\'' + ds.id + '\'}))"><i class="far fa-comment"></i></button>' +
-        '</div>';
-      return card;
     }
   </script>
 </body>

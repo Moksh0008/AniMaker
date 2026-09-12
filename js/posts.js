@@ -460,29 +460,23 @@ function openCreatorDetail(id, userOverride) {
   });
 }
 
-function openStoryDetail(idOrObj, userOverride) {
-  // Accepts a creation id (fetched from DB) or a local story object (default cards)
-  var isLocal = typeof idOrObj === 'object' && idOrObj !== null;
-  var fetchPromise = isLocal ? Promise.resolve(idOrObj) : fetchCreation(idOrObj);
-  fetchPromise.then(async function(c) {
+function openStoryDetail(id, userOverride) {
+  fetchCreation(id).then(async function(c) {
     if (!c) return;
     var id = c.id;
-    var isDefault = isLocal || String(id).indexOf('default-') === 0;
     var profile = userOverride || getDefaultUser(c) || c.profiles || {};
     var session = await getSession();
-    var isOwn = !isDefault && session && session.user && c.user_id === session.user.id;
+    var isOwn = session && session.user && c.user_id === session.user.id;
 
     var likeCount = 0, commentCount = 0, liked = false, saved = false, followingUser = false;
-    if (!isDefault) {
-      likeCount = await getLikeCount(id);
-      commentCount = await getCommentCount(id);
-      liked = await hasUserLiked(id);
-      saved = await hasUserSaved(id);
-      followingUser = !isOwn && session ? await isFollowing(c.user_id) : false;
-    }
+    likeCount = await getLikeCount(id);
+    commentCount = await getCommentCount(id);
+    liked = await hasUserLiked(id);
+    saved = await hasUserSaved(id);
+    followingUser = !isOwn && session ? await isFollowing(c.user_id) : false;
 
     var followBtnHtml = '';
-    if (!isDefault && !isOwn && session) {
+    if (!isOwn && session) {
       followBtnHtml = '<button class="follow-btn ' + (followingUser ? 'following' : 'follow') + '" onclick="handleFollow(\'' + c.user_id + '\', this)">' + (followingUser ? '<i class="fas fa-check"></i> Following' : '<i class="fas fa-plus"></i> Follow') + '</button>';
     }
 
@@ -570,23 +564,21 @@ function openStoryDetail(idOrObj, userOverride) {
         '<div class="writer-actions-panel">' +
           ownActionsHtml +
           '<div class="creation-action-bar writer-action-bar">' +
-            (isDefault
-              ? '<div class="writer-default-note"><i class="fas fa-feather-pointed"></i> Sample story — sign up to publish your own</div>'
-              : '<button class="creation-action-btn' + (liked ? ' liked' : '') + '" onclick="handleLike(\'' + id + '\', this)">' +
-                '<i class="fa' + (liked ? 's' : 'r') + ' fa-heart"></i> <span class="action-like-count">' + likeCount + '</span>' +
-              '</button>' +
-              '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
-                '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
-              '</button>' +
-              '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
-                '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
-              '</button>') +
+            '<button class="creation-action-btn' + (liked ? ' liked' : '') + '" onclick="handleLike(\'' + id + '\', this)">' +
+              '<i class="fa' + (liked ? 's' : 'r') + ' fa-heart"></i> <span class="action-like-count">' + likeCount + '</span>' +
+            '</button>' +
+            '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
+              '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
+            '</button>' +
+            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
+              '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
+            '</button>' +
           '</div>' +
-          (isDefault ? '' : '<div class="comments-section" id="comments-section-' + id + '"></div>') +
+          '<div class="comments-section" id="comments-section-' + id + '"></div>' +
         '</div>' +
       '</article>';
     document.body.appendChild(overlay);
-    if (!isDefault) renderCommentsSection(id, overlay.querySelector('.comments-section'));
+    renderCommentsSection(id, overlay.querySelector('.comments-section'));
   });
 }
 
