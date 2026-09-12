@@ -34,9 +34,6 @@
       display: block;
       width: 100%;
       height: auto;
-      aspect-ratio: 3 / 4;
-      object-fit: cover;
-      background: var(--bg-tertiary);
     }
     /* Dim the image so it reads like a watermark */
     .story-card::before {
@@ -66,16 +63,7 @@
       background: linear-gradient(145deg, var(--bg-elevated), var(--bg-tertiary));
       min-height: 170px;
     }
-    /* Cover failed to load - show gradient instead of a broken strip */
-    .story-card-img.img-failed {
-      display: none;
-    }
-    .story-card:has(.img-failed) {
-      background: linear-gradient(145deg, var(--bg-elevated), var(--bg-tertiary));
-    }
-    .story-card:has(.img-failed)::before {
-      display: none;
-    }
+    /* Cover failed to load: card gets .no-cover via JS (works everywhere) */
     .story-card-title {
       position: absolute;
       left: 14px;
@@ -478,7 +466,7 @@
       card.className = 'story-card' + (c.cover_image_url ? '' : ' no-cover');
       card.setAttribute('data-creation-id', c.id);
       var imgHtml = c.cover_image_url
-        ? '<img class="story-card-img" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '" onerror="this.classList.add(\'img-failed\');this.removeAttribute(\'src\');">'
+        ? '<img class="story-card-img" onerror="this.remove();card.classList.add(\'no-cover\');" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
         : '';
       card.onclick = function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(c.id); };
       var userName = getCreationUserName(profile);
