@@ -674,7 +674,7 @@ function openMakerDetail(id, userOverride) {
     overlay.onclick = function(e) { if (e.target === overlay) { var v = overlay.querySelector('video'); if (v) v.pause(); overlay.remove(); } };
     overlay.innerHTML = '<button class="detail-close" onclick="var v=this.parentElement.querySelector(\'video\');if(v)v.pause();this.parentElement.remove()"><i class="fas fa-xmark"></i></button>' +
       '<div class="maker-detail">' +
-        '<video src="' + (c.media_url || '') + '" controls playsinline></video>' +
+        '<video src="' + resolveAssetUrl(c.media_url || '') + '" controls playsinline></video>' +
         '<div class="maker-detail-info">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
             '<div class="maker-detail-title" style="margin:0;">' + postEscapeHtml(c.title) + '</div>' +

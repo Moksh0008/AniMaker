@@ -715,7 +715,7 @@
           card.onclick = function() { openVideoModal(c.video_url); };
         }
         card.innerHTML =
-          '<img class="story-card-img" src="' + c.cover_image_url + '" loading="lazy" alt="' + c.title + '">' +
+          '<img class="story-card-img" src="' + resolveAssetUrl(c.cover_image_url) + '" loading="lazy" alt="' + c.title + '">' +
           '<div class="story-card-scrim"></div>' +
           '<div class="story-card-user">' +
             '<img src="' + user.avatar + '" alt="' + user.name + '">' +

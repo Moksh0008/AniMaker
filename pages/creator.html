@@ -715,7 +715,7 @@
       card.className = 'story-card' + (c.cover_image_url ? '' : ' no-cover');
       card.setAttribute('data-creation-id', c.id);
       var imgHtml = c.cover_image_url
-        ? '<img class="story-card-img" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
+        ? '<img class="story-card-img" src="' + resolveAssetUrl(c.cover_image_url) + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
         : '';
       card.onclick = function(e) {
         if (e.target.closest('.story-card-action') || e.target.closest('.creation-card-action-btn')) return;
@@ -838,7 +838,7 @@
           card.onclick = function(u, a, t) { return function() { openCreatorPopup(c.cover_image_url, c.title, c.points, u, a, t); }; }(user.name, user.avatar, randomDates[i % randomDates.length]);
         }
         card.innerHTML =
-          '<img class="story-card-img" src="' + c.cover_image_url + '" loading="lazy" alt="' + c.title + '">' +
+          '<img class="story-card-img" src="' + resolveAssetUrl(c.cover_image_url) + '" loading="lazy" alt="' + c.title + '">' +
           '<div class="story-card-scrim"></div>' +
           '<div class="story-card-user">' +
             '<img src="' + user.avatar + '" alt="' + user.name + '">' +
