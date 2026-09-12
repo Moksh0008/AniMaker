@@ -115,6 +115,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_conv_created ON messages(conversation_id
 -- =============================================
 
 -- Users can read conversations they participate in
+DROP POLICY IF EXISTS "Users can read own conversations" ON conversations;
 CREATE POLICY "Users can read own conversations"
   ON conversations FOR SELECT
   USING (
@@ -125,6 +126,7 @@ CREATE POLICY "Users can read own conversations"
   );
 
 -- Users can create conversations (any authenticated user)
+DROP POLICY IF EXISTS "Authenticated users can create conversations" ON conversations;
 CREATE POLICY "Authenticated users can create conversations"
   ON conversations FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL);
@@ -134,6 +136,7 @@ CREATE POLICY "Authenticated users can create conversations"
 -- =============================================
 
 -- Users can read participants of conversations they belong to
+DROP POLICY IF EXISTS "Users can read own conversation participants" ON conversation_participants;
 CREATE POLICY "Users can read own conversation participants"
   ON conversation_participants FOR SELECT
   USING (
@@ -146,6 +149,7 @@ CREATE POLICY "Users can read own conversation participants"
 -- Users can add participants: themselves to any conversation (needed to
 -- bootstrap a new conversation), or others to conversations they belong to
 DROP POLICY IF EXISTS "Users can add participants to own conversations" ON conversation_participants;
+DROP POLICY IF EXISTS "Users can add participants to conversations" ON conversation_participants;
 CREATE POLICY "Users can add participants to conversations"
   ON conversation_participants FOR INSERT
   WITH CHECK (
@@ -160,12 +164,14 @@ CREATE POLICY "Users can add participants to conversations"
   );
 
 -- Users can update their own participant record
+DROP POLICY IF EXISTS "Users can update own participant record" ON conversation_participants;
 CREATE POLICY "Users can update own participant record"
   ON conversation_participants FOR UPDATE
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
 -- Users can delete their own participant record (leave conversation)
+DROP POLICY IF EXISTS "Users can delete own participant record" ON conversation_participants;
 CREATE POLICY "Users can delete own participant record"
   ON conversation_participants FOR DELETE
   USING (user_id = auth.uid());
@@ -175,6 +181,7 @@ CREATE POLICY "Users can delete own participant record"
 -- =============================================
 
 -- Users can read messages in their conversations
+DROP POLICY IF EXISTS "Users can read messages in own conversations" ON messages;
 CREATE POLICY "Users can read messages in own conversations"
   ON messages FOR SELECT
   USING (
@@ -185,6 +192,7 @@ CREATE POLICY "Users can read messages in own conversations"
   );
 
 -- Users can insert messages into their conversations
+DROP POLICY IF EXISTS "Users can send messages to own conversations" ON messages;
 CREATE POLICY "Users can send messages to own conversations"
   ON messages FOR INSERT
   WITH CHECK (
@@ -196,12 +204,14 @@ CREATE POLICY "Users can send messages to own conversations"
   );
 
 -- Users can update their own messages (edit)
+DROP POLICY IF EXISTS "Users can update own messages" ON messages;
 CREATE POLICY "Users can update own messages"
   ON messages FOR UPDATE
   USING (sender_id = auth.uid())
   WITH CHECK (sender_id = auth.uid());
 
 -- Users can delete their own messages
+DROP POLICY IF EXISTS "Users can delete own messages" ON messages;
 CREATE POLICY "Users can delete own messages"
   ON messages FOR DELETE
   USING (sender_id = auth.uid());
@@ -211,6 +221,7 @@ CREATE POLICY "Users can delete own messages"
 -- =============================================
 
 -- Users can read reactions in their conversations
+DROP POLICY IF EXISTS "Users can read reactions in own conversations" ON message_reactions;
 CREATE POLICY "Users can read reactions in own conversations"
   ON message_reactions FOR SELECT
   USING (
@@ -222,6 +233,7 @@ CREATE POLICY "Users can read reactions in own conversations"
   );
 
 -- Users can add reactions
+DROP POLICY IF EXISTS "Users can add reactions" ON message_reactions;
 CREATE POLICY "Users can add reactions"
   ON message_reactions FOR INSERT
   WITH CHECK (
@@ -234,6 +246,7 @@ CREATE POLICY "Users can add reactions"
   );
 
 -- Users can delete their own reactions
+DROP POLICY IF EXISTS "Users can delete own reactions" ON message_reactions;
 CREATE POLICY "Users can delete own reactions"
   ON message_reactions FOR DELETE
   USING (user_id = auth.uid());
@@ -243,22 +256,26 @@ CREATE POLICY "Users can delete own reactions"
 -- =============================================
 
 -- Users can read their own preferences
+DROP POLICY IF EXISTS "Users can read own chat preferences" ON chat_preferences;
 CREATE POLICY "Users can read own chat preferences"
   ON chat_preferences FOR SELECT
   USING (user_id = auth.uid());
 
 -- Users can insert their own preferences
+DROP POLICY IF EXISTS "Users can insert own chat preferences" ON chat_preferences;
 CREATE POLICY "Users can insert own chat preferences"
   ON chat_preferences FOR INSERT
   WITH CHECK (user_id = auth.uid());
 
 -- Users can update their own preferences
+DROP POLICY IF EXISTS "Users can update own chat preferences" ON chat_preferences;
 CREATE POLICY "Users can update own chat preferences"
   ON chat_preferences FOR UPDATE
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
 -- Users can delete their own preferences
+DROP POLICY IF EXISTS "Users can delete own chat preferences" ON chat_preferences;
 CREATE POLICY "Users can delete own chat preferences"
   ON chat_preferences FOR DELETE
   USING (user_id = auth.uid());
@@ -288,37 +305,44 @@ CREATE TRIGGER trigger_update_conversation_timestamp
 -- =============================================
 -- 13. STORAGE BUCKET — chat-attachments
 -- =============================================
--- Run this separately if the bucket doesn't exist:
--- INSERT INTO storage.buckets (id, name, public)
--- VALUES ('chat-attachments', 'chat-attachments', true)
--- ON CONFLICT (id) DO NOTHING;
-
--- Storage policies for chat-attachments bucket:
--- (Run after creating the bucket)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('chat-attachments', 'chat-attachments', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- Allow public read
--- CREATE POLICY "Public read for chat attachments"
---   ON storage.objects FOR SELECT
---   USING (bucket_id = 'chat-attachments');
+drop policy if exists "Public read for chat attachments" on storage.objects;
+CREATE POLICY "Public read for chat attachments"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'chat-attachments');
 
 -- Allow authenticated users to upload to their own folder
--- CREATE POLICY "Authenticated upload to own chat folder"
---   ON storage.objects FOR INSERT
---   WITH CHECK (
---     bucket_id = 'chat-attachments'
---     AND auth.uid() IS NOT NULL
---   );
+drop policy if exists "Authenticated upload to own chat folder" on storage.objects;
+CREATE POLICY "Authenticated upload to own chat folder"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'chat-attachments'
+    AND auth.uid() IS NOT NULL
+  );
 
 -- Allow users to delete their own chat attachments
--- CREATE POLICY "Users can delete own chat attachments"
---   ON storage.objects FOR DELETE
---   USING (
---     bucket_id = 'chat-attachments'
---     AND auth.uid()::text = (string_to_array(name, '/'))[1]
---   );
+drop policy if exists "Users can delete own chat attachments" on storage.objects;
+CREATE POLICY "Users can delete own chat attachments"
+  ON storage.objects FOR DELETE
+  USING (
+    bucket_id = 'chat-attachments'
+    AND auth.uid()::text = (string_to_array(name, '/'))[1]
+  );
 
 -- =============================================
 -- 14. ENABLE REALTIME
 -- =============================================
-ALTER PUBLICATION supabase_realtime ADD TABLE messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE message_reactions;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+EXCEPTION WHEN duplicate_object THEN NULL; -- already in publication
+END $$;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE message_reactions;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
