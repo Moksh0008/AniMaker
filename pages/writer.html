@@ -381,9 +381,32 @@
 
     /* ---- Hydrate like/save state on visible story cards ---- */
     async function hydrateStoryCards() {
+      var cards = document.querySelectorAll('.story-card[data-creation-id]');
+      if (!cards.length) return;
+
+      // Collect card ids
+      var ids = [];
+      for (var i = 0; i < cards.length; i++) ids.push(cards[i].getAttribute('data-creation-id'));
+
+      // 1) Batch-fetch ALL like counts in ONE query (public read allowed on creation_likes)
+      try {
+        var { data: likeRows, error: likeErr } = await supabaseClient
+          .from('creation_likes')
+          .select('creation_id')
+          .in('creation_id', ids);
+        if (!likeErr && likeRows) {
+          var counts = {};
+          likeRows.forEach(function(r) { counts[r.creation_id] = (counts[r.creation_id] || 0) + 1; });
+          ids.forEach(function(id) {
+            var btn = document.querySelector('.story-card[data-creation-id="' + id + '"] .story-card-action.like .story-like-count');
+            if (btn) btn.textContent = counts[id] || 0;
+          });
+        }
+      } catch (e1) { /* counts stay at 0 */ }
+
+      // 2) Per-user liked/saved state (requires session)
       var session = await getSession();
       if (!session || !session.user) return;
-      var cards = document.querySelectorAll('.story-card[data-creation-id]');
       for (var i = 0; i < cards.length; i++) {
         var id = cards[i].getAttribute('data-creation-id');
         try {
