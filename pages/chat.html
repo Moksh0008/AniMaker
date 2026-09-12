@@ -245,43 +245,6 @@
        Chat Page Controller
        ========================================================= */
 
-    (async function() {
-      // Init
-      var ok = await chatInit();
-      if (!ok) return;
-
-      // Hide auth overlay
-      var overlay = document.getElementById('authLoading');
-      if (overlay) overlay.style.display = 'none';
-      document.body.classList.add('auth-checked');
-
-      // Update navbar
-      try { updateNavbarAuth(); } catch(e) {}
-      try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
-
-      // Show current user avatar
-      var avatarEl = document.getElementById('chatCurrentUserAvatar');
-      if (avatarEl && _chatCurrentProfile) {
-        avatarEl.innerHTML = chatAvatarHtml(_chatCurrentProfile, 32);
-      }
-
-      // Load conversations
-      await chatRefreshConversations();
-
-      // Check for direct conversation from URL
-      var params = new URLSearchParams(window.location.search);
-      var userId = params.get('user');
-      if (userId) {
-        var convId = await chatGetOrCreateConversation(userId);
-        if (convId) {
-          await chatOpenConversation(convId);
-        }
-      }
-
-      // Subscribe to presence
-      chatSubscribePresence();
-    })();
-
     /* ---- Open a conversation ---- */
     async function chatOpenConversation(convId) {
       // Find conversation
@@ -522,9 +485,13 @@
       var tabs = document.querySelectorAll('.chat-tab');
       for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
       btn.classList.add('active');
+      _chatActiveTab = tab;
 
-      // For now, messages and requests show the same list
-      // In production, requests would filter out non-followed users
+      // Re-render the conversation list for the selected tab
+      renderChatConversationList(_chatConversations, document.getElementById('chatConvList'));
+      if (typeof chatFilterConversations === 'function' && document.getElementById('chatSearchInput')) {
+        chatFilterConversations(document.getElementById('chatSearchInput').value);
+      }
     }
 
     /* ---- New Message Modal ---- */
@@ -802,6 +769,46 @@
         }
       }
     });
+
+    /* =========================================================
+       Boot — runs after all function definitions above
+       ========================================================= */
+    (async function() {
+      // Init
+      var ok = await chatInit();
+      if (!ok) return;
+
+      // Hide auth overlay
+      var overlay = document.getElementById('authLoading');
+      if (overlay) overlay.style.display = 'none';
+      document.body.classList.add('auth-checked');
+
+      // Update navbar
+      try { updateNavbarAuth(); } catch(e) {}
+      try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
+
+      // Show current user avatar
+      var avatarEl = document.getElementById('chatCurrentUserAvatar');
+      if (avatarEl && _chatCurrentProfile) {
+        avatarEl.innerHTML = chatAvatarHtml(_chatCurrentProfile, 32);
+      }
+
+      // Load conversations
+      await chatRefreshConversations();
+
+      // Check for direct conversation from URL
+      var params = new URLSearchParams(window.location.search);
+      var userId = params.get('user');
+      if (userId) {
+        var convId = await chatGetOrCreateConversation(userId);
+        if (convId) {
+          await chatOpenConversation(convId);
+        }
+      }
+
+      // Subscribe to presence
+      chatSubscribePresence();
+    })();
   </script>
 </body>
 </html>

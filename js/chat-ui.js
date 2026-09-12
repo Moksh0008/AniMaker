@@ -11,19 +11,40 @@
 function renderChatConversationList(conversations, container) {
   if (!container) return;
 
+  // Split list by active tab: "Requests" shows chats from people
+  // outside your network (no mutual follows), Instagram-style
+  var isRequestsTab = _chatActiveTab === 'requests';
+  var visible = (conversations || []).filter(function(c) {
+    return isRequestsTab ? !!c.isRequest : !c.isRequest;
+  });
+
   if (!conversations || conversations.length === 0) {
     container.innerHTML =
       '<div class="chat-empty-state" style="padding:40px 20px;">' +
         '<i class="far fa-paper-plane" style="font-size:48px;"></i>' +
-        '<h3 style="font-size:18px;">No messages yet</h3>' +
-        '<p style="font-size:13px;">Start a conversation with someone from AniMaker.</p>' +
+        '<h3 style="font-size:18px;">' + (isRequestsTab ? 'No message requests' : 'No messages yet') + '</h3>' +
+        '<p style="font-size:13px;">' + (isRequestsTab
+          ? 'Chats from people you don\'t follow will appear here.'
+          : 'Start a conversation with someone from AniMaker.') + '</p>' +
+      '</div>';
+    return;
+  }
+
+  if (visible.length === 0) {
+    container.innerHTML =
+      '<div class="chat-empty-state" style="padding:40px 20px;">' +
+        '<i class="far fa-paper-plane" style="font-size:48px;"></i>' +
+        '<h3 style="font-size:18px;">' + (isRequestsTab ? 'No message requests' : 'No messages yet') + '</h3>' +
+        '<p style="font-size:13px;">' + (isRequestsTab
+          ? 'Chats from people you don\'t follow will appear here.'
+          : 'Start a conversation with someone from AniMaker.') + '</p>' +
       '</div>';
     return;
   }
 
   var html = '';
-  for (var i = 0; i < conversations.length; i++) {
-    var conv = conversations[i];
+  for (var i = 0; i < visible.length; i++) {
+    var conv = visible[i];
     var isActive = _chatCurrentConv && _chatCurrentConv.id === conv.id;
     var isUnread = conv.unreadCount > 0;
     var isSentByMe = conv.lastMessageSender === _chatCurrentUserId;
@@ -450,6 +471,23 @@ async function chatRefreshConversations() {
   var list = document.getElementById('chatConvList');
   renderChatConversationList(convs, list);
   updateUnreadBadge(convs);
+  updateRequestBadge(convs);
+}
+
+/* Red badge on the Requests tab = unread chats from non-network people */
+function updateRequestBadge(convs) {
+  var count = 0;
+  for (var i = 0; i < (convs || []).length; i++) {
+    if (convs[i].isRequest) count += convs[i].unreadCount;
+  }
+  var badge = document.getElementById('chatRequestBadge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 async function chatRefreshMessages() {

@@ -17,6 +17,7 @@ var _chatReplyTo = null;
 var _chatUploadFile = null;
 var _chatTypingTimeout = null;
 var _chatPresenceChannel = null;
+var _chatActiveTab = 'messages';
 
 /* ---- Constants ---- */
 var CHAT_PAGE_SIZE = 30;
@@ -110,6 +111,21 @@ async function chatFetchConversations() {
 
   if (!convs || convs.length === 0) return [];
 
+  // Fetch my network (people I follow + people who follow me) once so we can
+  // classify conversations from strangers as "message requests"
+  var networkIds = {};
+  var { data: myFollowing } = await supabaseClient
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id', _chatCurrentUserId);
+  var { data: myFollowers } = await supabaseClient
+    .from('follows')
+    .select('follower_id')
+    .eq('following_id', _chatCurrentUserId);
+  var ni;
+  for (ni = 0; ni < (myFollowing || []).length; ni++) networkIds[myFollowing[ni].following_id] = true;
+  for (ni = 0; ni < (myFollowers || []).length; ni++) networkIds[myFollowers[ni].follower_id] = true;
+
   // For each conversation, get the other participant and last message
   var results = [];
   for (var i = 0; i < convs.length; i++) {
@@ -176,6 +192,7 @@ async function chatFetchConversations() {
       lastMessageAt: lastMsgData ? lastMsgData.created_at : conv.last_message_at,
       lastMessageSender: lastMsgData ? lastMsgData.sender_id : '',
       unreadCount: unreadCount || 0,
+      isRequest: !networkIds[otherParts[0].user_id],
       archived: myPart ? myPart.archived : false,
       muted: myPart ? myPart.muted : false,
       preview: preview
