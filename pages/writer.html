@@ -60,8 +60,32 @@
       pointer-events: none;
     }
     .story-card.no-cover {
-      background: linear-gradient(145deg, var(--bg-elevated), var(--bg-tertiary));
-      min-height: 170px;
+      background:
+        radial-gradient(120% 90% at 20% 0%, rgba(124, 92, 252, 0.35), transparent 60%),
+        linear-gradient(150deg, rgba(124, 92, 252, 0.16), rgba(20, 16, 34, 0.9));
+      min-height: 240px;
+      display: flex;
+    }
+    /* No image to dim on no-cover cards */
+    .story-card.no-cover::before,
+    .story-card.no-cover .story-card-scrim {
+      display: none;
+    }
+    /* Center the title - it is the card's main content here */
+    .story-card.no-cover .story-card-title {
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      text-align: center;
+      font-size: 20px;
+    }
+    .story-card.no-cover .story-card-user {
+      z-index: 3;
+    }
+    .story-card.no-cover .story-card-actions {
+      z-index: 3;
     }
     /* Cover failed to load: card gets .no-cover via JS (works everywhere) */
     .story-card-title {
@@ -466,7 +490,7 @@
       card.className = 'story-card' + (c.cover_image_url ? '' : ' no-cover');
       card.setAttribute('data-creation-id', c.id);
       var imgHtml = c.cover_image_url
-        ? '<img class="story-card-img" onerror="this.remove();card.classList.add(\'no-cover\');" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
+        ? '<img class="story-card-img" onerror="this.parentElement.classList.add(\'no-cover\');this.remove();" src="' + c.cover_image_url + '" loading="lazy" alt="' + postEscapeHtml(c.title) + '">'
         : '';
       card.onclick = function(e) { if (e.target.closest('.story-card-action')) return; openStoryDetail(c.id); };
       var userName = getCreationUserName(profile);
