@@ -35,7 +35,19 @@ var CHAT_REACTIONS = ['❤️', '😂', '🔥', '😍', '😢', '😮', '👍'];
 async function chatGetOrCreateConversation(userId) {
   if (!supabaseClient || !_chatCurrentUserId) return null;
 
-  // Check if conversation already exists between these two users
+  // Preferred path: atomic SECURITY DEFINER RPC (immune to RLS gaps).
+  // Returns the existing conversation id if one already exists.
+  try {
+    var rpcRes = await supabaseClient.rpc('chat_start_conversation', { p_other_user_id: userId });
+    if (!rpcRes.error && rpcRes.data) return rpcRes.data;
+    // Missing function = quickfix SQL not applied yet; fall through to
+    // the legacy table path. Any other error is real — log it.
+    if (rpcRes.error && rpcRes.error.code !== 'PGRST202' && rpcRes.error.code !== '404') {
+      console.error('[Chat] chat_start_conversation rpc:', rpcRes.error.message);
+    }
+  } catch (e) { /* fall through */ }
+
+  // Legacy path: find existing conversation between the two users
   var { data: myParts } = await supabaseClient
     .from('conversation_participants')
     .select('conversation_id')
@@ -64,7 +76,7 @@ async function chatGetOrCreateConversation(userId) {
 
   if (convErr) {
     console.error('[Chat] Create conversation error:', convErr.message);
-    if (typeof showToast === 'function') showToast('Chat error: ' + convErr.message, 'error');
+    if (typeof showToast === 'function') showToast('Could not start the chat: ' + convErr.message, 'error');
     return null;
   }
 
@@ -296,13 +308,31 @@ async function chatSendMessage(conversationId, content, replyToId) {
     reply_to_message_id: replyToId || null
   };
 
-  var { data, error } = await supabaseClient
-    .from('messages')
-    .insert(record)
-    .select()
-    .single();
+  var data = null;
 
-  if (error) throw new Error(error.message || 'Failed to send message');
+  // Preferred path: SECURITY DEFINER RPC (immune to RLS gaps)
+  try {
+    var rpcRes = await supabaseClient.rpc('chat_send_message', {
+      p_conversation_id: conversationId,
+      p_content: content,
+      p_reply_to: replyToId || null
+    });
+    if (!rpcRes.error && rpcRes.data) data = rpcRes.data;
+    else if (rpcRes.error && rpcRes.error.code !== 'PGRST202' && rpcRes.error.code !== '404') {
+      console.error('[Chat] chat_send_message rpc:', rpcRes.error.message);
+    }
+  } catch (e) { /* fall through */ }
+
+  // Legacy path: direct insert
+  if (!data) {
+    var ins = await supabaseClient
+      .from('messages')
+      .insert(record)
+      .select()
+      .single();
+    if (ins.error) throw new Error(ins.error.message || 'Failed to send message');
+    data = ins.data;
+  }
 
   // Notify participants not currently viewing this chat, with a preview
   var preview = (content || '').replace(/\s+/g, ' ').trim();
