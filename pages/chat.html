@@ -544,39 +544,119 @@
             '<input type="text" id="chatNewSearchInput" placeholder="Search by username or name..." oninput="chatNewSearchUsers(this.value)">' +
           '</div>' +
           '<div class="chat-new-modal-list" id="chatNewUserList">' +
-            '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">Start typing to search for users...</div>' +
+            '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;"><i class="fas fa-spinner fa-spin"></i></div>' +
           '</div>' +
         '</div>';
 
       document.body.appendChild(overlay);
+      chatLoadConnections();
       setTimeout(function() {
         var input = document.getElementById('chatNewSearchInput');
         if (input) input.focus();
       }, 100);
     }
 
+    /* ---- Show my followers + following as one-tap chat targets ---- */
+    var _chatConnections = [];
+    async function chatLoadConnections() {
+      var list = document.getElementById('chatNewUserList');
+      if (!list) return;
+      try {
+        var session = await getSession();
+        if (!session || !session.user) { list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">Log in to see your contacts</div>'; return; }
+        var uid = session.user.id;
+        var followers = await getFollowers(uid, 50);
+        var following = await getFollowing(uid, 50);
+
+        // Merge, dedupe, and skip myself
+        var seen = {}, conns = [];
+        var all = (followers || []).map(function(f) { return f.profiles; }).concat((following || []).map(function(f) { return f.profiles; }));
+        all.forEach(function(p) {
+          if (!p || p.id === uid || seen[p.id]) return;
+          seen[p.id] = true;
+          conns.push(p);
+        });
+        _chatConnections = conns;
+
+        if (!conns.length) {
+          list.innerHTML = '<div style="padding:24px 20px;text-align:center;color:var(--text-muted);font-size:13px;">No followers or following yet.<br>Search above to find people to chat with.</div>';
+          return;
+        }
+        chatRenderConnectionList(conns, 'Your contacts');
+      } catch (e) {
+        list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">Start typing to search for users...</div>';
+      }
+    }
+
+    function chatRenderConnectionList(users, label) {
+      var list = document.getElementById('chatNewUserList');
+      if (!list) return;
+      var html = '<div style="padding:10px 16px 6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);">' + label + '</div>';
+      users.forEach(function(u) {
+        var name = u.full_name || u.username || 'User';
+        html += '<div class="chat-new-modal-item" onclick="chatStartNewConversation(\'' + u.id + '\')">' +
+          chatAvatarHtml(u, 44) +
+          '<div class="chat-new-modal-item-info">' +
+            '<div class="chat-new-modal-item-name">' + chatEscapeHtml(name) + '</div>' +
+            '<div class="chat-new-modal-item-username">@' + chatEscapeHtml(u.username || '') + '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      list.innerHTML = html;
+    }
+
     var _chatNewSearchTimeout = null;
     async function chatNewSearchUsers(query) {
       clearTimeout(_chatNewSearchTimeout);
-      if (!query || query.length < 2) {
-        document.getElementById('chatNewUserList').innerHTML =
-          '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">Start typing to search for users...</div>';
+      var list = document.getElementById('chatNewUserList');
+      if (!list) return;
+
+      var q = (query || '').trim().toLowerCase();
+
+      // Empty or short query: show the saved connections list
+      if (q.length < 2) {
+        if (_chatConnections.length) chatRenderConnectionList(_chatConnections, 'Your contacts');
+        else chatLoadConnections();
         return;
       }
 
+      // First filter my contacts locally for instant results
       _chatNewSearchTimeout = setTimeout(async function() {
-        var users = await chatSearchUsers(query);
-        var list = document.getElementById('chatNewUserList');
-        if (!list) return;
+        var localMatches = _chatConnections.filter(function(u) {
+          return ((u.username || '').toLowerCase().indexOf(q) !== -1) || ((u.full_name || '').toLowerCase().indexOf(q) !== -1);
+        });
 
-        if (users.length === 0) {
+        // Also search the whole site for wider results
+        var users = await chatSearchUsers(query);
+        if (!document.getElementById('chatNewUserList')) return;
+
+        // Merge: contacts first, then others (deduped)
+        var merged = localMatches.slice();
+        var ids = {};
+        localMatches.forEach(function(u) { ids[u.id] = true; });
+        (users || []).forEach(function(u) { if (!ids[u.id]) { ids[u.id] = true; merged.push(u); } });
+
+        if (!merged.length) {
           list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">No users found</div>';
           return;
         }
 
         var html = '';
-        for (var i = 0; i < users.length; i++) {
-          var u = users[i];
+        if (localMatches.length) {
+          html += '<div style="padding:10px 16px 6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);">Your contacts</div>';
+          localMatches.forEach(function(u) {
+            var name = u.full_name || u.username || 'User';
+            html += '<div class="chat-new-modal-item" onclick="chatStartNewConversation(\'' + u.id + '\')">' +
+              chatAvatarHtml(u, 44) +
+              '<div class="chat-new-modal-item-info">' +
+                '<div class="chat-new-modal-item-name">' + chatEscapeHtml(name) + '</div>' +
+                '<div class="chat-new-modal-item-username">@' + chatEscapeHtml(u.username || '') + '</div>' +
+              '</div>' +
+            '</div>';
+          });
+          if (merged.length > localMatches.length) html += '<div style="padding:10px 16px 6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);">Others</div>';
+        }
+        merged.slice(localMatches.length).forEach(function(u) {
           var name = u.full_name || u.username || 'User';
           html += '<div class="chat-new-modal-item" onclick="chatStartNewConversation(\'' + u.id + '\')">' +
             chatAvatarHtml(u, 44) +
@@ -585,9 +665,9 @@
               '<div class="chat-new-modal-item-username">@' + chatEscapeHtml(u.username || '') + '</div>' +
             '</div>' +
           '</div>';
-        }
+        });
         list.innerHTML = html;
-      }, 350);
+      }, 250);
     }
 
     async function chatStartNewConversation(userId) {
