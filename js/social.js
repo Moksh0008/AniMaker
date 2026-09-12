@@ -483,12 +483,30 @@ async function createNotification(targetUserId, type, creationId, commentId, mes
 async function getNotifications(limit) {
   if (!supabaseClient) return [];
   limit = limit || 20;
-  var { data } = await supabaseClient
+  // NOTE: from_user_id references auth.users (no profile columns), so the
+  // sender profile is joined client-side below instead of via an embed.
+  var { data, error } = await supabaseClient
     .from('notifications')
-    .select('*, from_user:from_user_id(username, avatar_url, full_name)')
+    .select('*')
     .order('created_at', { ascending: false })
     .limit(limit);
-  return data || [];
+  if (error) { console.error('[Notifications] load error:', error.message); return []; }
+  data = data || [];
+
+  var ids = [];
+  data.forEach(function(n) { if (n.from_user_id && ids.indexOf(n.from_user_id) === -1) ids.push(n.from_user_id); });
+  if (ids.length) {
+    try {
+      var { data: profs } = await supabaseClient
+        .from('profiles')
+        .select('id, username, avatar_url, full_name')
+        .in('id', ids);
+      var map = {};
+      (profs || []).forEach(function(p) { map[p.id] = p; });
+      data.forEach(function(n) { n.from_user = map[n.from_user_id] || null; });
+    } catch (e2) { /* avatars/names just stay generic */ }
+  }
+  return data;
 }
 
 async function getUnreadCount() {
@@ -598,7 +616,7 @@ async function toggleNotifDropdown() {
         if (n.type === 'message') {
           clickAction = 'onclick="toggleNotifDropdown();window.location.href=\'chat.html\'"';
         } else if (n.creation_id) {
-          clickAction = 'onclick="toggleNotifDropdown();openCreatorDetail(\'' + n.creation_id + '\')"';
+          clickAction = 'onclick="toggleNotifDropdown();openCreationDetailById(\'' + n.creation_id + '\')"';
         }
         html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:' + bg + ';cursor:pointer;transition:background 0.15s;" ' + clickAction + ' onmouseenter="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseleave="this.style.background=\'' + bg + '\'">' +
           avatar +
@@ -621,6 +639,41 @@ document.addEventListener('click', function(e) {
     dropdown.style.display = 'none';
   }
 });
+
+/* ---- Open the right detail view for a creation notification ----
+   Routes writer stories to the story reader instead of the creator popup. */
+async function openCreationDetailById(id) {
+  try {
+    var c = await fetchCreation(id);
+    if (!c) return;
+    if (c.type === 'writer' && typeof openStoryDetail === 'function') openStoryDetail(id);
+    else if (c.type === 'maker' && typeof openMakerDetail === 'function') openMakerDetail(id);
+    else openCreatorDetail(id);
+  } catch (e) {
+    openCreatorDetail(id);
+  }
+}
+
+/* ---- Auto-open a notification passed via ?notify=<id> (cross-page clicks) ---- */
+(function() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var nid = params.get('notify');
+    if (nid) {
+      history.replaceState(null, '', window.location.pathname);
+      var tries = 0;
+      var t = setInterval(function() {
+        tries++;
+        if (supabaseClient) {
+          clearInterval(t);
+          openCreationDetailById(nid);
+        } else if (tries > 50) {
+          clearInterval(t);
+        }
+      }, 100);
+    }
+  } catch (e) {}
+})();
 
 /* =========================================================
    UI: Followers/Following Modal
