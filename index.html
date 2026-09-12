@@ -848,6 +848,7 @@
     /* ---- Initialize ---- */
     (async function() {
       await updateNavbarAuth();
+      try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
       var heroActions = document.getElementById('heroActions');
       var ctaActions = document.getElementById('ctaActions');
       if (await isLoggedIn()) {
