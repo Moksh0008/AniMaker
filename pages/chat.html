@@ -299,6 +299,8 @@
       // Mark as read
       await chatMarkAsRead(convId);
       await chatUpdateLastRead(convId);
+      chatUpdatePresenceViewing();
+      chatDismissMessageNotifications(conv);
 
       // Unsubscribe old channel
       chatUnsubscribeMessages();
@@ -796,10 +798,22 @@
       // Load conversations
       await chatRefreshConversations();
 
-      // Check for direct conversation from URL
+      // Check for direct conversation from URL (?user=<username> or ?user=<id>)
       var params = new URLSearchParams(window.location.search);
       var userId = params.get('user');
       if (userId) {
+        history.replaceState(null, '', window.location.pathname);
+        // Accept username or id: resolve username to a profile id first
+        if (userId.length !== 36 || userId.indexOf('-') === -1) {
+          try {
+            var { data: prof } = await supabaseClient
+              .from('profiles')
+              .select('id')
+              .eq('username', userId)
+              .maybeSingle();
+            if (prof) userId = prof.id;
+          } catch (e) {}
+        }
         var convId = await chatGetOrCreateConversation(userId);
         if (convId) {
           await chatOpenConversation(convId);

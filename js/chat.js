@@ -301,8 +301,10 @@ async function chatSendMessage(conversationId, content, replyToId) {
 
   if (error) throw new Error(error.message || 'Failed to send message');
 
-  // Notify other conversation participants about the new message
-  try { await chatNotifyParticipants(conversationId, 'sent you a message'); } catch (e) {}
+  // Notify participants not currently viewing this chat, with a preview
+  var preview = (content || '').replace(/\s+/g, ' ').trim();
+  if (preview.length > 60) preview = preview.substring(0, 60) + '…';
+  try { await chatNotifyParticipants(conversationId, 'sent you a message', preview); } catch (e) {}
 
   return data;
 }
@@ -362,14 +364,16 @@ async function chatSendMediaMessage(conversationId, file, replyToId) {
 
   if (error) throw new Error(error.message || 'Failed to send media');
 
-  // Notify other participants for media messages too
-  try { await chatNotifyParticipants(conversationId, 'sent you an attachment'); } catch (e) {}
+  // Notify participants not currently viewing this chat for media too
+  try { await chatNotifyParticipants(conversationId, isImage ? 'sent you a photo' : 'sent you a video'); } catch (e) {}
 
   return data;
 }
 
-/* ---- Notify other conversation participants about a new message ---- */
-async function chatNotifyParticipants(conversationId, actionText) {
+/* ---- Notify conversation participants who are NOT currently viewing the chat ----
+   Participants actively viewing the conversation see the message live via
+   realtime, so a notification would be noise. Others get one with a preview. */
+async function chatNotifyParticipants(conversationId, actionText, previewText) {
   if (!supabaseClient || !_chatCurrentUserId) return;
   var { data: parts } = await supabaseClient
     .from('conversation_participants')
@@ -379,11 +383,36 @@ async function chatNotifyParticipants(conversationId, actionText) {
 
   var me = await getCurrentProfile();
   var myName = me ? (me.full_name || me.username) : 'Someone';
+  var text = myName + ' ' + actionText + (previewText ? ': ' + previewText : '');
   for (var i = 0; i < parts.length; i++) {
     var uid = parts[i].user_id;
     if (uid === _chatCurrentUserId) continue;
-    await createNotification(uid, 'message', null, null, myName + ' ' + actionText);
+    // Skip participants currently viewing this conversation. Presence entries
+    // can be flat objects (join events) or metas arrays (presenceState sync).
+    var pres = _chatOnlineUsers[uid];
+    var viewing = pres && pres.viewing_conv !== undefined ? pres.viewing_conv
+      : (pres && pres.presence && pres.presence.viewing_conv) ||
+        (pres && pres[0] && pres[0].viewing_conv) || null;
+    if (viewing === conversationId) continue;
+    await createNotification(uid, 'message', null, null, text);
   }
+}
+
+/* ---- Dismiss pending message notifications from a user once their chat is read ---- */
+async function chatDismissMessageNotifications(conv) {
+  try {
+    if (!supabaseClient || !conv || !conv.otherUser || !conv.otherUser.id) return;
+    var { data: notifs } = await supabaseClient
+      .from('notifications')
+      .select('id')
+      .eq('user_id', _chatCurrentUserId)
+      .eq('type', 'message')
+      .eq('is_read', false)
+      .eq('from_user_id', conv.otherUser.id);
+    if (notifs && notifs.length) {
+      await supabaseClient.from('notifications').update({ is_read: true }).in('id', notifs.map(function(n) { return n.id; }));
+    }
+  } catch (e) {}
 }
 
 /* ---- Edit a message ---- */

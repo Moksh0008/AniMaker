@@ -237,10 +237,24 @@ function chatSubscribePresence() {
         await _chatPresenceChannel.track({
           user_id: _chatCurrentUserId,
           username: _chatCurrentProfile ? _chatCurrentProfile.full_name || _chatCurrentProfile.username : 'User',
-          online_at: new Date().toISOString()
+          online_at: new Date().toISOString(),
+          viewing_conv: _chatCurrentConv ? _chatCurrentConv.id : null
         });
       }
     });
+}
+
+/* Re-broadcast presence when the user switches conversations so senders
+   can avoid notifying people who are actively viewing the chat. */
+function chatUpdatePresenceViewing() {
+  if (_chatPresenceChannel && _chatCurrentUserId) {
+    _chatPresenceChannel.track({
+      user_id: _chatCurrentUserId,
+      username: _chatCurrentProfile ? _chatCurrentProfile.full_name || _chatCurrentProfile.username : 'User',
+      online_at: new Date().toISOString(),
+      viewing_conv: _chatCurrentConv ? _chatCurrentConv.id : null
+    });
+  }
 }
 
 function chatUnsubscribePresence() {

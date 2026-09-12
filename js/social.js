@@ -741,7 +741,11 @@ function buildNotifPanelHtml(notifs) {
     var bg = n.is_read ? 'transparent' : 'rgba(124,92,252,0.08)';
     var clickAction = '';
     if (n.type === 'message') {
-      clickAction = 'onclick="closeNotifPanels();window.location.href=\'chat.html\'"';
+      // Deep-link straight into the chat with the sender
+      var target = n.from_user && n.from_user.username
+        ? 'chat.html?user=' + encodeURIComponent(n.from_user.username)
+        : 'chat.html';
+      clickAction = 'onclick="closeNotifPanels();window.location.href=\'' + target + '\'"';
     } else if (n.creation_id) {
       clickAction = 'onclick="closeNotifPanels();openCreationDetailById(\'' + n.creation_id + '\')"';
     }
