@@ -96,6 +96,14 @@ CREATE TABLE IF NOT EXISTS chat_preferences (
 
 ALTER TABLE chat_preferences ENABLE ROW LEVEL SECURITY;
 
+-- Table privileges (this project requires explicit GRANTs; without them
+-- authenticated users get 'permission denied' even with valid policies)
+GRANT SELECT, INSERT, UPDATE, DELETE ON conversations TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON conversation_participants TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON messages TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON message_reactions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON chat_preferences TO authenticated;
+
 -- =============================================
 -- 6. INDEXES
 -- =============================================
@@ -130,6 +138,8 @@ AS $$
       AND cp.user_id = auth.uid()
   );
 $$;
+
+GRANT EXECUTE ON FUNCTION public.is_conversation_member(UUID) TO authenticated;
 
 -- Users can read conversations they participate in
 DROP POLICY IF EXISTS "Users can read own conversations" ON conversations;
