@@ -118,6 +118,30 @@
         </div>
       </section>
 
+      <!-- Home Feed -->
+      <section class="section feed-section">
+        <div class="page-container">
+          <div class="section-header">
+            <span class="section-label">Latest</span>
+            <h2>What's Being Created</h2>
+            <p>Fresh creations from the AniMaker community.</p>
+          </div>
+          <div id="feedLoading" style="display:none;" class="feed-loading">
+            <div class="loading-spinner-lg"></div>
+            <p style="color:var(--text-muted);margin-top:12px;">Loading creations...</p>
+          </div>
+          <div id="feedEmpty" style="display:none;" class="feed-empty">
+            <div class="empty-state">
+              <i class="fas fa-cube"></i>
+              <h3>No creations yet</h3>
+              <p>Be the first to create something amazing.</p>
+              <a href="pages/creator.html" class="btn btn-primary">Start Creating</a>
+            </div>
+          </div>
+          <div id="feedPosts" class="creation-grid"></div>
+        </div>
+      </section>
+
       <section id="features" class="section features-section">
         <div class="page-container">
           <div class="section-header">
@@ -258,6 +282,7 @@
   <script src="js/profile.js"></script>
   <script src="js/posts.js"></script>
   <script src="js/social.js"></script>
+  <script src="js/share.js"></script>
   <script>
     document.querySelector('.nav-toggle')?.addEventListener('click', () => {
       document.getElementById('navLinks').classList.toggle('active');
@@ -309,15 +334,16 @@
         : initial;
 
       var mediaHtml = '';
-      if (post.media_type === 'video') {
-        mediaHtml = '<div class="post-card-media"><video controls preload="metadata" playsinline poster="' + (post.thumbnail_url || '') + '"><source src="' + post.media_url + '"></video></div>';
+      if (post.type === 'maker' && post.media_url) {
+        mediaHtml = '<div class="post-card-media"><video controls preload="metadata" playsinline poster="' + (post.cover_image_url || post.thumbnail_url || '') + '"><source src="' + post.media_url + '"></video></div>';
       } else {
-        mediaHtml = '<div class="post-card-media"><img src="' + post.media_url + '" alt="' + postEscapeHtml(post.title || post.caption || 'Post') + '" loading="lazy"></div>';
+        var imgSrc = post.cover_image_url || post.media_url || '';
+        mediaHtml = '<div class="post-card-media"><img src="' + imgSrc + '" alt="' + postEscapeHtml(post.title || post.caption || 'Post') + '" loading="lazy"></div>';
       }
 
-      var categoryHtml = post.category ? '<span class="post-card-category">' + postEscapeHtml(post.category) + '</span>' : '';
+      var categoryHtml = post.genre ? '<span class="post-card-category">' + postEscapeHtml(post.genre) + '</span>' : '';
       var titleHtml = post.title ? '<div class="post-card-title">' + postEscapeHtml(post.title) + '</div>' : '';
-      var captionHtml = post.caption ? '<div class="post-card-caption">' + postEscapeHtml(post.caption) + '</div>' : '';
+      var captionHtml = (post.description || (post.type === 'writer' && post.story_content ? post.story_content.substring(0, 200) + '...' : '')) ? '<div class="post-card-caption">' + postEscapeHtml((post.description || '') + (post.type === 'writer' && post.story_content ? '\n' + post.story_content.substring(0, 200) + '...' : '')) + '</div>' : '';
 
       var menuHtml = '';
       getSession().then(function(s) {
@@ -325,11 +351,9 @@
           var menuEl = document.querySelector('[data-post-menu="' + post.id + '"]');
           if (menuEl) menuEl.style.display = 'block';
         }
-      });
-
-      var likeCount = (post.like_count || 0);
-      var likeBtnId = 'post-like-' + post.id;
-      var saveBtnId = 'post-save-' + post.id;
+      });          var likeBtnId = 'post-like-' + post.id;
+          var saveBtnId = 'post-save-' + post.id;
+          var likeCount = 0;
 
       return '<div class="post-card" data-post-id="' + post.id + '">' +
         '<div class="post-card-header">' +
@@ -355,8 +379,6 @@
     }
 
     /* ---- Feed state ---- */
-    var feedLoaded = false;
-
     /* ---- Like / Save handlers for home feed posts ---- */
     function syncPostActionBtn(btn, on, offIcon, onIcon, onLabel, offLabel) {
       if (!btn) return;
@@ -424,9 +446,9 @@
         var post = posts[i];
         try {
           var [liked, saved, likeCount] = await Promise.all([
-            hasUserLikedPost(post.id),
-            hasUserSavedPost(post.id),
-            getPostLikeCount(post.id)
+            hasUserLiked(post.id),
+            hasUserSaved(post.id),
+            getLikeCount(post.id)
           ]);
 
           var likeBtn = document.getElementById('post-like-' + post.id);
@@ -447,40 +469,6 @@
             if (sLabel) sLabel.textContent = 'Saved';
           }
         } catch (e) { /* skip this post */ }
-      }
-    }
-
-    async function loadFeed() {
-      document.getElementById('feedLoading').style.display = 'block';
-      document.getElementById('feedEmpty').style.display = 'none';
-      document.getElementById('feedPosts').innerHTML = '';
-
-      var posts = await fetchPosts({ limit: 20 });
-
-      document.getElementById('feedLoading').style.display = 'none';
-
-      if (!posts || posts.length === 0) {
-        document.getElementById('feedEmpty').style.display = 'block';
-        return;
-      }
-
-      var html = '';
-      posts.forEach(function(post) {
-        html += renderPostCard(post);
-      });
-      document.getElementById('feedPosts').innerHTML = html;
-      feedLoaded = true;
-      hydrateFeedSocialState(posts);
-
-      // Check which posts belong to current user and show menu
-      var session = await getSession();
-      if (session && session.user) {
-        posts.forEach(function(post) {
-          if (post.user_id === session.user.id) {
-            var menuEl = document.querySelector('[data-post-menu="' + post.id + '"]');
-            if (menuEl) menuEl.style.display = 'block';
-          }
-        });
       }
     }
 
@@ -849,6 +837,7 @@
     (async function() {
       await updateNavbarAuth();
       try { if (typeof renderNotificationBell === 'function') renderNotificationBell(); } catch(e) {}
+      try { if (typeof loadFeed === 'function') loadFeed(); } catch(e) {}
       var heroActions = document.getElementById('heroActions');
       var ctaActions = document.getElementById('ctaActions');
       if (await isLoggedIn()) {

@@ -312,6 +312,7 @@
   <script src="../js/profile.js"></script>
   <script src="../js/posts.js"></script>
   <script src="../js/social.js"></script>
+  <script src="../js/share.js"></script>
   <script>
     var defaultCreations = [
       { id: 'default-1', title: 'A Fusion of Naruto and Goku', cover_image_url: '../assets/images/creator/creator-pic-1.jpg', points: ['A fusion of <strong>Naruto</strong> and <strong>Goku</strong>.', 'Combines Naruto\'s fiery determination.', 'Merges with <strong>Goku\'s</strong> raw Saiyan power.', 'Represents a tribute to two anime legends.'] },
@@ -738,6 +739,7 @@
         '<div class="story-card-actions">' +
           '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + c.id + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
           '<button class="story-card-action" onclick="event.stopPropagation();openCreatorDetail(\'' + c.id + '\')"><i class="far fa-comment"></i></button>' +
+          '<button class="story-card-action share" onclick="event.stopPropagation();openShareSheet(\'' + c.id + '\')" aria-label="Share"><i class="fas fa-share-nodes"></i></button>' +
           '<button class="story-card-action save" data-save-for="' + c.id + '" onclick="event.stopPropagation();handleStorySave(\'' + c.id + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>' +
         '</div>';
       return card;
@@ -829,6 +831,7 @@
         var actionsHtml = realId
           ? '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + realId + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
             '<button class="story-card-action" onclick="event.stopPropagation();openCreatorDetail(\'' + realId + '\')"><i class="far fa-comment"></i></button>' +
+            '<button class="story-card-action share" onclick="event.stopPropagation();openShareSheet(\'' + realId + '\')" aria-label="Share"><i class="fas fa-share-nodes"></i></button>' +
             '<button class="story-card-action save" data-save-for="' + realId + '" onclick="event.stopPropagation();handleStorySave(\'' + realId + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>'
           : '';
         if (realId) {

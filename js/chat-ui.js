@@ -205,7 +205,10 @@ function renderChatMessages(messages, container, isAppend) {
       bubbleContent += '<div class="chat-msg-video"><video src="' + msg.attachment_url + '" controls playsinline preload="metadata"></video></div>';
     }
 
-    if (msg.content) {
+    // Shared-creation card (sent via the Share feature)
+    if (typeof SHARE_MSG_SENTINEL !== 'undefined' && msg.content && msg.content.indexOf(SHARE_MSG_SENTINEL) === 0) {
+      bubbleContent += renderSharedCreationCard(msg.content);
+    } else if (msg.content) {
       bubbleContent += '<div class="chat-msg-content-text">' + chatEscapeHtml(msg.content).replace(/\n/g, '<br>') + '</div>';
     }
 
@@ -248,6 +251,27 @@ function renderChatMessages(messages, container, isAppend) {
 }
 
 /* ---- Render reactions for a message ---- */
+function renderSharedCreationCard(content) {
+  try {
+    var data = JSON.parse(content.replace(SHARE_MSG_SENTINEL, ''));
+    var icon = data.type === 'writer' ? 'fa-pen-nib' : data.type === 'maker' ? 'fa-video' : 'fa-image';
+    var imgHtml = data.img
+      ? '<img class="chat-shared-card-img" src="' + data.img + '" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=chat-shared-card-img-wrap><i class=&quot;fas ' + icon + '&quot;></i></div>\'">'
+      : '<div class="chat-shared-card-img-wrap"><i class="fas ' + icon + '"></i></div>';
+    return '<a class="chat-shared-card" href="#" onclick="viewSharedCreation(\'' + data.id + '\', \'' + data.type + '\');return false;" aria-label="View shared creation">' +
+      imgHtml +
+      '<div class="chat-shared-card-body">' +
+        '<div class="chat-shared-card-type">' + (data.type === 'writer' ? 'Story' : data.type === 'maker' ? 'Video' : 'Artwork') + '</div>' +
+        '<div class="chat-shared-card-title">' + chatEscapeHtml(data.t || 'Untitled') + '</div>' +
+        '<div class="chat-shared-card-byline">@' + chatEscapeHtml(data.u || 'AniMaker') + '</div>' +
+        '<div class="chat-shared-card-cta"><i class="fas fa-arrow-up-right-from-square"></i> View Creation</div>' +
+      '</div>' +
+    '</a>';
+  } catch (e) {
+    return '';
+  }
+}
+
 function renderMessageReactions(msg) {
   if (!msg._reactions || msg._reactions.length === 0) return '';
 

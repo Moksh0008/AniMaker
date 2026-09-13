@@ -229,6 +229,7 @@
   <script src="../js/profile.js"></script>
   <script src="../js/posts.js"></script>
   <script src="../js/social.js"></script>
+  <script src="../js/share.js"></script>
   <script>
     var defaultVideos = [
       { id: 'default-m1', title: 'Nine Tails VS Gear 5', cover_image_url: '../assets/images/maker/maker-pic-1.jpg', video_url: '../assets/videos/animation-1.mp4' },
@@ -629,6 +630,7 @@
         '<div class="story-card-actions">' +
           '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + c.id + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
           '<button class="story-card-action" onclick="event.stopPropagation();openMakerDetail(\'' + c.id + '\')"><i class="far fa-comment"></i></button>' +
+          '<button class="story-card-action share" onclick="event.stopPropagation();openShareSheet(\'' + c.id + '\')" aria-label="Share"><i class="fas fa-share-nodes"></i></button>' +
           '<button class="story-card-action save" data-save-for="' + c.id + '" onclick="event.stopPropagation();handleStorySave(\'' + c.id + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>' +
         '</div>';
       return card;
@@ -706,6 +708,7 @@
         var actionsHtml = realId
           ? '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + realId + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
             '<button class="story-card-action" onclick="event.stopPropagation();openMakerDetail(\'' + realId + '\')"><i class="far fa-comment"></i></button>' +
+            '<button class="story-card-action share" onclick="event.stopPropagation();openShareSheet(\'' + realId + '\')" aria-label="Share"><i class="fas fa-share-nodes"></i></button>' +
             '<button class="story-card-action save" data-save-for="' + realId + '" onclick="event.stopPropagation();handleStorySave(\'' + realId + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>'
           : '';
         if (realId) {

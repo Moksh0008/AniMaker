@@ -431,6 +431,11 @@ function openCreatorDetail(id, userOverride) {
     var saved = await hasUserSaved(id);
     var followingUser = !isOwn && session ? await isFollowing(c.user_id) : false;
 
+    var shareCount = 0;
+    if (typeof getShareCount === 'function') {
+      try { shareCount = await getShareCount(id); } catch (e) {}
+    }
+
     var followBtnHtml = '';
     if (!isOwn && session) {
       followBtnHtml = '<button class="follow-btn ' + (followingUser ? 'following' : 'follow') + '" id="cb-follow-' + c.user_id + '" onclick="handleFollow(\'' + c.user_id + '\', this)">' + (followingUser ? '<i class="fas fa-check"></i> Following' : '<i class="fas fa-plus"></i> Follow') + '</button>';
@@ -457,6 +462,9 @@ function openCreatorDetail(id, userOverride) {
             '</button>' +
             '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
+            '</button>' +
+            '<button class="creation-action-btn" onclick="openShareSheet(\'' + id + '\')" aria-label="Share this creation">' +
+              '<i class="fas fa-share-nodes"></i> <span class="action-share-count" data-share-count-for="' + id + '"></span>' +
             '</button>' +
             '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
               '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
@@ -485,6 +493,11 @@ function openStoryDetail(id, userOverride) {
     liked = await hasUserLiked(id);
     saved = await hasUserSaved(id);
     followingUser = !isOwn && session ? await isFollowing(c.user_id) : false;
+
+    var shareCount = 0;
+    if (typeof getShareCount === 'function') {
+      try { shareCount = await getShareCount(id); } catch (e) {}
+    }
 
     var followBtnHtml = '';
     if (!isOwn && session) {
@@ -565,6 +578,9 @@ function openStoryDetail(id, userOverride) {
             '</button>' +
             '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
+            '</button>' +
+            '<button class="creation-action-btn" onclick="openShareSheet(\'' + id + '\')" aria-label="Share this creation">' +
+              '<i class="fas fa-share-nodes"></i> <span class="action-share-count" data-share-count-for="' + id + '"></span>' +
             '</button>' +
             '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
               '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
@@ -663,6 +679,11 @@ function openMakerDetail(id, userOverride) {
     var saved = await hasUserSaved(id);
     var followingUser = !isOwn && session ? await isFollowing(c.user_id) : false;
 
+    var shareCount = 0;
+    if (typeof getShareCount === 'function') {
+      try { shareCount = await getShareCount(id); } catch (e) {}
+    }
+
     var followBtnHtml = '';
     if (!isOwn && session) {
       followBtnHtml = '<button class="follow-btn ' + (followingUser ? 'following' : 'follow') + '" onclick="handleFollow(\'' + c.user_id + '\', this)">' + (followingUser ? '<i class="fas fa-check"></i> Following' : '<i class="fas fa-plus"></i> Follow') + '</button>';
@@ -691,6 +712,9 @@ function openMakerDetail(id, userOverride) {
             '</button>' +
             '<button class="creation-action-btn" onclick="document.getElementById(\'comments-section-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
               '<i class="far fa-comment"></i> <span class="action-comment-count">' + commentCount + '</span>' +
+            '</button>' +
+            '<button class="creation-action-btn" onclick="openShareSheet(\'' + id + '\')" aria-label="Share this creation">' +
+              '<i class="fas fa-share-nodes"></i> <span class="action-share-count" data-share-count-for="' + id + '"></span>' +
             '</button>' +            '<button class="creation-action-btn' + (saved ? ' saved' : '') + '" data-save-for="' + id + '" onclick="handleSave(\'' + id + '\', this)">' +
               '<i class="fa' + (saved ? 's' : 'r') + ' fa-bookmark"></i> <span>' + (saved ? 'Saved' : 'Save') + '</span>' +
             '</button>' +

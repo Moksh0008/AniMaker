@@ -231,6 +231,7 @@
   <script src="../js/profile.js"></script>
   <script src="../js/posts.js"></script>
   <script src="../js/social.js"></script>
+  <script src="../js/share.js"></script>
   <script>
     /* ---- Default (sample) stories shown while the gallery is empty ----
        These render client-side only; real published stories come from the DB. */
@@ -506,6 +507,7 @@
         '<div class="story-card-actions">' +
           '<button class="story-card-action like" onclick="event.stopPropagation();handleStoryLike(\'' + c.id + '\', this)"><i class="far fa-heart"></i> <span class="story-like-count">0</span></button>' +
           '<button class="story-card-action" onclick="event.stopPropagation();openStoryDetail(\'' + c.id + '\')"><i class="far fa-comment"></i></button>' +
+          '<button class="story-card-action share" onclick="event.stopPropagation();openShareSheet(\'' + c.id + '\')" aria-label="Share"><i class="fas fa-share-nodes"></i></button>' +
           '<button class="story-card-action save" data-save-for="' + c.id + '" onclick="event.stopPropagation();handleStorySave(\'' + c.id + '\', this)"><i class="far fa-bookmark"></i> <span class="story-save-label">Save</span></button>' +
         '</div>';
       return card;
